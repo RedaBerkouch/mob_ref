@@ -652,6 +652,9 @@ export class Initialisation implements OnInit {
 				filters.contextFilters,
 			);
 		} else {
+			this.clearSchoolSelection.set(Date.now());
+			this.schoolService.emptyData();
+
 			this.schoolService.loadSchools(
 				filters.versionFilter,
 				filters.cantonFilter,
