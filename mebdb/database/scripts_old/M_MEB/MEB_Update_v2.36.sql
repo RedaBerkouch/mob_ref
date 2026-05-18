@@ -1,0 +1,50 @@
+/**
+ * v2.36.00 Adapted FilterService to MEB
+ */
+ALTER TABLE FILTER
+ADD (
+DESCRIPTION_I VARCHAR2(252) NULL,
+NAME_I VARCHAR2(252) NULL,
+FILTERORDER NUMBER(2, 0) NULL
+);
+
+ALTER TABLE PARAMETER
+ADD (
+NAME_I VARCHAR2(50) NULL,
+PLAUSIID NUMBER NULL,
+EXPORTID NUMBER NULL,
+PARAMETERORDER NUMBER(2, 0) NULL
+);
+
+/**
+ * v2.36.00 Mantis 2271 Add SBFI-Code
+ */
+ALTER TABLE EVENT
+ADD SBFICODE NUMBER(5, 0) NULL;
+
+/**
+ * v2.36.00 Mantis 2270 Change PROFMATURA to 2 digits
+ */
+ALTER TABLE SDL_LEARNERS
+MODIFY (PROFMATURA NUMBER(2, 0) );
+
+/**
+ * v2.36.01 Mantis 2259 IsSpecialSchool (inst_typ_blp_flg)
+ */
+ALTER TABLE SCHOOLS
+ADD (
+INST_TYP_BLP_FLG NUMBER,
+BUR_INST_TYP_BLP_FLG NUMBER);
+
+/**
+ * v2.36.01 Mantis 2280 new plausi - ProfessionCode/KeyAspect check
+ */
+INSERT INTO MACRO
+(MACROID, TYPE, OBJECTTYPE,
+ NAME_D, NAME_F, DESCRIPTION_D, DESCRIPTION_F,
+ MACROORDER, SOURCE, AUTHORISATIONLEVEL, ISACTIVE, ISCONFIRMABLE)
+VALUES
+  (SBGSEQ.NEXTVAL, 0, 2,
+   'Berufscode/Schwerpunkt', 'profession/option spécifique', 'Passt Schwerpunkt zum Berufscode?',
+   'Correspond l''option spécifique à la profession?',
+   13, '13 Einfache interne Plausi', 3, 1, 1);

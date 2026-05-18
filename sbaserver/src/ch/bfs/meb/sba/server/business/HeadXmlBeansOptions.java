@@ -1,0 +1,34 @@
+/*
+  MEB Portal
+  Bundesamt für Statistik
+
+  adesso Schweiz AG
+  Copyright (c) 2009, 2010
+
+  Projekt: server-commons
+
+ */
+package ch.bfs.meb.sba.server.business;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.xmlbeans.XmlOptions;
+import org.springframework.oxm.xmlbeans.XmlOptionsFactoryBean;
+
+import ch.bfs.meb.sba.server.service.xmlbeans.TableDocument;
+
+/**
+ * XmlBeans options for SdlHead.
+ * 
+ * @author $Author$
+ * @version $Revision$
+ */
+public class HeadXmlBeansOptions extends XmlOptionsFactoryBean {
+
+    public HeadXmlBeansOptions() {
+        Map<String, Object> options = new HashMap<String, Object>();
+        options.put(XmlOptions.DOCUMENT_TYPE, TableDocument.Table.Head.type);
+        setOptions(options);
+    }
+}

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by dwi (glance) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0"
+		   elementFormDefault="unqualified" attributeFormDefault="unqualified">
+	<xs:element name="data">
+		<xs:annotation>
+			<xs:documentation>Dhtmlx result record</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:choice minOccurs="1" maxOccurs="1">
+				<xs:element name="action">
+					<xs:complexType mixed="true">
+						<xs:choice minOccurs="0" maxOccurs="2">
+							<xs:element ref="row"/>
+							<xs:element ref="message"/>
+						</xs:choice>
+						<xs:attribute name="type" type="xs:string" use="required"/>
+						<xs:attribute name="sid" type="xs:string"/>
+						<xs:attribute name="tid" type="xs:string"/>
+					</xs:complexType>
+				</xs:element>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="row">
+		<xs:complexType mixed="true">
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element ref="cell"/>
+				<xs:element ref="userdata"/>
+			</xs:choice>
+			<xs:attribute name="class" type="xs:string"/>
+			<xs:attribute name="style" type="xs:string"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="cell">
+		<xs:complexType mixed="true">
+			<xs:attribute name="title" type="xs:string"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="message">
+		<xs:complexType mixed="true"/>
+	</xs:element>
+	<xs:element name="userdata">
+		<xs:complexType mixed="true">
+			<xs:attribute name="name" type="xs:string" use="required"/>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

@@ -1,0 +1,62 @@
+@if (cantonService.lastFilters()) {
+	<app-version-canton-filter
+		tabStorage="initialisation"
+		[title]="'init.titlebar.filter.name' | translate"
+		[cantons]="cantonOptions()"
+		[initialCanton]="cantonService.lastFilters()?.canton"
+		[initialVersion]="cantonService.lastFilters()?.version"
+		[yearInit]=true
+		[yearInitLabel]="'init.initVersion.text' | translate"
+		[schoolSynchroLabel]="'init.doSync.text' | translate"
+		(initialiseVersion)="initialiseYear($event)"
+		(filterChanged)="filterChange($event)"
+		(cantonChanged)="onCantonSelectionChanged($event)"
+		[predefinedFilters]="configDeliveryService.isMaster() ? configDeliveryService.predefinedFilters() : schoolService.predefinedFilters()"
+		[contextFiltersConfig]="contextFiltersConfig()">
+	</app-version-canton-filter>
+}
+
+<app-upload-file
+	[title]="'deliver.upload.subjectfile.name' | translate"
+	[label]="'deliver.upload.file.name' | translate"
+	[labelButton]="'deliver.upload.subjectfile.name' | translate"
+	[dropAreaLabel]="'upload.typeAll.message' | translate"
+	[allTypes]=true
+	(uploaded)="uploadFile($event)">
+</app-upload-file>
+
+<app-datahandler
+	[config]="cantonConfig()"
+	[dataSource]="cantonService.cantons()"
+	[isLoading]="cantonService.isOpRunning()"
+	(rowSelected)="selectCanton($event)"
+	(tableEvent)="handleTableEventForCanton($event)">
+</app-datahandler>
+
+<app-datahandler
+	[config]="cantonInterventionConfig()"
+	[dataSource]="cantonInterventionService.cantonInterventions()"
+	[isLoading]="cantonInterventionService.isOpRunning()"
+	(rowSelected)="selectCantonIntervention($event)"
+	(tableEvent)="handleTableEventForCantonIntervention($event)">
+</app-datahandler>
+
+<app-datahandler
+	[isMaster]="configDeliveryService.isMaster()"
+	[config]="configDeliveryConfig()"
+	[dataSource]="configDeliveryService.configDeliveries()"
+	[isLoading]="configDeliveryService.isOpRunning()"
+	(rowSelected)="selectConfigDelivery($event)"
+	[clearSelection]="clearConfigDeliverySelection"
+	(tableEvent)="handleTableEventForConfigDelivery($event)">
+</app-datahandler>
+
+<app-datahandler
+	[isMaster]="schoolService.isMaster()"
+	[config]="schoolConfig()"
+	[dataSource]="schoolService.schools()"
+	[isLoading]="schoolService.isOpRunning()"
+	(rowSelected)="selectSchool($event)"
+	[clearSelection]="clearSchoolSelection"
+	(tableEvent)="handleTableEventForSchool($event)">
+</app-datahandler>

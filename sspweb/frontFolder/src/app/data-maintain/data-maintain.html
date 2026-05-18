@@ -1,0 +1,33 @@
+@if (userService.isEV()){
+	<app-toggle-administration
+		[actionLabel]="'save.noplausi' | translate"
+		[(activated)]="maintainStateService.registerWithoutPlausi"
+	></app-toggle-administration>
+}
+<app-version-canton-filter
+	tabStorage="data-maintain"
+	(filterChanged)="filterChange($event)"
+	[cantons]="cantonOptions()"
+	[refreshData]="personService.sessionFilters()"
+	[predefinedFilters]="maintainStateService.isPersonMaster() ? personService.predefinedFilters() : qualificationService.predefinedFilters()"
+	[contextFiltersConfig]="contextFiltersConfig()"
+>
+</app-version-canton-filter>
+<app-datahandler
+	[isMaster]="maintainStateService.isPersonMaster()"
+	[config]="personsConfig()"
+	[dataSource]="personService.persons()"
+	(rowSelected)="selectPersons($event)"
+	[isLoading]="maintainStateService.isLoadingPersons()"
+	[clearSelection]="clearPersonsSelection"
+	(tableEvent)="handleTableEventforPersons($event)">
+</app-datahandler>
+<app-datahandler
+	[isMaster]="maintainStateService.isQualificationMaster()"
+	[config]="qualificationsConfig()"
+	[dataSource]="qualificationService.qualifications()"
+	(rowSelected)="selectQualifications($event)"
+	[isLoading]="maintainStateService.isLoadingQualifications()"
+	[clearSelection]="clearQualificationsSelection"
+	(tableEvent)="handleTableEventforQualifications($event)">
+</app-datahandler>

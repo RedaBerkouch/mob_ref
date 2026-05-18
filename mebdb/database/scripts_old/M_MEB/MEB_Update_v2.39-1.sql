@@ -1,0 +1,7 @@
+/**
+ * v2.39.00 MEB-62 SBA: New field to qualification.
+ */
+
+ALTER TABLE SBA_QUALIFICATIONS
+--
+ADD MATURITY_LANGUAGES NUMBER;

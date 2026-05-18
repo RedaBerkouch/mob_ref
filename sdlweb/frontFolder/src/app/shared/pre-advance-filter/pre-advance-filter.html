@@ -1,0 +1,190 @@
+<div class="advanced-table-section">
+	<div class="wrapper-box">
+		<div class="table-header-block">
+			<div class="table-header mb-2">
+				<div class="header-top">
+					{{ 'deliver.titlebar.filteradvanced.name' | translate }}
+				</div>
+				<button
+					mat-icon-button
+					(click)="toggleCollapse()"
+					[attr.aria-label]="isCollapsed ? 'Développer le panneau' : 'Réduire le panneau'"
+					[attr.aria-expanded]="!isCollapsed">
+					<mat-icon>{{ isCollapsed ? 'expand_more' : 'expand_less' }}</mat-icon>
+				</button>
+			</div>
+		</div>
+
+		<div class="collapsible-content" [class.collapsed]="isCollapsed">
+			<div class="filters-container">
+				<!-- Filtres contextuels - GAUCHE -->
+				<div class="filter-section context-filters">
+					<h3>{{ 'maintain.titlebar.wherefilter.name' | translate }}</h3>
+
+					<table class="filter-table">
+						<thead>
+						<tr>
+							<th>{{ 'whereTable.column.attribute.name' | translate }}</th>
+							<th>{{ 'whereTable.column.operator.name' | translate }}</th>
+							<th>{{ 'whereTable.column.value.name' | translate }}</th>
+							<th>{{ 'whereTable.column.relation.name' | translate }}</th>
+							<th class="action-column">Action</th>
+						</tr>
+						</thead>
+						<tbody>
+							@for (ctx of contextFilters(); track $index) {
+								<tr>
+									<td>
+										<mat-form-field appearance="outline" class="filter-field">
+											<mat-select [(ngModel)]="ctx.attribute" (selectionChange)="onFieldChange(ctx)">
+												@for (col of contextFiltersConfig; track col.key) {
+													<mat-option [value]="col.key">
+														{{ col.label | translate }}
+													</mat-option>
+												}
+											</mat-select>
+										</mat-form-field>
+									</td>
+									<td>
+										<mat-form-field appearance="outline" class="filter-field compact">
+											<mat-select [(ngModel)]="ctx.operator" (selectionChange)="notifyContextFiltersChange()">
+												@for (op of contextFiltersOperators; track op) {
+													<mat-option [value]="op">
+														{{ op }}
+													</mat-option>
+												}
+											</mat-select>
+										</mat-form-field>
+									</td>
+									<td>
+										@let fieldType = getFieldType(ctx.attribute);
+
+										<!-- Input TEXT -->
+										@if (fieldType === 'text' || fieldType === 'parametre') {
+											<mat-form-field appearance="outline" class="filter-field">
+												<input matInput [(ngModel)]="ctx.value" (ngModelChange)="notifyContextFiltersChange()"/>
+											</mat-form-field>
+										}
+
+										<!-- Select avec options -->
+										@if (fieldType  === 'select' || fieldType  === 'plausi-error') {
+											@let fieldOptions = getFieldOptions(ctx.attribute);
+											<mat-form-field appearance="outline" class="filter-field">
+												<mat-select [(ngModel)]="ctx.value" (selectionChange)="notifyContextFiltersChange()">
+													@for (option of fieldOptions; track option.value) {
+														<mat-option [value]="option.value">
+															{{ option.label }}
+														</mat-option>
+													}
+												</mat-select>
+											</mat-form-field>
+										}
+
+										<!-- Date picker -->
+										@if (fieldType  === 'date') {
+											<mat-form-field appearance="outline" class="filter-field">
+												<input
+													matInput
+													[matDatepicker]="picker"
+													[ngModel]="getDateValue(ctx)"
+													(ngModelChange)="onDateChange(ctx, $event)"
+													placeholder="JJ.MM.AAAA"
+												/>
+												<mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+												<mat-datepicker #picker></mat-datepicker>
+											</mat-form-field>
+										}
+
+										<!-- Checkbox / Booléen -->
+										@if (fieldType === 'checkbox') {
+											<mat-form-field appearance="outline" class="filter-field">
+												<mat-select [(ngModel)]="ctx.value" (selectionChange)="notifyContextFiltersChange()">
+													<mat-option [value]="'1'">{{ 'i18n.common.yes' | translate }}</mat-option>
+													<mat-option [value]="'0'">{{ 'i18n.common.no' | translate }}</mat-option>
+												</mat-select>
+											</mat-form-field>
+										}
+
+										<!-- Fallback si pas de champ sélectionné -->
+										@if (!ctx.attribute || fieldType === null) {
+											<mat-form-field appearance="outline" class="filter-field">
+												<input matInput [(ngModel)]="ctx.value" (ngModelChange)="notifyContextFiltersChange()"/>
+											</mat-form-field>
+										}
+									</td>
+									<td>
+										<mat-form-field appearance="outline" class="filter-field compact">
+											<mat-select [(ngModel)]="ctx.relation" (selectionChange)="notifyContextFiltersChange()">
+												@for (rel of contextFiltersRelations; track rel) {
+													<mat-option [value]="rel">{{ rel }}</mat-option>
+												}
+											</mat-select>
+										</mat-form-field>
+									</td>
+									<td class="action-column">
+										<button
+											mat-icon-button
+											color="warn"
+											(click)="removeContextFilter($index)"
+											matTooltip="Supprimer cette ligne"
+											class="delete-button">
+											<mat-icon>delete</mat-icon>
+										</button>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+
+					<div class="filter-actions">
+						<button mat-stroked-button (click)="addContextFilter()">
+							{{ 'shared.utils.button.add_line' | translate }}
+						</button>
+					</div>
+				</div>
+
+				<!-- Divider vertical -->
+				<mat-divider [vertical]="true" class="vertical-divider"></mat-divider>
+
+				<!-- Filtres prédéfinis - DROITE -->
+				<div class="filter-section predefined-filters">
+					<h3>{{ 'maintain.titlebar.predeffilter.name' | translate }}</h3>
+
+					<div class="checkbox-group">
+						@for (filter of predefinedFilters; track filter.id) {
+							<div class="checkbox-item">
+								<div class="filter-main-line">
+									<mat-checkbox
+										[checked]="isFilterSelected(filter.id)"
+										(change)="toggleFilter(filter, $event.checked)">
+										<span class="label">{{ filter.label }}</span>
+									</mat-checkbox>
+
+									@if (filter.description) {
+										<span class="description">{{ filter.description }}</span>
+									}
+
+									@if (filter.parameters) {
+										<div class="parameters-inline">
+											@for (param of parseParameters(filter.parameters); track param.key) {
+												<mat-form-field appearance="outline" class="parameter-field">
+													<mat-label>{{ param.key }}</mat-label>
+													<input
+														matInput
+														[value]="param.value"
+														(input)="updateParameter(filter, param.id, $event)"
+														[disabled]="!isFilterSelected(filter.id)"
+													/>
+												</mat-form-field>
+											}
+										</div>
+									}
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

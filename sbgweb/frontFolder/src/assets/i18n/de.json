@@ -1,0 +1,1926 @@
+{
+  "language": "de",
+  "APP": {
+    "TITLE": "BFS: Statistik der Bildungsabschlüsse"
+  },
+  "table": {
+    "filter": {
+      "placeholder": "Filtern…"
+    },
+    "columns": {
+      "button": "Spalten"
+    }
+  },
+  "main": {
+    "bundesverwaltung": {
+      "link": {
+        "name": "Bundesverwaltung admin.ch",
+        "image": "imgs/cdbund/logobund.gif",
+        "href": "http://www.admin.ch"
+      }
+    },
+    "statistik": {
+      "link": {
+        "name": "BFS: Bundesamt für Statistik",
+        "image": "imgs/cdbund/Header_Port_05-wh_DE.jpg",
+        "href": "http://www.statistik.admin.ch"
+      }
+    },
+    "navigation": {
+      "home": {
+        "link": {
+          "name": "Home",
+          "href": "#"
+        }
+      },
+      "search": {
+        "link": {
+          "name": "Suche2",
+          "href": "#"
+        }
+      },
+      "sitemap": {
+        "link": {
+          "name": "Sitemap",
+          "href": "#"
+        }
+      },
+      "contact": {
+        "link": {
+          "name": "Kontakt",
+          "href": "#"
+        }
+      },
+      "help": {
+        "link": {
+          "name": "Hilfe",
+          "href": "#"
+        }
+      },
+      "language": {
+        "de": {
+          "link": {
+            "name": "Deutsch",
+            "href": "#"
+          }
+        },
+        "fr": {
+          "link": {
+            "name": "Français",
+            "href": "#"
+          }
+        },
+        "it": {
+          "link": {
+            "name": "Italiano",
+            "href": "#"
+          }
+        }
+      },
+      "login": {
+        "text": "Angemeldet als"
+      },
+      "unauthorized": {
+        "text": "Zugriff verweigert",
+        "gotohome": "Zurück zur Startseite"
+      },
+      "logout": {
+        "text": "Abmelden"
+      }
+    },
+    "tab": {
+      "datawizard": {
+        "name": "Lieferungen der Schulen"
+      },
+      "datadelivery": {
+        "name": "Datenlieferung"
+      },
+      "dataadministration": {
+        "name": "Datenpflege"
+      },
+      "tracking": {
+        "name": "Prozessverfolgung"
+      },
+      "initialisation": {
+        "name": "Kantonsübersicht"
+      },
+      "administration": {
+        "name": "Administration"
+      }
+    },
+    "titlebar": {
+      "icon": {
+        "exportcsv": {
+          "name": "Export"
+        },
+        "download": {
+          "name": "Download"
+        },
+        "openclose": {
+          "name": "Sektion zuklappen / aufklappen"
+        }
+      }
+    },
+    "error": {
+      "sessioncontext": "Fehler beim Zugriff auf die Benutzerverwaltung. Die Ausführung der Applikation ist eingeschränkt."
+    }
+  },
+  "plausierrorTable": {
+    "column": {
+      "title": {
+        "name": "Plausibilitätsfehler"
+      },
+      "rule": {
+        "name": "Regel"
+      },
+      "errormsg": {
+        "name": "Fehlertext"
+      },
+      "isconfirmed": {
+        "name": "Bestätigt"
+      },
+      "modDate": {
+        "name": "Datum"
+      }
+    }
+  },
+  "plausierrerTable": {
+    "column": {
+      "modUser": {
+        "name": "Geändert"
+      }
+    }
+  },
+  "tableColumn": {
+    "plausistatus": {
+      "tooltip": "Bitte doppelklicken zur Anzeige der Plausifehler"
+    }
+  },
+  "filterTable": {
+    "column": {
+      "isDefault": {
+        "name": "Default?"
+      },
+      "name": {
+        "name": "Filter"
+      },
+      "description": {
+        "name": "Beschreibung"
+      },
+      "parameter": {
+        "name": "Parameter"
+      },
+      "id": {
+        "name": "Id"
+      }
+    }
+  },
+  "whereTable": {
+    "column": {
+      "attribute": {
+        "name": "Variable"
+      },
+      "operator": {
+        "name": "Operator"
+      },
+      "value": {
+        "name": "Wert"
+      },
+      "relation": {
+        "name": "AND/OR"
+      },
+      "id": {
+        "name": "Id"
+      }
+    }
+  },
+  "deliver": {
+    "download": {
+      "subject": {
+        "name": "Hilfe und Dokumentation"
+      },
+      "quickguide": {
+        "text": "Kurzanleitung",
+        "href": "quickguides/Quick_Guide_DE.pdf"
+      },
+      "techManual": {
+        "text": "Lieferungsanleitung und Applikationshandbuch",
+        "name": "Erhebungsdokumentation und Benutzerhandbuch",
+        "href": "https://www.bfs.admin.ch/bfs/de/home/statistiken/bildung-wissenschaft/erhebungen/sbg.html"
+      },
+      "selfadmin": {
+        "name": "eIAM Portal \"MyAccount\"",
+        "href": "/_pep/myaccount"
+      },
+      "lernzenter": {
+        "text": "Lerncenter"
+      },
+      "tutorial": {
+        "name": "Tutorial",
+        "href": "http://www.portal-stat.admin.ch/sba/tutorial/index.html"
+      }
+    },
+    "upload": {
+      "file": {
+        "name": "Upload der SBA Daten"
+      },
+      "subject": {
+        "name": "Neue Datenlieferung"
+      },
+      "subjectfile": {
+        "name": "eine Datei hochladen"
+      },
+      "sbafile": {
+        "name": "Upload der SBA Daten",
+        "button": "SBA-Datei übermitteln"
+      }
+    },
+    "titlebar": {
+      "deliveries": {
+        "name": "Lieferungen"
+      },
+      "export": {
+        "name": "Auswertungen"
+      },
+      "icon": {
+        "showplausi": {
+          "name": "Plausi-Bericht anzeigen"
+        },
+        "createplausi": {
+          "name": "Plausi-Bericht erstellen"
+        },
+        "canceldelivery": {
+          "name": "Lieferung verwerfen"
+        },
+        "confirmdelivery": {
+          "name": "Lieferung bestätigen"
+        },
+        "replacedelivery": {
+          "name": "Lieferung ersetzen"
+        },
+        "amenddelivery": {
+          "name": "Lieferung ergänzen"
+        },
+        "validate": {
+          "name": "Freigeben"
+        },
+        "validateundo": {
+          "name": "Freigabe zurücknehmen"
+        },
+        "savedelivery": {
+          "name": "Änderungen speichern"
+        },
+        "deletedelivery": {
+          "name": "Lieferung löschen"
+        },
+        "showtutorial": {
+          "name": "Tutorial starten"
+        },
+        "init": {
+          "name": "Einstellungen übernehmen"
+        },
+        "filter": {
+          "name": "Filtern"
+        },
+        "deletefilter": {
+          "name": "Filter löschen"
+        },
+        "newfilter": {
+          "name": "Filter einfügen"
+        },
+        "run": {
+          "name": "Auswertung durchführen"
+        }
+      },
+      "filter": {
+        "name": "Lieferungen filtern"
+      },
+      "filteradvanced": {
+        "name": "Erweiterte Filter"
+      },
+      "predeffilter": {
+        "name": "Vordefinierte Filter"
+      },
+      "wherefilter": {
+        "name": "WHERE-Filter"
+      }
+    },
+    "version": {
+      "text": "Jahr"
+    },
+    "canton": {
+      "text": "Kanton"
+    }
+  },
+  "intervention": {
+    "titlebar": {
+      "interventions": {
+        "name": "Historisierung der Interventionen"
+      },
+      "icon": {
+        "showdelivery": {
+          "name": "Lieferdatei anzeigen"
+        },
+        "deleterecord": {
+          "name": "Datensatz löschen"
+        },
+        "newrecord": {
+          "name": "Datensatz einfügen"
+        },
+        "undo": {
+          "name": "Änderungen verwerfen"
+        },
+        "savemodification": {
+          "name": "Änderungen speichern"
+        }
+      }
+    },
+    "plausi": "Plausibericht"
+  },
+  "canton": {
+    "titlebar": {
+      "interventions": {
+        "name": "Historisierung der Interventionen"
+      }
+    },
+    "wrong": {
+      "state": {
+        "message": "Der Kanton hat den falschen Status für diese Operation."
+      }
+    },
+    "not": {
+      "actual": {
+        "deliveryplausi": {
+          "message": "Es sind nicht alle Lieferungen aktuell plausibilisiert.\\nBitte erstellen Sie zuerst einen neuen Plausibericht für die betroffenen Lieferungen:"
+        }
+      }
+    },
+    "no": {
+      "plausireport": {
+        "message": "Für diesen Kanton gibt es keinen Plausibericht."
+      }
+    },
+    "plausi": {
+      "error": {
+        "message": "Fehler bei der Plausibilisierung des Kantons - bitte kontaktieren Sie Ihren Erhebungsadministrator."
+      }
+    },
+    "alreadyexists": {
+      "message": "Der Kanton für dieses Jahr existiert bereits!"
+    }
+  },
+  "upload": {
+    "file": "transmettre un fichier à l'OFS",
+    "confirm": {
+      "delivery": {
+        "message": "Die Datenlieferung kann je nach Grösse mehrere Minuten dauern. Bitte haben Sie etwas Geduld."
+      }
+    },
+    "zip": {
+      "error": {
+        "message": "Fehler beim Zippen der Upload-Datei."
+      }
+    },
+    "locked": {
+      "message": "Eine Lieferung für diesen Kanton und dieses Jahr ist im Moment in Bearbeitung. Beenden Sie zuerst diese Lieferung."
+    },
+    "finalized": {
+      "message": "Die Lieferung für diesen Kanton und dieses Jahr ist schon finalisiert."
+    },
+    "validated": {
+      "message": "Die Lieferung für diesen Kanton und dieses Jahr ist schon validiert."
+    },
+    "prevalidated": {
+      "message": "Die Lieferung für diesen Kanton und dieses Jahr ist schon prävalidiert."
+    },
+    "amendOrReplace": {
+      "message": "Eine Lieferung für diesen Kanton und dieses Jahr existiert bereits. Bitte ergänzen, ersetzen oder verwerfen Sie die Lieferung."
+    },
+    "confirmation": {
+      "message": "Die Lieferung hat Plausibilisierungsfehler. Bitte bestätigen oder verwerfen Sie die Lieferung (Lieferung in der Tabelle auswählen und die Schaltfläche \"Bestätigen\" oder \"Verwerfen\" anklicken)."
+    },
+    "deliveryOk": {
+      "message": "Ihre Lieferung ist eingelesen worden. Das Ergebnis des Plausibilitätstests Ihrer Lieferung ist positiv, Sie können nun Ihre Daten freigeben (Lieferung markieren und \"freigeben\"-Taste drücken)."
+    },
+    "deliveryWithErrors": {
+      "message": "Ihre Lieferung ist eingelesen worden. Wenn Sie auf \"Plausi-Bericht anzeigen\" klicken, können Sie Ihre möglichen Fehler mit dem Plausibilisierungsbericht sehen."
+    },
+    "canton": {
+      "wrong": {
+        "message": "Die Kantonslieferung stimmt nicht mit dem Kanton des Benutzers überein."
+      }
+    },
+    "version": {
+      "wrong": {
+        "message": "Die gelieferte Datei bezieht sich nicht auf die aktuelle Version."
+      }
+    },
+    "configdelivery": {
+      "wrong": {
+        "message": "Sie sind noch nicht für diesen Kanton und diese Version konfiguriert worden. Bitte wenden Sie sich an Ihren Verantwortlichen."
+      }
+    },
+    "identification": {
+      "error": {
+        "message": "Die Lieferung konnte nicht identifiziert und gespeichert werden (Kanton oder Jahr ungültig)."
+      }
+    },
+    "csv": {
+      "header": {
+        "invalid": {
+          "message": "Datenkopf der Lieferdatei ist ungültig."
+        }
+      },
+      "contract": {
+        "invalid": {
+          "message": "Vertrag ist ungültig."
+        }
+      },
+      "ongoingEducation": {
+        "invalid": {
+          "message": "Laufende Ausbildung ist ungültig."
+        }
+      },
+      "exam": {
+        "invalid": {
+          "message": "Qualifikationsverfahren ist ungültig."
+        }
+      },
+      "cancellation": {
+        "invalid": {
+          "message": "Ausbildungsabbruch ist ungültig."
+        }
+      }
+    },
+    "deliverEmpty": {
+      "message": "Die übertragene Lieferdatei ist leer! Bitte schliessen Sie die allenfalls noch geöffnete Lieferdatei."
+    },
+    "deliverCsvWrongSuffix": {
+      "message": "Das Format der übertragenen Datei wird nicht akzeptiert. Akzeptierte Formate sind .csv und .xml (auch gezippt, .zip)."
+    },
+    "invalidEncoding": {
+      "message": "Für die Lieferdatei ... sind nur die Kodierungen UTF-8, Windows-1252 oder ISO-8859-1 zulässig. Bitte korrigieren Sie dies."
+    },
+    "encodingDetectionError": {
+      "message": "Error while processing file encoding."
+    },
+    "cantonDeliverEmptyFile": {
+      "message": "Keine Datei ausgewählt"
+    },
+    "cantonDeliverEmptyCanton": {
+      "message": "Wählen Sie einen Kanton aus der Liste"
+    },
+    "cantonDeliverEmptyVersion": {
+      "message": "Geben Sie eine Version in das Feld ein"
+    },
+    "cantonDeliverDeniedVersion": {
+      "message": "Diese Version existiert für diesen Kanton nicht"
+    },
+    "cantonDeliverFileSizeError": {
+      "message": "Die Datei ist zu groß (maximal 50 MB)"
+    },
+    "cantonDeliverFileUploadSuccess": {
+      "message": "Datei erfolgreich hochgeladen"
+    },
+    "deliverCsvWrongHeader": {
+      "message": "Die erste Zeile der Lieferung konnte nicht gelesen werden.\\n{0}"
+    },
+    "deliverCsvWrongHeaderContent": {
+      "message": "Die ersten 3 Spalten der ersten Zeile enthalten nicht <version>;<cantonId>;<dataDelivery>;....(z.B.: 2010;5;SZ_KT;...)"
+    },
+    "deliverCsvDataDeliveryTooLong": {
+      "message": "Der Code der Datenlieferung darf höchstens 20 Stellen lang sein."
+    },
+    "deliveryXmlHeaderError": {
+      "message": "Die Basisdaten der XML Datei konnten nicht eingelesen werden: {0}"
+    },
+    "deliveryXmlWrongFormat": {
+      "message": "Falsches Dateiformat für die Lieferung. Bitte liefern Sie die Lieferdaten im XML gemäss Technischem Handbuch Formatfehler: {0}"
+    },
+    "deliverWizardNoConfigDelivery": {
+      "message": "Sie sind nicht für den Kanton gemäss Lieferdatei berechtigt."
+    },
+    "wizarddelivery": {
+      "unconfiguredschool": "Diese Schulen wurden nicht zugewiesen",
+      "unknown": "Unbekannt",
+      "pleasecontact": "Bitte nehmen Sie mit Ihrer Ansprechsperson im Kanton Kontakt auf.",
+      "onecantonperdelivery": "Ihre Lieferdatei beinhaltet Schulen welche für verschiedene Kantone konfiguriert wurden. Liefern Sie die Kantone getrennt oder nehmen Sie mit Ihrer Ansprechsperson im Kanton Kontakt auf."
+    },
+    "cantonAlreadyValidated": {
+      "message": "Der Kanton ist schon validiert. Deswegen wurde Ihre Lieferung nicht bewilligt."
+    },
+    "cantonAlreadyFinalized": {
+      "message": "Der Kanton ist schon finalisiert. Deswegen wurde Ihre Lieferung nicht bewilligt."
+    },
+    "deliveryError": {
+      "message": "Fehler bei der Lieferung - bitte kontaktieren Sie Ihren Erhebungsadministrator."
+    },
+    "type": {
+      "message": "Ziehen Sie eine .csv-, .xml- oder .zip-Datei mit maximal 50 MB hierher oder klicken Sie hier, um sie hochzuladen"
+    },
+    "typeAll": {
+      "message": "Ziehen Sie eine Datei mit maximal 50 MB hierher oder klicken Sie hier, um sie hochzuladen"
+    }
+  },
+  "deliveryTable": {
+    "column": {
+      "deliveryid": {
+        "name": "Id"
+      },
+      "canton": {
+        "name": "Kanton"
+      },
+      "version": {
+        "name": "Jahr"
+      },
+      "plausistatus": {
+        "name": "Plausistatus"
+      },
+      "status": {
+        "name": "Lieferstatus"
+      },
+      "deliverydate": {
+        "name": "Lieferdatum"
+      },
+      "deliveryuser": {
+        "name": "Geliefert von"
+      },
+      "notvalid": {
+        "name": "Nicht validiert"
+      },
+      "plausiperson": {
+        "name": "Plausible Personen"
+      },
+      "plausievent": {
+        "name": "Plausible Ereignisse"
+      },
+      "plausiqualification": {
+        "name": "Plausible Aktivitäten"
+      }
+    }
+  },
+  "actionTable": {
+    "column": {
+      "interventionid": {
+        "name": "Id"
+      },
+      "canton": {
+        "name": "Kanton"
+      },
+      "version": {
+        "name": "Jahr"
+      },
+      "actionuser": {
+        "name": "Benutzer"
+      },
+      "executiondate": {
+        "name": "Datum"
+      },
+      "type": {
+        "name": "Intervention"
+      },
+      "plausireport": {
+        "name": "Plausibericht"
+      },
+      "validation": {
+        "name": "Validierungsbericht"
+      }
+    }
+  },
+  "personTable": {
+    "column": {
+      "personId": {
+        "name": "Person Id"
+      },
+      "version": {
+        "name": "Version"
+      },
+      "canton": {
+        "name": "Kanton"
+      },
+      "deliveryCode": {
+        "name": "Lieferung"
+      },
+      "idtype": {
+        "name": "IdTyp"
+      },
+      "id": {
+        "name": "Id"
+      },
+      "sex": {
+        "name": "Geschlecht"
+      },
+      "birthdate": {
+        "name": "Geburtsjahr"
+      },
+      "newBirthDate": {
+        "name": "Geburtsdatum"
+      },
+      "residence": {
+        "name": "Gemeinde (Amtl.)"
+      },
+      "historicResidence": {
+        "name": "Gemeinde (Hist.)"
+      },
+      "country": {
+        "name": "Land"
+      },
+      "status": {
+        "name": "Status"
+      },
+      "plausiStatus": {
+        "name": "Plausistatus"
+      },
+      "creationUser": {
+        "name": "Erzeugt von"
+      },
+      "creationDate": {
+        "name": "Erzeugt am"
+      },
+      "modified": {
+        "name": "Geändert von"
+      },
+      "modDate": {
+        "name": "Geändert am"
+      },
+      "validUser": {
+        "name": "Freigabe von"
+      },
+      "prevalidationDate": {
+        "name": "Freigabe am"
+      },
+      "validationUser": {
+        "name": "Validiert von"
+      },
+      "validDate": {
+        "name": "Validiert am"
+      },
+      "userComment": {
+        "name": "Kommentar"
+      },
+      "originText": {
+        "name": "Original text"
+      }
+    }
+  },
+  "qualificationTable": {
+    "column": {
+      "pid": {"name": "Id"},
+      "canton": {"name": "Kt."},
+      "version": {"name": "Jahr"},
+      "type": {"name": "Typ"},
+      "sbficode": {"name": "SBFI-Code"},
+      "contractno": {"name": "Vertrag-Nr."},
+      "professioncode": {"name": "Berufscode"},
+      "keyaspect": {"name": "Schwerpunkt"},
+      "educationyear": {"name": "Ausb. Jahr"},
+      "contracttype": {"name": "Bildungstyp"},
+      "contractdate": {"name": "Vertragsdatum"},
+      "examtype": {"name": "Prüfungsart"},
+      "examnr": {"name": "Prüfungs-Nr."},
+      "examrep": {"name": "Wiederholung"},
+      "examresult": {"name": "Ergebnisse"},
+      "cancelreason": {"name": "Auflösungsursache"},
+      "canceldate": {"name": "Auflösungsdatum"},
+      "burnr": {"name": "BURNR"},
+      "plausiStatus": {"name": "Plausi-St."},
+      "modified": {"name": "Geändert von"},
+      "modDate": {"name": "Geändert am"},
+      "usercomment": {"name": "Kommentar"},
+      "kantlbcode": {"name": "Kantonaler Lehrbetriebskode"},
+      "firstname": {"name": "Lehrbetriebsname"},
+      "firmstreet": {"name": "Strasse"},
+      "firmstreetno": {"name": "Haus-Nr."},
+      "firmplz": {"name": "PLZ"},
+      "firmmunicipal": {"name": "Betriebsstandort"},
+      "flaglbv": {"name": "LBV"}
+    }
+  },
+  "init": {
+    "titlebar": {
+      "filter": {
+        "name": "Filter"
+      },
+      "filteradvanced": {
+        "name": "Erweiterte Filter"
+      },
+      "predeffilter": {
+        "name": "Vordefinierte Filter"
+      },
+      "wherefilter": {
+        "name": "WHERE-Filter"
+      },
+      "canton": {
+        "name": "Kantone"
+      },
+      "configdelivery": {
+        "name": "Lieferungskonfigurationen"
+      },
+      "burschool": {
+        "name": "Schulen"
+      },
+      "icon": {
+        "init": {
+          "name": "Einstellungen übernehmen"
+        },
+        "filter": {
+          "name": "Filtern"
+        },
+        "deletefilter": {
+          "name": "Filter löschen"
+        },
+        "newfilter": {
+          "name": "Filter einfügen"
+        },
+        "deleterecord": {
+          "name": "Datensatz löschen"
+        },
+        "newrecord": {
+          "name": "Datensatz einfügen"
+        },
+        "undo": {
+          "name": "Änderungen verwerfen"
+        },
+        "savemodification": {
+          "name": "Änderungen speichern"
+        },
+        "synchronize": {
+          "name": "Synchronisieren"
+        },
+        "getbur": {
+          "name": "BUR übernehmen"
+        },
+        "getallbur": {
+          "name": "Alle übernehmen"
+        },
+        "exportcsv": {
+          "name": "Export"
+        },
+        "master": {
+          "name": "Mastertabelle wechseln"
+        },
+        "showplausi": {
+          "name": "Plausibericht des Kantons anzeigen"
+        },
+        "createplausi": {
+          "name": "Plausibericht des Kantons erstellen"
+        },
+        "validate": {
+          "name": "Validieren"
+        },
+        "validateundo": {
+          "name": "Validierung zurücknehmen"
+        },
+        "finalize": {
+          "name": "Finalisieren"
+        },
+        "finalizeundo": {
+          "name": "Finalisieren zurücknehmen"
+        },
+        "showtutorial": {
+          "name": "Tutorial starten"
+        }
+      }
+    },
+    "version": {
+      "text": "Jahr"
+    },
+    "canton": {
+      "text": "Kanton"
+    },
+    "initVersion": {
+      "text": "Jahr initialisieren"
+    },
+    "doSync": {
+      "text": "mit Abgleich der Schulen"
+    },
+    "burnotsynchron": {
+      "message": "Nicht synchronisierte Schulen mit BUR vorhanden"
+    },
+    "deliveryexists": {
+      "message": "Es sind schon Lieferungen für das neuen Jahr definiert worden"
+    },
+    "alreadydone1": {
+      "message": "Dieses Jahr wurde für den Kanton schon initialisiert."
+    },
+    "alreadydone2": {
+      "message": "Dieses Jahr wurde für ein Kanton schon initialisiert."
+    },
+    "error": {
+      "message": "Unbekannter Fehler - Bitte versuchen Sie es später nochmals."
+    }
+  },
+  "maintain": {
+    "titlebar": {
+      "filter": {
+        "name": "Filter"
+      },
+      "filteradvanced": {
+        "name": "Erweiterte Filter"
+      },
+      "predeffilter": {
+        "name": "Vordefinierte Filter"
+      },
+      "wherefilter": {
+        "name": "WHERE-Filter"
+      },
+      "icon": {
+        "init": {
+          "name": "Einstellungen übernehmen"
+        },
+        "filter": {
+          "name": "Filtern"
+        },
+        "deletefilter": {
+          "name": "Filter löschen"
+        },
+        "newfilter": {
+          "name": "Filter einfügen"
+        },
+        "deleterecord": {
+          "name": "Datensatz löschen"
+        },
+        "newrecord": {
+          "name": "Datensatz einfügen"
+        },
+        "undo": {
+          "name": "Änderungen verwerfen"
+        },
+        "savemodification": {
+          "name": "Änderungen speichern"
+        },
+        "synchronize": {
+          "name": "Synchronisieren"
+        },
+        "getbur": {
+          "name": "BUR übernehmen"
+        },
+        "getallbur": {
+          "name": "Alle übernehmen"
+        },
+        "exportcsv": {
+          "name": "Export"
+        },
+        "master": {
+          "name": "Mastertabelle wechseln"
+        },
+        "showplausi": {
+          "name": "Bericht anzeigen"
+        },
+        "createplausi": {
+          "name": "Bericht erstellen"
+        },
+        "showtutorial": {
+          "name": "Tutorial starten"
+        }
+      },
+      "person": {
+        "name": "Personen"
+      },
+      "qualification": {
+        "name": "Qualifikationen"
+      }
+    },
+    "version": {
+      "text": "Jahr"
+    },
+    "canton": {
+      "text": "Kanton"
+    },
+    "delete": {
+      "childrenValidatedError": {
+        "messages": "Es gibt bereits freigegebene untergeordnete Lieferdaten. Der Löschvorgang wird abgebrochen. Bitte kontaktieren Sie Ihren Verantwortlichen."
+      }
+    }
+  },
+  "wizard": {
+    "table": {
+      "header_first_column": "Schule(n) zur Lieferung",
+      "header_second_column": "Gesamtanzahl der Personen",
+      "qualification": "Qualifikationen",
+      "accepter": "Akzeptieren",
+      "numexam": "Prüfungsnummer",
+      "idpersonne": "Personen-ID",
+      "erreur": "Fehlerbeschreibung",
+      "regle": "Regel"
+    },
+    "delivery": {
+      "upload": {
+        "title": "Meine Daten laden"
+      },
+      "error": {
+        "title": "Fehler ansehen",
+        "text": "Fehler:"
+      },
+      "validate": {
+        "title": "Arbeit beenden",
+        "text": "Beenden",
+        "conflict": {
+          "message": "Konflikt: Lieferstatus der einzelnen Lieferungen stimmt nicht überein - bitte wenden Sie sich an Ihren Verantwortlichen."
+        },
+        "message": "Die Arbeit kann beendet werden, wenn alle Schulen geliefert wurden, keine Fehler mehr vorhanden sind und die unsicheren Fälle angenommen wurden."
+      },
+      "confirm": {
+        "title": "Unsichere Fälle bearbeiten"
+      },
+      "choosedluser": {
+        "text": "Bitte wählen Sie einen Datenlieferanten aus:"
+      },
+      "dluser": {
+        "text": "Datenlieferant:"
+      },
+      "version": {
+        "text": "Version:"
+      },
+      "choosefile": {
+        "text": "Wählen Sie eine Datei:"
+      },
+      "loadfile": {
+        "text": "Laden"
+      },
+      "deletefile": {
+        "text": "Alle Daten löschen"
+      },
+      "showerror": {
+        "text": "Fehler und unsichere Fälle ansehen",
+        "message": "Bitte löschen Sie die Daten, korrigieren Sie die Fehler in Ihrer Quelldatei (z.B. Excel Erhebungstool) und laden Sie diese erneut hoch. Ein unsicherer Fall muss in der Quelldatei korrigiert werden, falls es ein Fehler ist, ansonsten kann er hier nach erneutem laden bestätigt werden."
+      },
+      "confirmableerror": {
+        "text": "Unsichere Fälle:"
+      },
+      "showconfirmableerror": {
+        "text": "Unsichere Fälle ansehen und annehmen",
+        "message": "Bitte die unsichere Fälle überprüfen und annehmen. Falls ein unsicherer Fall ein Fehler ist, muss er in der Quelldatei korrigiert und erneut hochgeladen werden."
+      },
+      "showconfirmableerrorallconfirmed": {
+        "text": "Unsichere Fälle ansehen"
+      },
+      "finished": {
+        "message": "Herzlichen Dank! Ihre Arbeit ist beendet."
+      },
+      "nonconfirmable": {
+        "count": "Nicht bestätigbare Fehlerfälle"
+      },
+      "confirmable": {
+        "count": "Unklare Fälle zur Bestätigung"
+      },
+      "saveandclose": {
+        "text": "Speichern und schliessen"
+      },
+      "selectfile": {
+        "message": "Bitte mit der 'Durchsuchen...' Schaltfläche zuerst eine Datei auswählen!"
+      },
+      "delete": {
+        "confirm": {
+          "school": {
+            "message": "Wollen Sie wirklich alle Daten der Schule löschen?"
+          },
+          "message": "Wollen Sie wirklich alle Daten löschen?"
+        }
+      }
+    }
+  },
+  "cantonTable": {
+    "column": {
+      "cantonId": {
+        "name": "Id"
+      },
+      "canton": {
+        "name": "Kanton"
+      },
+      "deliveryStatus": {
+        "name": "Lieferstatus"
+      },
+      "plausiStatus": {
+        "name": "Plausistatus"
+      },
+      "plausiDate": {
+        "name": "Plausibilisiert am"
+      },
+      "plausiUser": {
+        "name": "Plausibilisiert von"
+      },
+      "creationDate": {
+        "name": "Erzeugt am"
+      },
+      "creationUser": {
+        "name": "Erzeugt von"
+      },
+      "modificationDate": {
+        "name": "Geändert am"
+      },
+      "modificationUser": {
+        "name": "Geändert von"
+      },
+      "validationDate": {
+        "name": "Validiert am"
+      },
+      "validationUser": {
+        "name": "Validiert von"
+      },
+      "finalisationDate": {
+        "name": "Finalisiert am"
+      },
+      "finalisationUser": {
+        "name": "Finalisiert von"
+      },
+      "userText": {
+        "name": "Kommentar"
+      }
+    }
+  },
+  "configDeliveryTable": {
+    "column": {
+      "deliveryId": {
+        "name": "Id"
+      },
+      "canton": {
+        "name": "Kanton"
+      },
+      "deliveryCode": {
+        "name": "Id"
+      },
+      "default": {
+        "name": "Default?"
+      },
+      "dlUsers": {
+        "name": "Datenlieferanten",
+        "param": {
+          "name": "DL"
+        }
+      },
+      "roUsers": {
+        "name": "Read-only Benutzer",
+        "param": {
+          "name": "RO"
+        }
+      },
+      "dueDate": {
+        "name": "Liefertermin"
+      },
+      "referenceDate": {
+        "name": "Stichtag"
+      },
+      "creationDate": {
+        "name": "Erzeugt am"
+      },
+      "creationUser": {
+        "name": "Erzeugt von"
+      },
+      "modificationDate": {
+        "name": "Geändert am"
+      },
+      "modificationUser": {
+        "name": "Geändert von"
+      },
+      "userText": {
+        "name": "Kommentar"
+      }
+    }
+  },
+  "burSchoolTable": {
+    "column": {
+      "schoolId": {
+        "name": "Id"
+      },
+      "canton": {
+        "name": "Kanton"
+      },
+      "burNr": {
+        "name": "Id"
+      },
+      "label": {
+        "name": "Name"
+      },
+      "charPublFlg": {
+        "name": "Öff."
+      },
+      "charPrivSubFlg": {
+        "name": "priv. subv. 50-100%"
+      },
+      "charPrivNoSubFlg": {
+        "name": "priv. subv. 0-49%"
+      },
+      "isSpecialSchool": {
+        "name": "Sonderschule"
+      },
+      "deliveryCode": {
+        "name": "Lieferung"
+      },
+      "municipality": {
+        "name": "Gemeinde"
+      },
+      "synchStatusBur": {
+        "name": "SynchStatus"
+      },
+      "nameBur": {
+        "name": "Name BUR"
+      },
+      "burCharPublFlg": {
+        "name": "Öff. BUR"
+      },
+      "burCharPrivSubFlg": {
+        "name": "priv. subv. BUR"
+      },
+      "burCharPrivNoSubFlg": {
+        "name": "priv. nicht subv. BUR"
+      },
+      "isSpecialSchoolBur": {
+        "name": "Sonderschule"
+      },
+      "cantonBur": {
+        "name": "Kanton BUR"
+      },
+      "municipalityBur": {
+        "name": "Gemeinde BUR"
+      },
+      "validFromBur": {
+        "name": "Gültig ab BUR"
+      },
+      "validToBur": {
+        "name": "Gültig bis BUR"
+      },
+      "userText": {
+        "name": "Kommentar"
+      }
+    }
+  },
+  "admin": {
+    "titlebar": {
+      "filter": {
+        "name": "Filter",
+        "parameter": {
+          "name": "Filter-Parameter"
+        }
+      },
+      "plausi": {
+        "name": "Plausibilisierungsregeln",
+        "parameter": {
+          "name": "Plausibilisierungs-Parameter"
+        }
+      },
+      "export": {
+        "name": "Exporte",
+        "parameter": {
+          "name": "Export-Parameter"
+        }
+      },
+      "icon": {
+        "undo": {
+          "name": "Änderungen verwerfen"
+        },
+        "newrecord": {
+          "name": "Datensatz einfügen"
+        },
+        "deleterecord": {
+          "name": "Datensatz löschen"
+        },
+        "savemodification": {
+          "name": "Änderungen speichern"
+        }
+      }
+    }
+  },
+  "adminFilterTable": {
+    "column": {
+      "id": {
+        "name": "Id"
+      },
+      "sortorder": {
+        "name": "Reihenfolge"
+      },
+      "name": {
+        "german": {
+          "name": "Name de"
+        },
+        "french": {
+          "name": "Name fr"
+        },
+        "italian": {
+          "name": "Name it"
+        }
+      },
+      "object": {
+        "name": "Objekt"
+      },
+      "description": {
+        "german": {
+          "name": "Beschreibung de"
+        },
+        "french": {
+          "name": "Beschreibung fr"
+        },
+        "italian": {
+          "name": "Beschreibung it"
+        }
+      },
+      "authorisation": {
+        "name": "Berechtigung"
+      },
+      "default": {
+        "name": "Default?"
+      },
+      "active": {
+        "name": "Aktiv?"
+      },
+      "source": {
+        "name": "Sourcecode"
+      }
+    }
+  },
+  "adminPlausiTable": {
+    "column": {
+      "id": {
+        "name": "Id"
+      },
+      "order": {
+        "name": "Reihenfolge"
+      },
+      "name": {
+        "german": {
+          "name": "Name de"
+        },
+        "french": {
+          "name": "Name fr"
+        },
+        "italian": {
+          "name": "Name it"
+        }
+      },
+      "type": {
+        "name": "Typ"
+      },
+      "object": {
+        "name": "Objekt"
+      },
+      "active": {
+        "name": "Aktiv?"
+      },
+      "confirmable": {
+        "name": "Bestätigbar?"
+      },
+      "validFrom": {
+        "name": "Gültig ab"
+      },
+      "validTo": {
+        "name": "Gültig bis"
+      },
+      "description": {
+        "german": {
+          "name": "Beschreibung de"
+        },
+        "french": {
+          "name": "Beschreibung fr"
+        },
+        "italian": {
+          "name": "Beschreibung it"
+        }
+      },
+      "source": {
+        "name": "Pfad"
+      }
+    }
+  },
+  "adminExportTable": {
+    "column": {
+      "id": {
+        "name": "Id"
+      },
+      "order": {
+        "name": "Reihenfolge"
+      },
+      "name": {
+        "german": {
+          "name": "Name de"
+        },
+        "french": {
+          "name": "Name fr"
+        },
+        "italian": {
+          "name": "Name it"
+        }
+      },
+      "type": {
+        "name": "Typ"
+      },
+      "authorisation": {
+        "name": "Berechtigung"
+      },
+      "active": {
+        "name": "Aktiv?"
+      },
+      "description": {
+        "german": {
+          "name": "Beschreibung de"
+        },
+        "french": {
+          "name": "Beschreibung fr"
+        },
+        "italian": {
+          "name": "Beschreibung it"
+        }
+      },
+      "source": {
+        "name": "Source"
+      }
+    }
+  },
+  "adminParamTable": {
+    "column": {
+      "id": {
+        "name": "Id"
+      },
+      "sortorder": {
+        "name": "Reihenfolge"
+      },
+      "name": {
+        "unique": {
+          "name": "Id"
+        },
+        "german": {
+          "name": "Name de"
+        },
+        "french": {
+          "name": "Name fr"
+        },
+        "italian": {
+          "name": "Name it"
+        }
+      },
+      "default": {
+        "name": "Defaultwert"
+      }
+    }
+  },
+  "exportTable": {
+    "column": {
+      "id": {
+        "name": "Id"
+      },
+      "order": {
+        "name": "Reihenfolge"
+      },
+      "name": {
+        "name": "Name",
+        "german": {
+          "name": "Name de"
+        },
+        "french": {
+          "name": "Name fr"
+        },
+        "italian": {
+          "name": "Name it"
+        }
+      },
+      "type": {
+        "name": "Typ"
+      },
+      "authorisation": {
+        "name": "Berechtigung"
+      },
+      "active": {
+        "name": "Aktiv?"
+      },
+      "description": {
+        "name": "Beschreibung",
+        "german": {
+          "name": "Beschreibung de"
+        },
+        "french": {
+          "name": "Beschreibung fr"
+        },
+        "italian": {
+          "name": "Beschreibung it"
+        }
+      },
+      "source": {
+        "name": "Source"
+      },
+      "parameter": {
+        "name": "Parameter"
+      },
+      "macroid": {
+        "name": "Id"
+      }
+    }
+  },
+  "idm": {
+    "access": {
+      "error": "Fehler beim Zugriff auf die Benutzerverwaltung IDM. Bitte kontaktieren Sie Ihren Erhebungsverantwortlichen."
+    },
+    "getIdentity": {
+      "error": "Fehler beim Zugriff auf die Benutzerverwaltung IDM (getIdentity). Bitte kontaktieren Sie Ihren Erhebungsverantwortlichen."
+    },
+    "getIdentityByGuid": {
+      "error": "Fehler beim Zugriff auf die Benutzerverwaltung IDM (getIdentityByGuid). Bitte kontaktieren Sie Ihren Erhebungsverantwortlichen."
+    },
+    "getGroup": {
+      "error": "Fehler beim Zugriff auf die Benutzerverwaltung IDM (getGroup). Bitte kontaktieren Sie Ihren Erhebungsverantwortlichen."
+    }
+  },
+  "plausireport": {
+    "confirm": {
+      "message": "Die Erstellung des Plausibilisierungsberichtes kann je nach Grösse der Lieferung mehrere Minuten dauern."
+    },
+    "canton": {
+      "confirm": {
+        "message": "Die Erstellung des Plausibilisierungsberichtes kann mehrere Minuten dauern."
+      }
+    }
+  },
+  "delivery": {
+    "wrong": {
+      "state": {
+        "message": "Die Lieferung hat den falschen Status für diese Operation."
+      }
+    },
+    "plausi": {
+      "in": {
+        "creation": {
+          "action": "Plausibericht wird bereits erstellt. Diese Aktion kann einige Minuten dauern, danke für Ihre Geduld!"
+        }
+      }
+    },
+    "pending": {
+      "action": "Momentan läuft bereits eine andere Operation auf dieser Lieferung. Bitte versuchen Sie es später nochmals nach einer Aktualisierung des Browsers."
+    },
+    "other": {
+      "creator": "Der Code Ihrer Datenlieferung ist nicht verfügbar. Bitte wählen Sie für die Variable <A.3 Datenlieferung> einen anderen (für Sie spezifischen) Code."
+    },
+    "tobeloaded": "Wird geladen...",
+    "queued": "Lieferung in Warteschlange"
+  },
+  "sort": {
+    "mastertable": {
+      "lock": {
+        "message": "Sie können erst sortieren, wenn Sie ihre Änderungen gespeichert haben."
+      }
+    },
+    "detailtable": {
+      "lock": {
+        "message": "Sie können erst sortieren, wenn Sie ihre Änderungen gespeichert haben."
+      }
+    }
+  },
+  "click": {
+    "table": {
+      "lock": {
+        "message": "Sie können ihre Selektion erst ändern, wenn Sie ihre Änderungen gespeichert haben."
+      }
+    }
+  },
+  "delete": {
+    "table": {
+      "lock": {
+        "message": "Sie können einen Eintrag nur löschen, wenn Sie ihre Änderungen auf anderen Tabellen gespeichert haben."
+      }
+    },
+    "deliveryexists": {
+      "message": "Dieser Kanton enthält schon Lieferungskonfigurationen und kann deshalb nicht gelöscht werden."
+    }
+  },
+  "insert": {
+    "table": {
+      "lock": {
+        "message": "Sie können nur einen neuen Eintrag einfügen, wenn Sie ihre Änderungen auf anderen Tabellen gespeichert haben."
+      }
+    },
+    "delivery": {
+      "finalized": {
+        "message": "Einfügen nicht möglich, die Lieferung ist bereits finalisiert."
+      },
+      "validated": {
+        "message": "Einfügen nicht möglich, die Lieferung ist bereits validiert."
+      },
+      "prevalidated": {
+        "message": "Einfügen nicht möglich, die Lieferung ist bereits prävalidiert."
+      }
+    }
+  },
+  "duplicate": {
+    "table": {
+      "lock": {
+        "message": "Sie können nur einen neuen Eintrag duplikat, wenn Sie ihre Änderungen auf anderen Tabellen gespeichert haben."
+      }
+    },
+    "parameter": {
+      "error": {
+        "message": "Parameter-Ids müssen eindeutig sein."
+      }
+    }
+  },
+  "synchbur": {
+    "table": {
+      "lock": {
+        "message": "Sie können erst synchronisieren, wenn Sie ihre Änderungen gespeichert haben."
+      }
+    }
+  },
+  "burschool": {
+    "table": {
+      "lock": {
+        "message": "Sie können erst alle BUR-Daten übernehmen, wenn Sie ihre Änderungen gespeichert haben."
+      }
+    }
+  },
+  "filter": {
+    "table": {
+      "lock": {
+        "message": "Sie können nur filtern, wenn Sie ihre Änderungen gespeichert haben."
+      }
+    },
+    "version": {
+      "message": "Kein gültiges Jahr!"
+    },
+    "objectempty": {
+      "message": "Das Objekt darf nicht leer sein!"
+    },
+    "authorisationempty": {
+      "message": "Die Berechtigung darf nicht leer sein!"
+    },
+    "sourceempty": {
+      "message": "Der Sourcecode darf nicht leer sein!"
+    },
+    "wrongdate": {
+      "message": "Kein gültiges Datum!"
+    },
+    "wrongnumber": {
+      "message": "Keine gültige Zahl!"
+    },
+    "notActivated": {
+      "message": "Filtern ist erst möglich, wenn alle Tabellen initialisiert wurden!"
+    },
+    "parameter": {
+      "missing": {
+        "message": "Fehlender Parameter in vordefiniertem Filter"
+      }
+    },
+    "value": {
+      "missing": {
+        "message": "Fehlende Angabe in Where-Filter"
+      }
+    }
+  },
+  "error": {
+    "sql": {
+      "message": "Es ist ein Fehler beim Filtern der Daten aufgetreten. Bitte überprüfen Sie Ihre Eingaben.",
+      "timeout": {
+        "message": "Die Datenbankabfrage dauerte zu lange und wurde mit einem Timeout abgebrochen."
+      }
+    },
+    "objectnotfound": {
+      "message": "Die Daten sind bereits von einem anderen Benutzer geändert worden. Bitte aktualisieren Sie die Daten in Ihrem Browser."
+    }
+  },
+  "switch": {
+    "master": {
+      "table": {
+        "lock": {
+          "message": "Sie können die Tabelle erst wechseln, wenn Sie ihre Änderungen gespeichert haben."
+        }
+      }
+    }
+  },
+  "no": {
+    "delivery": {
+      "selected": {
+        "message": "Bitte wählen Sie zuerst eine Lieferung aus."
+      },
+      "message": "Es existiert keine Lieferung für diesen Namen, Jahr und Kanton."
+    },
+    "file": {
+      "selected": {
+        "message": "Bitte wählen Sie eine Datei."
+      }
+    },
+    "export": {
+      "selected": {
+        "message": "Bitte wählen Sie zuerst eine Auswertung aus."
+      }
+    },
+    "canton": {
+      "selected": {
+        "message": "Bitte wählen Sie zuerst einen Kanton aus."
+      }
+    },
+    "authorization": {
+      "message": "Sie haben keine Berechtigung für diese Operation."
+    },
+    "school": {
+      "identified": {
+        "message": "Keine Schule der Lieferdatei konnte identifiziert werden. Bitte wenden Sie sich an Ihren Verantwortlichen."
+      }
+    }
+  },
+  "confirm": {
+    "prevalidate": {
+      "dl": {
+        "message": "Prävalidieren entzieht Ihnen Ihre Schreibrechte auf die Daten. Sie können das Prävalidieren nicht mehr rückgängig machen. Wollen Sie Ihre Daten wirklich prävalidieren?"
+      },
+      "message": "Wollen Sie Ihre Daten wirklich prävalidieren?"
+    },
+    "validate": {
+      "dv": {
+        "message": "Validieren entzieht Ihnen Ihre Schreibrechte auf die Daten. Sie können das Validieren nicht mehr rückgängig machen. Wollen Sie Ihre Daten wirklich validieren?"
+      },
+      "message": "Wollen Sie Ihre Daten wirklich validieren?"
+    },
+    "finalize": {
+      "message": "Finalisieren entzieht Ihnen die Schreibrechte auf die Daten. Wollen Sie den Kanton wirklich finalisieren?"
+    },
+    "undo": {
+      "prevalidate": {
+        "message": "Die Rücknahme der Prävalidierung gibt dem Datenlieferanten Schreibrechte auf die Daten. Wollen Sie die Prävalidierung wirklich zurücknehmen?"
+      },
+      "validate": {
+        "message": "Die Rücknahme der Validierung gibt dem Datenverantwortlichen Schreibrechte auf die Daten. Wollen Sie die Validierung wirklich zurücknehmen?",
+        "person": {
+          "message": "Wollen Sie diese Lieferung und alle untergeordneten Daten wirklich devalidieren?"
+        }
+      },
+      "finalize": {
+        "message": "Entfinalisieren gibt dem Erhebungsverantwortlichen Schreibrechte auf die Daten. Wollen Sie die Finalisierung wirklich zurücknehmen?"
+      }
+    },
+    "delete": {
+      "delivery": {
+        "message": "Wollen Sie alle Personen und Qualifikationen dieser Lieferung wirklich löschen?"
+      },
+      "permanent": {
+        "delivery": {
+          "message": "Wollen Sie die Lieferung mit allen Interventionen komplett aus dem System löschen?"
+        }
+      }
+    }
+  },
+  "undo": {
+    "prevalidate": {
+      "error": {
+        "message": "Alle übergeordneten Datensätze müssen im Status Geliefert sein - die Prävalidierung kann nicht zurückgenommen werden."
+      },
+      "wrong": {
+        "state": {
+          "error": {
+            "message": "Nicht alle gewählten Datensätze sind prävalidiert - die Prävalidierung kann nicht zurückgenommen werden."
+          }
+        }
+      }
+    },
+    "validate": {
+      "error": {
+        "message": "Alle übergeordneten Datensätze müssen im Status Geliefert oder Prävalidiert sein - die Validierung kann nicht zurückgenommen werden."
+      },
+      "wrong": {
+        "state": {
+          "error": {
+            "message": "Nicht alle gewählten Datensätze sind validiert - die Validierung kann nicht zurückgenommen werden."
+          }
+        }
+      }
+    }
+  },
+  "export": {
+    "type": {
+      "unknown": {
+        "message": "Der Exporttyp ist unbekannt."
+      }
+    },
+    "result": {
+      "creationerror": {
+        "message": "Die Ausführung ist fehlgeschlagen. Der Export konnte nicht erzeugt werden."
+      }
+    },
+    "csv": {
+      "databaseerror": {
+        "message": "Die Ausführung des CSV-Exports ist fehlgeschlagen. Fehler beim Zugriff auf die Datenbank."
+      },
+      "parameter": {
+        "error": {
+          "message": "CSV-Export: Alle definierten Parameter müssen gesetzt werden."
+        }
+      },
+      "encoding": {
+        "error": {
+          "message": "CSV-Export: Die Kodierung konnte nicht auf ISO-8859-1 gesetzt werden."
+        }
+      }
+    },
+    "sas": {
+      "returnerror": {
+        "message": "Die Ausführung ist fehlgeschlagen. Das SAS-Macro hat nicht alle obligatorischen Returnwerte definiert."
+      },
+      "callerror": {
+        "message": "Die Ausführung ist fehlgeschlagen. Fehler beim Ausführen des SAS-Macros."
+      },
+      "incompleteread": {
+        "message": "Die Ausführung ist fehlgeschlagen. Fehler beim Lesen des Exportfiles vom SAS-Server."
+      },
+      "invalidfilename": {
+        "message": "Kein gültiger Filename angegeben. Bitte kontaktieren Sie Ihren Erhebungsadministrator."
+      },
+      "closeworkspace": {
+        "error": {
+          "message": "Die Ausführung ist fehlgeschlagen. Fehler beim Schliessen des SAS-Workspaces."
+        }
+      }
+    },
+    "xml": {
+      "parameter": {
+        "error": {
+          "message": "Fehler bei den Export-Parametern: Lieferungs-Id, Kanton oder Jahr fehlen, oder sind unbekannt."
+        }
+      },
+      "delivery": {
+        "error": {
+          "message": "Fehler beim XML-Export: Lieferung nicht gefunden."
+        }
+      },
+      "nocantonpermission": {
+        "error": {
+          "message": "Fehler beim XML-Export: Sie haben keine Berechtigung für diesen Kanton."
+        }
+      },
+      "configdeliverymissing": {
+        "error": {
+          "message": "Fehler beim XML-Export: Es existiert keine Lieferungskonfiguration für Ihre Eingaben."
+        }
+      },
+      "nodluser": {
+        "error": {
+          "message": "Fehler beim XML-Export: Sie wurden bei der Lieferungskonfiguration nicht als Datenlieferant hinterlegt."
+        }
+      },
+      "norouser": {
+        "error": {
+          "message": "Fehler beim XML-Export: Sie wurden bei der Lieferungskonfiguration nicht als Read-only Benutzer hinterlegt."
+        }
+      }
+    },
+    "version": {
+      "parameter": {
+        "error": {
+          "message": "Fehler bei den Export-Parametern: Das Jahr wurde nicht angegeben."
+        }
+      }
+    },
+    "typeempty": {
+      "message": "Der Typ darf nicht leer sein!"
+    },
+    "authorisationempty": {
+      "message": "Die Berechtigung darf nicht leer sein!"
+    },
+    "sourceempty": {
+      "message": "Die Source darf nicht leer sein!"
+    },
+    "not": {
+      "authorized": {
+        "canton": "Sie haben keine Berechtigung für den angegebenen Kanton!"
+      }
+    }
+  },
+  "unknown": {
+    "error": {
+      "message": "Unbekannter Fehler"
+    }
+  },
+  "plausierror": {
+    "overflow": {
+      "message": "Zu viele Fehler",
+      "text": "Weitere Fehler im Plausibericht"
+    }
+  },
+  "plausi": {
+    "delete": {
+      "failure": {
+        "message": "Die Plausiregel kann nicht gelöscht werden. Es können nur externe Regeln ohne existierende Fehler gelöscht werden."
+      }
+    },
+    "typeempty": {
+      "message": "Der Typ darf nicht leer sein!"
+    },
+    "objectempty": {
+      "message": "Das Objekt darf nicht leer sein!"
+    },
+    "sourceempty": {
+      "message": "Der Pfad darf nicht leer sein!"
+    }
+  },
+  "invalid": {
+    "input": {
+      "error": {
+        "message": "Das Format des gelieferten Werts kann nicht auf das Feld {0} übernommen werden."
+      }
+    }
+  },
+  "bur": {
+    "notavailable": {
+      "message": "Die Liste der Schulen konnte nicht importiert werden"
+    },
+    "cantonrequired": {
+      "message": "Die Schule muss einem Kanton zugewiesen sein!"
+    },
+    "configdeliverynotfound": {
+      "message": "Keine Lieferung mit diesem Namen für den Kanton und dieses Jahr verfügbar!"
+    },
+    "configdeliverynotunique": {
+      "message": "Es gibt keine eindeutige Lieferung mit diesem Namen für dieses Jahr!"
+    },
+    "schoolnotvalid": {
+      "message": "Für dieses Jahr ist die Schule nicht aktiv - Speichern nicht möglich!"
+    },
+    "dataexistsforschool": {
+      "message": "Übernahme nicht möglich - es existieren Lieferdaten für die Schule!"
+    },
+    "dataexistsforschool2": {
+      "message": "Übernahme nicht möglich - es existieren Lieferdaten für mindestens eine Schule!"
+    },
+    "changedeliveryandimport": {
+      "message": "Gleichzeitige Übernahme einer Schule und neue Zuweisung einer Lieferkonfiguration nur in einem Schritt möglich, falls die Version das aktuelle Jahr ist!"
+    },
+    "schools": {
+      "locked": {
+        "message": "Es läuft bereits ein Synchronisationsprozess der Schulen mit BUR - bitte versuchen Sie es später noch einmal."
+      }
+    }
+  },
+  "configdelivery": {
+    "onlyonedefault": {
+      "message": "Es darf nur eine Defaultlieferung pro Jahr und Kanton geben."
+    },
+    "uniquecode": {
+      "message": "Die Id darf nur einmal pro Jahr und Kanton existieren."
+    },
+    "cantonempty": {
+      "message": "Der Kanton darf nicht leer sein!"
+    },
+    "idempty": {
+      "message": "Die Id darf nicht leer sein!"
+    },
+    "mustbemaster": {
+      "message": "Die Lieferungskonfigurationstabelle muss Master sein, damit ein neuer Eintrag erstellt werden kann."
+    }
+  },
+  "not": {
+    "implemented": {
+      "message": "Noch nicht implementiert."
+    }
+  },
+  "validate": {
+    "no": {
+      "plausi": {
+        "message": "Die Lieferdaten sind nicht aktuell plausibilisiert. Bitte erstellen Sie vor dem Freigeben zuerst einen neuen Plausibericht."
+      }
+    },
+    "incomplete": {
+      "message": "Es gibt Datensätze in Ihrer Selektion, die nicht freigegeben werden können."
+    }
+  },
+  "displaynumber": {
+    "gefiltert": "Gefiltert",
+    "geladen": "Geladen",
+    "markiert": "Markiert"
+  },
+  "getlastplausireport": {
+    "no": {
+      "valid": {
+        "report": "Keine gültiger letzter Plausireport verfügbar. Bitte erstellen Sie den Plausireport neu."
+      }
+    }
+  },
+  "update": {
+    "status": {
+      "not": {
+        "allowed": {
+          "message": "Diese Statusänderung ist nicht erlaubt."
+        }
+      }
+    }
+  },
+  "session": {
+    "timout": {
+      "error": {
+        "message": "Timeout: Bitte aktualisieren Sie Ihren Browser, um die Applikation weiter benutzen zu können."
+      }
+    }
+  },
+  "save": {
+    "noplausi": "Speichern ohne Plausibilisierung"
+  },
+  "codegroup": {
+    "cache": {
+      "error": {
+        "message": "Die Nomenklaturen wurden noch nicht in die Applikation geladen. Bitte versuchen Sie es in ein paar Minuten noch einmal.",
+        "refresh": "Neu laden"
+      }
+    }
+  },
+  "shared": {
+    "utils": {
+      "button": {
+        "apply": "Anwenden",
+        "add_line": "Zeile hinzufügen",
+        "reinit": "Zurücksetzen"
+      }
+    }
+  }
+}

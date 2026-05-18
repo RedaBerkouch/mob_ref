@@ -1,0 +1,14 @@
+<app-panel [title]="'deliver.download.subject.name' | translate">
+	<div class="links-container">
+		@for (link of links; track link) {
+			<a
+				[href]="link.url | translate"
+				[target]="link.target || '_blank'"
+				class="help-link"
+				mat-button
+				color="primary">
+				{{ link.label | translate }}
+			</a>
+		}
+	</div>
+</app-panel>

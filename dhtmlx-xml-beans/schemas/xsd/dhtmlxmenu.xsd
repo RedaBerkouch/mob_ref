@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by dwi (glance) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0"
+		   elementFormDefault="unqualified" attributeFormDefault="unqualified">
+	<xs:element name="menu">
+		<xs:annotation>
+			<xs:documentation>Dhtmlx menu</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element ref="MenuItem" />
+			</xs:choice>
+		
+			<!--  
+			Optional parameters for this tag are:
+	
+			name - menu caption 
+			width - menu width 
+			height - menu height 
+			mode - menu design. can be "classic" - default windows like menu, "popup" - context menu style, "alfa" "betta" - mixed styles 
+			disableType - if set to "image", then disabled items change their image, else only CSS changed 
+			absolutePosition - positioning method of menu, allowed values: "absolute, relative, auto" 
+			menuAlign - align of items in menu 
+			globalCss - CSS class for menu items instead of default 
+			globalSecondCss - CSS class for menu items on child menu panels 
+			globalTextCss - CSS class for items text instead of default 
+			type - menu buttons type, can be :"a1","a2","a3","b1","b2","b3" (default a2) 
+			a1 - image doesn't has own css style, selection over all button, without borders
+			a2 - image doesn't has own css style, selection over all button, with borders 
+			a3 - image has own css style, selection over text only, with borders 
+			b1 - image has own css style, selection over all button, without borders
+			b2 - image has own css style, selection over all button, with borders 
+			b3 - image has own css style, selection over text only, with borders 
+			
+			withoutImages - all child menu items can not have images, attribute src will be ignored 
+			mixedImages - child menu items can have or not have images,based on src attribute 
+			-->
+			
+			<xs:attribute name="name" type="xs:string" />
+			<xs:attribute name="width" />
+			<xs:attribute name="heigth" />
+			<xs:attribute name="mode">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="classic"/>
+						<xs:enumeration value="popup"/>
+						<xs:enumeration value="alfa"/>
+						<xs:enumeration value="betta"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="disableType"/>
+			<xs:attribute name="absolutePosition">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="absolute"/>
+						<xs:enumeration value="relative"/>
+						<xs:enumeration value="auto"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="menuAlign"/>
+			
+			<xs:attribute name="globalCss"/>
+			<xs:attribute name="globalSecondCss"/>
+			<xs:attribute name="globalTextCss"/>
+			<xs:attribute name="type">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="a1"/>
+						<xs:enumeration value="a2"/>
+						<xs:enumeration value="a3"/>
+						<xs:enumeration value="b1"/>
+						<xs:enumeration value="b2"/>
+						<xs:enumeration value="b3"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			
+			<xs:attribute name="a1"/>
+			<xs:attribute name="a2"/>
+			<xs:attribute name="a3"/>
+			<xs:attribute name="b1"/>
+			<xs:attribute name="b2"/>
+			<xs:attribute name="b3"/>
+			
+			<xs:attribute name="withoutImages"/>
+			<xs:attribute name="mixedImages"/>
+		
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="MenuItem">
+		<xs:complexType mixed="true">
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element ref="MenuItem" />
+			</xs:choice>
+		
+			<!-- 
+			Mandatory parameters for this tag are:
+			
+			src - src of image 
+			id - id of the button Optional parameters for this tag are:
+			
+			width - button width 
+			height - button height 
+			disableImage - alternative image src, for disabled state 
+			tooltip - button tooltip
+			-->		
+			
+			<xs:attribute name="id" type="xs:string" use="required" />
+			<xs:attribute name="src" type="xs:string" use="required" />
+			<xs:attribute name="name" type="xs:string" />
+			<xs:attribute name="width" type="xs:string" />
+			<xs:attribute name="heigth" type="xs:string" />
+			<xs:attribute name="disableImage" type="xs:string" />
+			<xs:attribute name="tooltip" type="xs:string" />
+		</xs:complexType>
+
+	</xs:element>
+
+
+</xs:schema>

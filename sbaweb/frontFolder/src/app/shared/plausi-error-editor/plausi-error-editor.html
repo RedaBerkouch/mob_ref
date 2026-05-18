@@ -1,0 +1,94 @@
+<div class="plausi-error-cell">
+	<div
+		#summaryElement
+		class="plausi-summary"
+		[matTooltip]="plausiConfig.tooltip ?? '' | translate"
+		[matTooltipDisabled]="!canEdit()"
+		[class.editable]="canEdit()"
+		[class.hover]="hoverResume"
+		(mouseenter)="hoverResume = true"
+		(mouseleave)="hoverResume = false"
+		(dblclick)="openEditor()">
+
+		<span class="status-label">{{ getStatusLabel() }}</span>
+	</div>
+</div>
+
+<ng-template #modalTemplate>
+	<div
+		class="plausi-editor"
+		[class.dragging]="isDragging"
+		[style.top.px]="modalTop"
+		[style.left.px]="modalLeft"
+		(mousedown)="onDragStart($event)"
+		(click)="$event.stopPropagation()">
+
+		<button
+			mat-icon-button
+			class="close-button"
+			(click)="closeEditor()"
+			(mousedown)="$event.stopPropagation()"
+			type="button"
+			matTooltip="Fermer (ESC)">
+			<mat-icon>close</mat-icon>
+		</button>
+
+		@for (error of editableErrors; track error.errorId; let idx = $index) {
+			<div
+				class="error-card"
+				[class.confirmed]="error.isConfirmed"
+				[class.hover]="hoverError === idx"
+				(mouseenter)="hoverError = idx"
+				(mouseleave)="hoverError = null"
+				(mousedown)="$event.stopPropagation()">
+
+				<div class="error-row">
+					<!-- Nom de la règle avec label -->
+					<div class="error-field">
+						<label class="field-label">{{ 'plausierrorTable.column.rule.name' | translate }}</label>
+						<strong class="error-name">{{ getPlausiName(error) }}</strong>
+					</div>
+
+					<span class="separator">|</span>
+
+					<div class="error-field">
+						<label class="field-label">{{ 'plausierrorTable.column.errormsg.name' | translate }}</label>
+						<span class="error-message">{{ getPlausiErrorMessage(error) }}</span>
+					</div>
+
+					@if (error.reportData) {
+						<span class="separator">|</span>
+						<div class="error-field">
+							<label class="field-label">Données</label>
+							<span class="error-report-data">{{ error.reportData }}</span>
+						</div>
+					}
+
+					@if (error.confirmable) {
+						<div class="error-field checkbox-field">
+							<label class="field-label field-label-confirm">Confirmé</label>
+							<mat-checkbox
+								[(ngModel)]="error.isConfirmed"
+								(ngModelChange)="onConfirmationChange(error)"
+								color="primary"
+								class="error-checkbox">
+							</mat-checkbox>
+						</div>
+					}
+				</div>
+
+				<div class="error-footer">
+					<span>
+						<strong>{{ 'plausierrerTable.column.modUser.name' | translate }}:</strong>
+						{{ error.modificationUser }}
+					</span>
+					<span class="separator">|</span>
+					<span>
+						<strong>{{ 'plausierrorTable.column.modDate.name' | translate }}:</strong>
+						{{ error.modificationDate | date:'dd.MM.yyyy' }}
+					</span>
+				</div>
+			</div>
+		}
+	</div>
+</ng-template>

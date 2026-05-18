@@ -1,0 +1,1 @@
+mvn clean install -P local -pl meb-commons,server-commons,web-commons,dhtmlx-xml-beans,sdmx-xml-beans,mebserver,mebserverEAR,mebwsclient,mebweb,mebwebEAR

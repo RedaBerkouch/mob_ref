@@ -1,0 +1,176 @@
+{
+  "persons": {
+    "title": "maintain.titlebar.person.name",
+    "isByDefaultCollapsed": false,
+    "selection": {
+      "mode": "multiple"
+    },
+    "columns": [
+      {"key": "schoolId", "label": "personTable.column.personId.name", "type": "text", "editable": false, "visible": false, "filterableOnContext": false},
+      {"key": "version", "label": "personTable.column.version.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "canton", "label": "personTable.column.canton.name", "width": "150px", "type": "select", "optionsSource": "cantonOptions", "editable": false, "filterableOnContext": true},
+      {"key": "idType", "label": "personTable.column.idtype.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "id", "label": "personTable.column.personId.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "burSchoolLabel", "label": "personTable.column.burSchoolLabel.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "charPublFlg", "label": "qualificationTable.column.charPublFlg.name", "width": "50px", "type": "checkbox", "editable": false, "filterableOnContext": true},
+      {"key": "charPrivSubFlg", "label": "qualificationTable.column.charPrivSubFlg.name", "width": "50px", "type": "checkbox", "editable": false, "filterableOnContext": true},
+      {"key": "charPrivNoSubFlg", "label": "qualificationTable.column.charPrivNoSubFlg.name", "width": "50px", "type": "checkbox", "editable": false, "filterableOnContext": true},
+      {"key": "isSpecialSchool", "label": "qualificationTable.column.isSpecialSchool.name", "width": "50px", "type": "checkbox", "editable": false, "filterableOnContext": true},
+      {"key": "deliveryCode", "label": "personTable.column.deliveryCode.name", "width": "150px", "type": "text", "editable": true, "filterableOnContext": true},
+      {"key": "deliveryStatus", "label": "personTable.column.deliveryStatus.name", "width": "150px", "type": "select", "optionsSource": "deliveryStatusOptions", "editable": false, "filterableOnContext": true},
+      {"key": "plausiErrors", "label": "plausiErrors", "editable": false, "visible": false, "filterableOnContext": false, "nonSelectable": true},
+      {
+        "key": "plausiStatus",
+        "label": "personTable.column.plausiStatus.name",
+        "width": "150px",
+        "type": "plausi-error",
+        "editable": false,
+        "visible": true,
+        "optionsSource": "plausiStatusOptions",
+        "filterableOnContext": true,
+        "plausiConfig": {
+          "errorArrayKey": "plausiErrors",
+          "statusKey": "plausiStatus",
+          "editableStatusValue": [0, 1, 3]
+        }
+      },
+      {"key": "creationUser", "label": "personTable.column.creationUser.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "creationDate", "label": "personTable.column.creationDate.name", "width": "150px", "type": "date", "editable": false, "filterableOnContext": true},
+      {"key": "modificationUser", "label": "personTable.column.modificationUser.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "modificationDate", "label": "personTable.column.modificationDate.name", "width": "150px", "type": "date", "editable": false, "filterableOnContext": true},
+      {"key": "prevalidationUser", "label": "personTable.column.prevalidationUser.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "prevalidationDate", "label": "personTable.column.prevalidationDate.name", "width": "150px", "type": "date", "editable": false, "filterableOnContext": true},
+      {"key": "userText", "label": "personTable.column.userText.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "origDeliveryData", "label": "personTable.column.origDeliveryData.name", "width": "500px", "type": "text", "editable": false, "filterableOnContext": false},
+      {"key": "classCondition", "label": "condition", "width": "250px", "type": "text", "editable": false, "visible": false, "filterableOnContext": false, "nonSelectable": true}
+    ],
+    "actions": [
+      { "icon": "file_download", "tooltip": "Exporter CSV", "label": "Exporter CSV", "disabled": false },
+      { "icon": "switch_master", "src": "assets/icons/switch_master.gif", "tooltip": "Echanger la table principale", "label": "Echanger la table principale", "disabled": false },
+      { "icon": "done_all", "tooltip": "(pré)valider", "label": "(pré)valider", "disabled": false },
+      { "icon": "remove_done", "tooltip": "Dé(pré)valider", "label": "dé(pré)valider", "disabled": false },
+      { "icon": "save", "tooltip": "Enregistrer les modifications", "label": "Enregistrer les modifications", "disabled": true },
+      { "icon": "block", "tooltip": "Renoncer aux modifications", "label": "Renoncer aux modifications", "disabled": true },
+      { "icon": "add", "tooltip": "Ajouter", "label": "Insérer un enregistrement", "disabled": false },
+      { "icon": "delete", "tooltip": "Supprimer", "label": "Effacer l'enregistrement", "disabled": true }
+    ]
+  },
+  "qualifications": {
+    "title": "maintain.titlebar.qualification.name",
+    "selection": {
+      "mode": "multiple"
+    },
+    "columns": [
+      {"key": "qualificationId", "label": "qualificationTable.column.qualificationId.name", "width": "150px", "type": "text", "editable": false, "visible": false, "filterableOnContext": false},
+      {"key": "version", "label": "qualificationTable.column.version.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "canton", "label": "qualificationTable.column.canton.name", "width": "150px", "type": "select", "optionsSource": "cantonOptions", "editable": false, "filterableOnContext": true},
+      {"key": "id", "label": "qualificationTable.column.schoolId.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "schoolType", "label": "qualificationTable.column.schoolType.name", "width": "150px", "type": "select", "optionsSource": "schoolTypeOptions", "editable": false, "filterableOnContext": true},
+      {"key": "deliveryStatus", "label": "qualificationTable.column.deliveryStatus.name", "width": "150px", "type": "select", "optionsSource": "dataStatusOptions", "editable": false, "filterableOnContext": true},
+      {"key": "plausiErrors", "label": "plausiErrors", "editable": false, "visible": false, "filterableOnContext": false, "nonSelectable": true},
+      {
+        "key": "plausiStatus",
+        "label": "qualificationTable.column.plausiStatus.name",
+        "width": "150px",
+        "type": "plausi-error",
+        "editable": false,
+        "visible": true,
+        "optionsSource": "plausiStatusOptions",
+        "filterableOnContext": true,
+        "plausiConfig": {
+          "errorArrayKey": "plausiErrors",
+          "statusKey": "plausiStatus",
+          "editableStatusValue": [0, 1, 3]
+        }
+      },
+      {"key": "creationUser", "label": "qualificationTable.column.creationUser.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "creationDate", "label": "qualificationTable.column.creationDate.name", "width": "150px", "type": "date", "editable": false, "filterableOnContext": true},
+      {"key": "modificationUser", "label": "qualificationTable.column.modificationUser.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "modificationDate", "label": "qualificationTable.column.modificationDate.name", "width": "150px", "type": "date", "editable": false, "filterableOnContext": true},
+      {"key": "prevalidationUser", "label": "qualificationTable.column.prevalidationUser.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "prevalidationDate", "label": "qualificationTable.column.prevalidationDate.name", "width": "150px", "type": "date", "editable": false, "filterableOnContext": true},
+      {"key": "userText", "label": "qualificationTable.column.userText.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "classCondition", "label": "condition", "width": "250px", "type": "text", "editable": false, "visible": false, "filterableOnContext": false, "nonSelectable": true}
+    ],
+    "actions": [
+      { "icon": "file_download", "tooltip": "Exporter CSV", "label": "Exporter CSV", "disabled": false },
+      { "icon": "switch_master", "src": "assets/icons/switch_master.gif", "tooltip": "Echanger la table principale", "label": "Echanger la table principale", "disabled": false },
+      { "icon": "done_all", "tooltip": "(pré)valider", "label": "(pré)valider", "disabled": false },
+      { "icon": "remove_done", "tooltip": "Dé(pré)valider", "label": "dé(pré)valider", "disabled": false },
+      { "icon": "save", "tooltip": "Enregistrer les modifications", "label": "Enregistrer les modifications", "disabled": true },
+      { "icon": "block", "tooltip": "Renoncer aux modifications", "label": "Renoncer aux modifications", "disabled": true },
+      { "icon": "add", "tooltip": "Ajouter", "label": "Insérer un enregistrement", "disabled": false },
+      { "icon": "delete", "tooltip": "Supprimer", "label": "Effacer l'enregistrement", "disabled": true }
+    ]
+  },
+  "learners": {
+    "title": "maintain.titlebar.learner.name",
+    "isByDefaultCollapsed": false,
+    "selection": {
+      "mode": "multiple"
+    },
+    "columns": [
+      {"key": "learnerId", "label": "learnerTable.column.id.name", "type": "text", "editable": false, "visible": false, "filterableOnContext": false},
+      {"key": "version", "label": "learnerTable.column.version.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "canton", "label": "learnerTable.column.canton.name", "width": "150px", "type": "select", "optionsSource": "cantonOptions", "editable": false, "filterableOnContext": true},
+      {"key": "idType", "label": "learnerTable.column.idtype.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "id", "label": "learnerTable.column.id.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "deliveryStatus", "label": "learnerTable.column.deliveryStatus.name", "width": "150px", "type": "select", "optionsSource": "deliveryStatusOptions", "editable": false, "filterableOnContext": true},
+      {"key": "plausiErrors", "label": "plausiErrors", "editable": false, "visible": false, "filterableOnContext": false, "nonSelectable": true},
+      {
+        "key": "plausiStatus",
+        "label": "learnerTable.column.plausiStatus.name",
+        "width": "150px",
+        "type": "plausi-error",
+        "editable": false,
+        "visible": true,
+        "optionsSource": "plausiStatusOptions",
+        "filterableOnContext": true,
+        "plausiConfig": {
+          "errorArrayKey": "plausiErrors",
+          "statusKey": "plausiStatus",
+          "editableStatusValue": [0, 1, 3]
+        }
+      },
+      {"key": "sex", "label": "learnerTable.column.sex.name", "width": "150px", "type": "select", "optionsSource": "genreOptions", "editable": false, "filterableOnContext": true},
+      {"key": "birthdate", "label": "learnerTable.column.birthdate.name", "width": "150px", "type": "date", "editable": true, "filterableOnContext": true},
+      {"key": "age", "label": "learnerTable.column.age.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "nationality", "label": "learnerTable.column.nationality.name", "width": "150px", "type": "select", "optionsSource": "nationalityOptions", "editable": false, "filterableOnContext": true},
+      {"key": "language", "label": "learnerTable.column.language.name", "width": "150px", "type": "select", "optionsSource": "languageOptions", "editable": false, "filterableOnContext": true},
+      {"key": "residence", "label": "learnerTable.column.residence.name", "width": "150px", "type": "select", "optionsSource": "municipalityOptions", "editable": false, "filterableOnContext": true},
+      {"key": "historicResidence", "label": "learnerTable.column.historicResidence.name", "width": "150px", "type": "select", "optionsSource": "municipalityOptions", "editable": false, "filterableOnContext": true},
+      {"key": "country", "label": "learnerTable.column.country.name", "width": "150px", "type": "select", "optionsSource": "countriesOptions", "editable": false, "filterableOnContext": true},
+      {"key": "schoolType", "label": "learnerTable.column.schoolType.name", "width": "150px", "type": "select", "optionsSource": "schoolTypeOptions", "editable": false, "filterableOnContext": true},
+      {"key": "cantonalYear", "label": "learnerTable.column.cantonalYear.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "educationType", "label": "learnerTable.column.educationType.name", "width": "150px", "type": "select", "optionsSource": "educationTypeOptions", "editable": false, "filterableOnContext": true},
+      {"key": "planStatus", "label": "learnerTable.column.planStatus.name", "width": "150px", "type": "select", "optionsSource": "planStatusOptions", "editable": false, "filterableOnContext": true},
+      {"key": "profMatura", "label": "learnerTable.column.profMatura.name", "width": "150px", "type": "select", "optionsSource": "profMaturaOptions", "editable": false, "filterableOnContext": true},
+      {"key": "prevSchoolType", "label": "learnerTable.column.prevSchoolType.name", "width": "150px", "type": "select", "optionsSource": "prevSchoolTypeOptions", "editable": false, "filterableOnContext": true},
+      {"key": "prevCantonalYear", "label": "learnerTable.column.prevCantonalYear.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "addition1", "label": "learnerTable.column.addition1.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "addition2", "label": "learnerTable.column.addition2.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "addition3", "label": "learnerTable.column.addition3.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "addition4", "label": "learnerTable.column.addition4.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "addition5", "label": "learnerTable.column.addition5.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "creationUser", "label": "learnerTable.column.creationUser.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "creationDate", "label": "learnerTable.column.creationDate.name", "width": "150px", "type": "date", "editable": false, "filterableOnContext": true},
+      {"key": "modificationUser", "label": "learnerTable.column.modificationUser.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "modificationDate", "label": "learnerTable.column.modificationDate.name", "width": "150px", "type": "date", "editable": false, "filterableOnContext": true},
+      {"key": "prevalidationUser", "label": "learnerTable.column.prevalidationUser.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "prevalidationDate", "label": "learnerTable.column.prevalidationDate.name", "width": "150px", "type": "date", "editable": false, "filterableOnContext": true},
+      {"key": "userText", "label": "learnerTable.column.userText.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "origDeliveryData", "label": "learnerTable.column.origDeliveryData.name", "width": "500px", "type": "text", "editable": false, "filterableOnContext": false},
+      {"key": "classCondition", "label": "condition", "width": "250px", "type": "text", "editable": false, "visible": false, "filterableOnContext": false, "nonSelectable": true}
+    ],
+    "actions": [
+      { "icon": "file_download", "tooltip": "Exporter CSV", "label": "Exporter CSV", "disabled": false },
+      { "icon": "switch_master", "src": "assets/icons/switch_master.gif", "tooltip": "Echanger la table principale", "label": "Echanger la table principale", "disabled": false },
+      { "icon": "done_all", "tooltip": "(pré)valider", "label": "(pré)valider", "disabled": false },
+      { "icon": "remove_done", "tooltip": "Dé(pré)valider", "label": "dé(pré)valider", "disabled": false },
+      { "icon": "save", "tooltip": "Enregistrer les modifications", "label": "Enregistrer les modifications", "disabled": true },
+      { "icon": "block", "tooltip": "Renoncer aux modifications", "label": "Renoncer aux modifications", "disabled": true },
+      { "icon": "add", "tooltip": "Ajouter", "label": "Insérer un enregistrement", "disabled": false },
+      { "icon": "delete", "tooltip": "Supprimer", "label": "Effacer l'enregistrement", "disabled": true }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+      	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
+
+	<batch:job id="metastatJob" job-repository="jobRepository">
+		<batch:step id="sync">
+			<batch:tasklet transaction-manager="transactionManager" ref="metastatTasklet" allow-start-if-complete="true">
+				<batch:transaction-attributes timeout="7200"/>
+			</batch:tasklet>
+		</batch:step>
+		<batch:listeners>
+			<batch:listener ref="mebJobExecutionListener"/>
+		</batch:listeners>
+	</batch:job>
+
+	<bean id="metastatTasklet" class="ch.bfs.meb.server.rest.metastat.MetastatTasklet" scope="step">
+    	<property name="codeGroupRepository" ref="codeGroupRepository"/>
+		<property name="metastatService" ref="metastatService"/>
+		<property name="configuration" ref="configuration"/>
+	</bean>
+</beans>

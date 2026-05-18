@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <!-- Note 2020-07-02: School-Label deactivated after it was initially meant to be implemented,too -->
+    <!-- Szenario 1 -->
+    <Schools schoolid="20" burnr="2000" label="Schule 1"/>
+    <Schools schoolid="21" burnr="2001" label="Schule 2"/>
+    <Ssp_Persons personId="9" id="4" idType="person:idType"/>
+    <Ssp_Cantons cantonId="101"/>
+    <Ssp_Plausis plausiId="7" isConfirmable="1" isActive="1" type="0" objectlevel="0"/>
+    <Ssp_Activities activityId="11" personid="9" id="1" schoolId="2000" schoolIdType="CH.BUR"/>
+    <Ssp_Activities activityId="12" personid="9" id="2" schoolId="2001" schoolIdType="CH.BUR"/>
+    <Ssp_PlausiErrors errorId="5" activityId="12" plausiId="7" personId="9" isConfirmed="0" isToDelete="0" cantonId="101"/>
+    <Ssp_PlausiErrors errorId="6"                 plausiId="7" personId="9" isConfirmed="0" isToDelete="0" cantonId="101"/>
+
+
+    <!-- Szenario 2 Label for one school missing -->
+    <Schools schoolid="120" burnr="12000" label="Schule 1"/>
+    <Schools schoolid="121" burnr="12001" />
+    <Ssp_Cantons cantonId="102"/>
+    <Ssp_Persons personId="19" id="4" idType="person:idType"/>
+    <Ssp_Plausis plausiId="17" isConfirmable="1" isActive="1" type="0" objectlevel="0"/>
+    <Ssp_Activities activityId="111" personid="19" id="1" schoolId="12000" schoolIdType="CH.BUR"/>
+    <Ssp_Activities activityId="112" personid="19" id="2" schoolId="12001" schoolIdType="CH.BUR"/>
+    <Ssp_PlausiErrors errorId="14" plausiId="17" personId="19" isConfirmed="0" isToDelete="0" cantonId="102"/>
+</dataset>

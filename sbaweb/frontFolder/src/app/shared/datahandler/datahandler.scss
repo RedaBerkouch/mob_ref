@@ -1,0 +1,962 @@
+:host {
+	display: block;
+	font-family: 'Roboto', sans-serif;
+	background: #f0f6fc;
+	padding: 2rem;
+	color: #333;
+	zoom: 0.65;
+}
+
+:host(.master-mode) {
+	background: #d4e7f7;
+	border-left: 4px solid #64aae3;
+}
+
+/* =========================
+   LAYOUT / WRAPPER
+========================= */
+
+.advanced-table-section {
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 8px 0;
+	background-color: #fff;
+	box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+}
+
+.wrapper-box {
+	background: #fff;
+	border-radius: 0 0 8px 8px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+	padding: 0 1.5rem 1.5rem 1.5rem;
+	overflow-x: auto;
+}
+
+/* header block */
+.table-header-block {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	gap: 12px;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.table-header {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	gap: 20px;
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 0 8px;
+	margin-bottom: 1rem;
+}
+
+.header-top {
+	display: flex;
+	align-items: center;
+	gap: 15px;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.table-title {
+	font-size: 1.25rem;
+	font-weight: 700;
+}
+
+.table-stats {
+	font-size: 1.15rem;
+	color: #555;
+}
+
+.header-controls {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-shrink: 0;
+}
+
+.toolbar {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+.table-header-block > button {
+	flex-shrink: 0;
+}
+
+/* collapse animation */
+.collapsible-content {
+	overflow: hidden;
+	max-height: 2000px;
+	transition: max-height 0.35s ease, opacity 0.25s ease;
+	opacity: 1;
+}
+
+.collapsible-content.collapsed {
+	max-height: 0;
+	opacity: 0;
+	pointer-events: none;
+}
+
+/* progress bar sticky */
+mat-progress-bar {
+	position: sticky;
+	top: 0;
+	z-index: 100;
+}
+
+/* =========================
+   TABLE CONTAINER
+========================= */
+
+.table-container {
+	overflow: auto;
+	height: 320px;
+	resize: vertical;
+	border-radius: 8px;
+	min-width: 100%;
+}
+
+/* important: mat-table sizing */
+table.mat-table {
+	width: 100%;
+	table-layout: fixed; /* PERF + stable widths */
+}
+
+/* =========================
+   HEADER CELLS
+========================= */
+
+th.mat-mdc-header-cell {
+	height: 36px !important;
+	min-height: 36px !important;
+	max-height: 36px !important;
+	line-height: 36px !important;
+	overflow: hidden !important;
+	white-space: nowrap !important;
+	vertical-align: middle;
+	border-right: 1px solid #e2e2e2 !important;
+	border-bottom: 1px solid #e2e2e2 !important;
+	background-color: #D4D0C8 !important;
+	font-weight: 800;
+	font-size: 1.2rem;
+	position: relative;
+}
+
+/* wrapper header (title + filter) */
+.resizable-th {
+	padding: 0 !important;
+	position: relative;
+}
+
+.header-wrapper {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	padding: 4px 8px;
+	box-sizing: border-box;
+}
+
+.header-title {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-weight: 700;
+	font-size: 18px;
+	cursor: pointer;
+	user-select: none;
+	height: 24px;
+}
+
+.title-text {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* filter input inside header */
+.header-filter {
+	margin-top: 4px;
+}
+
+.filter-input {
+	height: 26px;
+	font-size: 12px;
+	padding: 2px 6px !important;
+	box-sizing: border-box;
+}
+
+/* sort icons */
+.sort-icon {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	color: #555;
+}
+
+/* =========================
+   BODY CELLS / ROWS
+========================= */
+
+td.mat-mdc-cell,
+td.mat-cell {
+	padding: 0 !important;
+	height: 40px;
+	line-height: 1;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	vertical-align: middle;
+	border-right: 1px solid #e2e2e2 !important;
+	border-bottom: 1px solid #e2e2e2 !important;
+	text-align: left !important;
+	font-size: 1.2rem;
+	background: #fff;
+	transition: background-color 0.2s ease-in-out;
+}
+
+/* hover */
+tr.mat-mdc-row:hover td.mat-mdc-cell {
+	background-color: rgba(39, 188, 138, 0.05);
+}
+
+/* selected row */
+tr.selected td.mat-mdc-cell {
+	background-color: #e0f3ff !important;
+}
+
+tr.selected:hover td.mat-mdc-cell {
+	background-color: #d0ebff !important;
+}
+
+tr.selected td.cdk-column-select {
+	border-left: 4px solid #2196f3;
+}
+
+/* row flags */
+tr.new-row td.mat-mdc-cell {
+	background-color: #e6ffe6 !important;
+	color: #256029;
+	font-weight: 700;
+}
+
+tr.new-row:hover td.mat-mdc-cell {
+	background-color: #d4fcd4 !important;
+}
+
+tr.deleted-row td.mat-mdc-cell {
+	text-decoration: line-through;
+	color: #a94442;
+	background-color: #ffe6ea !important;
+	opacity: 0.95;
+}
+
+tr.deleted-row:hover td.mat-mdc-cell {
+	background-color: #ffd6de !important;
+	opacity: 1;
+}
+
+tr.edited-row td.mat-mdc-cell {
+	background-color: transparent !important;
+	font-weight: 800 !important;
+	transition: 0.25s;
+}
+
+/* conditions (text color only) */
+tr.red-condition td { color: #a94442; }
+tr.green-condition td { color: #256029; }
+tr.blue-condition td { color: #1e3a8a; }
+tr.brown-condition td { color: #8a6d3b; }
+tr.dark-brown-condition td { color: #a65c00; }
+tr.purple-condition td { color: #5b21b6; }
+tr.cyan-condition td { color: #006064; }
+tr.gray-condition td { color: #333; }
+tr.magenta-condition td { color: #8b004b; }
+tr.dark-green-condition td { color: #005b3e; }
+
+/* =========================
+   STICKY SELECT COLUMN
+========================= */
+
+th.cdk-column-select,
+td.cdk-column-select {
+	position: sticky !important;
+	left: 0 !important;
+	z-index: 200 !important;
+	background: #fff !important;
+	box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+/* =========================
+   INPUTS IN CELLS (TEXT)
+========================= */
+
+td.mat-mdc-cell input[matInput] {
+	all: unset;
+	display: block;
+	width: 100%;
+	height: 100%;
+	padding: 0 8px;
+	box-sizing: border-box;
+	font-size: 1.2rem;
+	line-height: 1.4;
+	background: transparent;
+	cursor: text;
+}
+
+td.mat-mdc-cell input[matInput]:focus {
+	background-color: #e8f0fe;
+}
+
+/* invalid */
+.invalid-cell {
+	background-color: #ffe6e6 !important;
+	border: 1px solid #ff0000 !important;
+}
+
+.invalid-input {
+	border: 1px solid red !important;
+	background-color: #fff0f0 !important;
+}
+
+/* =========================
+   SELECT DISPLAY (INSTANT)
+========================= */
+
+.select-display {
+	display: flex;
+	align-items: center;
+	height: 100%;
+	padding: 0 8px;
+	cursor: pointer;
+	user-select: none;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.select-display:hover {
+	background: rgba(33, 150, 243, 0.06);
+}
+
+/* readonly style helper */
+.readonly-select {
+	pointer-events: none;
+	opacity: 0.85;
+}
+
+.cell-date-wrapper {
+	display: flex;
+	align-items: center;
+	width: 100%;
+}
+
+.cell-date-input {
+	background: transparent;
+	border: none;
+	outline: none;
+	flex: 1;
+	font: inherit;
+	color: inherit;
+}
+
+/* =========================
+   MAT-FORM-FIELD INSIDE CELL
+   (for date/select editor/autocomplete)
+========================= */
+
+/* keep form-field full height/width in cell */
+::ng-deep td.mat-mdc-cell mat-form-field {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+}
+
+/* remove outline and paddings in cell editors */
+::ng-deep td.mat-mdc-cell mat-form-field {
+	--mdc-outlined-text-field-outline-width: 0px;
+	--mdc-outlined-text-field-focus-outline-width: 0px;
+	--mdc-outlined-text-field-hover-outline-width: 0px;
+}
+
+::ng-deep td.mat-mdc-cell .mdc-notched-outline,
+::ng-deep td.mat-mdc-cell .mat-mdc-form-field-outline {
+	display: none !important;
+}
+
+::ng-deep td.mat-mdc-cell .mat-mdc-form-field-flex {
+	height: 100%;
+	align-items: center;
+	padding: 0 !important;
+	background: transparent !important;
+	border: none !important;
+}
+
+::ng-deep td.mat-mdc-cell .mat-mdc-form-field-infix {
+	padding: 0 !important;
+	min-height: unset !important;
+	border: none !important;
+}
+
+/* input in form-field */
+::ng-deep td.mat-mdc-cell input.mat-mdc-input-element {
+	height: 100%;
+	padding: 0 8px;
+	font-size: 1.2rem;
+	line-height: 1.4;
+	background: transparent;
+	border: none !important;
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+/* mat-select trigger in cell */
+::ng-deep td.mat-mdc-cell mat-select .mat-mdc-select-trigger {
+	height: 100%;
+	display: flex;
+	align-items: center;
+	padding: 0 8px;
+}
+
+/* arrow spacing */
+::ng-deep .mat-mdc-select-arrow {
+	margin-right: 6px !important;
+	margin-left: 0 !important;
+}
+
+/* option size */
+::ng-deep .mat-mdc-option {
+	min-height: 28px;
+	font-size: 1.1rem;
+	padding: 4px 12px;
+	line-height: 1.4;
+}
+
+::ng-deep .mat-mdc-option .mdc-list-item__primary-text {
+	width: max-content;
+}
+
+/* =========================
+   CHECKBOX
+========================= */
+
+mat-checkbox {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 24px;
+}
+
+/* =========================
+   COLUMN RESIZER HANDLE
+========================= */
+
+.resizer-visible {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 6px;
+	height: 100%;
+	cursor: col-resize;
+	z-index: 5;
+	background: transparent;
+}
+
+/* =========================
+   DRAG PREVIEW
+========================= */
+
+.drag-preview {
+	font-size: 0.85rem;
+	font-weight: 700;
+	padding: 6px 10px;
+	background: #2196f3;
+	color: #fff;
+	border-radius: 4px;
+	border: 1px solid #1976d2;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+	white-space: nowrap;
+}
+
+/* =========================
+   PARAM EDITOR
+========================= */
+
+.parametre-cell {
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.parametre-editor {
+	position: relative;
+	z-index: 1000;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	background: #fff;
+	border: 1px solid #ccc;
+	border-radius: 6px;
+	padding: 6px;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+	pointer-events: auto !important;
+}
+
+.inner-table {
+	border-collapse: collapse;
+	width: 100%;
+	background: #fafafa;
+}
+
+.param-key {
+	font-weight: 700;
+	color: #333;
+	width: 40%;
+}
+
+.param-value input {
+	width: 100%;
+	background: transparent;
+	padding: 2px 4px;
+}
+
+.param-value input:focus {
+	background: #e8f0fe;
+	outline: none;
+}
+
+.param-buttons {
+	display: flex;
+	justify-content: center;
+	margin-top: 4px;
+}
+
+/* =========================
+   AUTOCOMPLETE OVERLAY
+========================= */
+
+::ng-deep .cdk-overlay-pane {
+	z-index: 10000 !important;
+}
+
+::ng-deep .mat-mdc-autocomplete-panel {
+	max-height: 260px;
+	overflow-y: auto;
+	padding: 4px 0;
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+	border-radius: 6px;
+	background: #fff;
+	min-width: fit-content;
+	max-width: 600px;
+	width: 100% !important;
+}
+
+::ng-deep .mat-mdc-autocomplete-panel .mat-mdc-option {
+	width: 100% !important;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+}
+
+::ng-deep .mat-mdc-option:hover {
+	background-color: rgba(33, 150, 243, 0.08);
+}
+
+::ng-deep .mat-mdc-option.mdc-list-item--selected {
+	background-color: rgba(33, 150, 243, 0.15);
+}
+
+/* bold modified for autocomplete input */
+::ng-deep td.mat-mdc-cell input.mat-mdc-input-element.bold-modified {
+	font-weight: 800 !important;
+}
+
+/* =========================
+   MISC
+========================= */
+
+button.mat-mdc-icon-button:disabled .mat-icon {
+	opacity: 0.4;
+}
+
+.mat-icon {
+	width: 24px;
+	height: 24px;
+	object-fit: contain;
+}
+
+/* remove weird native title tooltips from children if needed */
+.advanced-table-section * {
+	/* NOTE: ça ne supprime pas toujours les tooltips natifs, mais garde ton comportement */
+	title: none !important;
+}
+
+/* =========================================================
+   LIGHT / MINIMAL / MODERN (SaaS) — override à coller en fin
+   ========================================================= */
+
+/* Base table : propre + arrondi */
+table.mat-table {
+	border-radius: 12px;
+	overflow: hidden;
+	background: #fff;
+	border: 1px solid #e8edf3;
+}
+
+/* Header sticky clair */
+th.mat-mdc-header-cell,
+th.mat-header-cell {
+	position: sticky !important;
+	top: 0 !important;
+	z-index: 50 !important;
+
+	background: #fbfcfe !important; /* très léger gris/bleu */
+	color: #0f172a !important;
+
+	font-weight: 700 !important;
+	font-size: 1.05rem !important;
+	letter-spacing: 0.2px;
+
+	border-bottom: 1px solid #e8edf3 !important;
+	border-right: 1px solid #eef2f7 !important;
+
+	box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+	transition: background 140ms ease, box-shadow 140ms ease;
+}
+
+/* Hover header très discret */
+th.mat-mdc-header-cell:hover,
+th.mat-header-cell:hover {
+	background: #f6f8fc !important;
+}
+
+/* Header wrapper */
+.header-wrapper {
+	padding: 8px 10px !important;
+	gap: 6px;
+}
+
+/* Ligne titre */
+.header-title {
+	height: 26px !important;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	font-weight: 700 !important;
+	font-size: 0.98rem !important;
+	cursor: pointer;
+	user-select: none;
+}
+
+/* Texte colonne clamp */
+.title-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Tri : simple, pas de badge flashy */
+.sort-arrow {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	margin-left: 8px;
+	opacity: 0.85;
+}
+
+/* Icônes tri : petites + neutres */
+.sort-icon {
+	font-size: 16px !important;
+	width: 16px !important;
+	height: 16px !important;
+	color: #475569 !important;
+}
+
+/* Colonne triée : juste un underline propre */
+th.mat-header-cell.sorted,
+th.mat-mdc-header-cell.sorted {
+	box-shadow: inset 0 -2px 0 #2563eb; /* bleu SaaS */
+}
+
+/* Filtre header : pill clair */
+.header-filter {
+	margin-top: 4px !important;
+}
+
+.filter-input {
+	height: 30px !important;
+	border-radius: 10px !important;
+	padding: 0 10px !important;
+	font-size: 0.9rem !important;
+
+	background: #ffffff !important;
+	border: 1px solid #e5eaf1 !important;
+	color: #0f172a !important;
+
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+
+.filter-input::placeholder {
+	color: #94a3b8 !important;
+}
+
+.filter-input:focus {
+	outline: none !important;
+	border-color: #93c5fd !important;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+}
+
+/* Resizer : fin et discret */
+.resizer-visible {
+	width: 8px !important;
+	right: 0 !important;
+	background: transparent !important;
+	opacity: 0.4;
+	transition: opacity 140ms ease;
+}
+
+th.mat-mdc-header-cell:hover .resizer-visible {
+	opacity: 0.9;
+}
+
+/* Cellules : séparations fines + hover doux */
+td.mat-mdc-cell,
+td.mat-cell {
+	background: #fff;
+	border-right: 1px solid #f0f3f8 !important;
+	border-bottom: 1px solid #eef2f7 !important;
+}
+
+/* Hover ligne : très léger */
+.mat-mdc-row:hover td.mat-mdc-cell,
+tr.mat-row:hover td.mat-cell {
+	background: #f9fbff !important;
+}
+
+/* Colonne sticky select : cohérente avec le header */
+th.cdk-column-select,
+td.cdk-column-select {
+	background: #fff !important;
+	border-right: 1px solid #eef2f7 !important;
+	box-shadow: 2px 0 8px rgba(15, 23, 42, 0.04);
+}
+
+/* Selected row : clair et propre */
+tr.selected td {
+	background: #eef6ff !important;
+}
+
+/* New / deleted / edited : plus subtil */
+tr.new-row td {
+	background: #f0fdf4 !important;
+	color: #14532d;
+	font-weight: 600;
+}
+
+tr.deleted-row td {
+	background: #fff1f2 !important;
+	color: #7f1d1d;
+	text-decoration: line-through;
+}
+
+tr.edited-row td {
+	font-weight: 700 !important;
+}
+
+/* Réduit l’impression “gros tableau ancien” */
+th.mat-mdc-header-cell {
+	height: 42px !important;
+	line-height: 42px !important;
+}
+
+/* filtre = 100% de la cellule */
+.header-filter,
+.filter-input {
+	width: 100% !important;
+}
+
+/* évite les headers trop serrés */
+th.mat-mdc-header-cell,
+th.mat-header-cell {
+	min-width: 170px; /* doit matcher MIN_COL_PX */
+}
+
+/* table toujours pleine largeur */
+table.mat-table {
+	width: 100% !important;
+}
+
+/* container = 100% écran */
+.table-container {
+	width: 100% !important;
+}
+
+/* ✅ colonne select : fixe, sticky, ne s'étire jamais */
+::ng-deep th.select-col,
+::ng-deep td.select-col {
+	width: 52px !important;
+	min-width: 52px !important;
+	max-width: 52px !important;
+
+	padding: 0 !important;
+	text-align: center !important;
+
+	position: sticky !important;
+	left: 0 !important;
+	z-index: 200 !important;
+	background: #fff !important;
+	box-shadow: 2px 0 6px rgba(0, 0, 0, 0.06);
+}
+
+.select-display {
+	padding: 0 8px;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	user-select: none;
+}
+
+::ng-deep .mat-mdc-option .mdc-list-item__primary-text {
+	width: max-content !important;
+}
+
+/* =========================================================
+   ✅ FIX FINAL: HEADER CHECKBOX (top-left) sticky H + V
+   ========================================================= */
+
+/* Le header de la colonne select : sticky top + left */
+::ng-deep th.mat-mdc-header-cell.select-col,
+::ng-deep th.mat-header-cell.select-col,
+::ng-deep th.cdk-column-select.select-col {
+	position: sticky !important;
+	top: 0 !important;      /* ✅ sticky vertical */
+	left: 0 !important;     /* ✅ sticky horizontal */
+	z-index: 400 !important; /* ✅ au-dessus du header + cellules */
+	background: #fbfcfe !important; /* même fond que ton header modern */
+}
+
+/* Les cellules body de la colonne select : sticky horizontal */
+::ng-deep td.mat-mdc-cell.select-col,
+::ng-deep td.mat-cell.select-col,
+::ng-deep td.cdk-column-select.select-col {
+	position: sticky !important;
+	left: 0 !important;
+	z-index: 350 !important; /* en dessous du header select */
+	background: #fff !important;
+}
+
+/* =========================================================
+   ✅ HEADERS: libellés complets sur 1 ligne (jamais tronqués)
+   ========================================================= */
+
+/* 1) Autoriser le layout auto pour que les colonnes puissent s'élargir */
+table.mat-table {
+	table-layout: auto !important;   /* <- au lieu de fixed */
+	width: max-content !important;   /* la table peut dépasser, donc scroll */
+	min-width: 100% !important;      /* mais au moins full largeur */
+}
+
+/* 2) Le container scroll horizontal si la table dépasse */
+.table-container {
+	overflow: auto !important;
+}
+
+/* 3) Header cells: ne plus couper */
+th.mat-mdc-header-cell,
+th.mat-header-cell {
+	overflow: visible !important;      /* au lieu de hidden */
+	white-space: nowrap !important;    /* 1 seule ligne */
+	text-overflow: clip !important;    /* pas de "..." */
+}
+
+/* 4) Le texte du titre: ne plus mettre ellipsis */
+.title-text {
+	white-space: nowrap !important;
+	overflow: visible !important;
+	text-overflow: clip !important;
+}
+
+/* 5) Optionnel: enlever ton min-width qui peut forcer des comportements */
+th.mat-mdc-header-cell,
+th.mat-header-cell {
+	min-width: unset !important;       /* si tu veux vraiment "fit content" */
+}
+/* =========================================================
+   ✅ READONLY CELLS (col.editable === false) => grisé
+   ========================================================= */
+
+:host ::ng-deep td.readonly-cell {
+	background: #f3f4f6 !important;     /* gris clair */
+}
+
+/* Inputs readonly : texte gris + pas de focus bleu */
+:host ::ng-deep td.readonly-cell input[matInput],
+:host ::ng-deep td.readonly-cell input.mat-mdc-input-element {
+	cursor: default !important;
+}
+
+/* Empêche le highlight focus sur readonly */
+:host ::ng-deep td.readonly-cell input[matInput]:focus,
+:host ::ng-deep td.readonly-cell input.mat-mdc-input-element:focus {
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+/* Checkbox readonly (visuel) */
+:host ::ng-deep td.readonly-cell mat-checkbox {
+	opacity: 0.65;
+	pointer-events: none; /* bloque clic */
+}
+
+/* Select display readonly : visuel + bloque dblclick */
+:host ::ng-deep td.readonly-cell .select-display {
+	opacity: 0.85;
+	cursor: default !important;
+	pointer-events: none;
+}
+
+/* Datepicker readonly : grisé + bloque clic */
+:host ::ng-deep td.readonly-cell mat-datepicker-toggle {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+:host ::ng-deep td.readonly-cell mat-form-field {
+	opacity: 0.9;
+}
+
+/* Paramètre readonly : grisé + bloque ouverture editor */
+:host ::ng-deep td.readonly-cell .parametre-cell,
+:host ::ng-deep td.readonly-cell .parametre-display {
+	opacity: 0.8;
+	cursor: default !important;
+	pointer-events: none;
+}
+/* =========================================================
+   ✅ FIX: largeur colonne >= libellé header (1 ligne)
+   ========================================================= */
+
+:host ::ng-deep th.resizable-th {
+	/* le minWidth est piloté en inline via getMinWidthPx(col) */
+}
+
+:host ::ng-deep .header-title {
+	/* le texte du label doit pouvoir dicter la largeur requise */
+	min-width: max-content;
+}
+
+:host ::ng-deep .title-text {
+	white-space: nowrap;
+}
+
+/* IMPORTANT: on laisse la table scroller si elle dépasse */
+:host ::ng-deep .table-container {
+	overflow: auto !important;
+}

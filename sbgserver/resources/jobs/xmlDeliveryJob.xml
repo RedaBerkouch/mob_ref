@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:oxm="http://www.springframework.org/schema/oxm"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+      	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd
+		http://www.springframework.org/schema/oxm http://www.springframework.org/schema/oxm/spring-oxm.xsd">
+
+    <bean id="mebJobIncrementer" class="ch.bfs.meb.sbg.server.integration.batch.MebJobIncrementer"/>
+
+    <batch:step id="concludeDeliveryStep">
+        <batch:tasklet transaction-manager="transactionManager" ref="concludeDeliveryTasklet">
+            <batch:transaction-attributes timeout="3000"/>
+        </batch:tasklet>
+    </batch:step>
+
+    <batch:job id="sbgXmlDeliveryJob" job-repository="jobRepository" incrementer="mebJobIncrementer">
+        <batch:step id="xmlInst" next="xmlConclude">
+            <batch:tasklet transaction-manager="transactionManager">
+                <batch:chunk reader="persItemReader"
+                             writer="persItemWriter"
+                             processor="persItemProcessor"
+                             commit-interval="100"/>
+                <batch:transaction-attributes timeout="3000"/>
+            </batch:tasklet>
+        </batch:step>
+        <batch:step id="xmlConclude" parent="concludeDeliveryStep"/>
+        <batch:listeners>
+            <batch:listener ref="mebJobExecutionListener"/>
+        </batch:listeners>
+    </batch:job>
+
+    <bean id="persItemReader" class="ch.bfs.meb.sbg.server.business.PersItemReader" scope="step">
+        <property name="deliveryId" value="#{jobParameters[deliveryId]}"/>
+        <property name="canton" value="#{jobParameters[canton]}"/>
+        <property name="year" value="#{jobParameters[year]}"/>
+        <property name="fragmentRootElementName" value="pers"/>
+        <property name="resource" value="#{jobParameters[filename]}"/>
+        <property name="unmarshaller" ref="persMarshaller"/>
+    </bean>
+
+    <bean id="persItemProcessor" class="ch.bfs.meb.sbg.server.business.PersItemProcessor" scope="step">
+        <property name="deliveryId" value="#{jobParameters[deliveryId]}"/>
+        <property name="interventionType" value="#{jobParameters[interventionType]}"/>
+		<property name="codegroupManager" ref="codegroupManager"/>
+        <property name="deliveryDAO" ref="deliveryDAO"/>
+        <property name="macroDAO" ref="macroDAO"/>
+        <property name="plausierrorDAO" ref="plausierrorDAO"/>
+        <property name="plausiFactory" ref="plausiFactory"/>
+    </bean>
+
+    <bean id="persItemWriter" class="ch.bfs.meb.sbg.server.business.PersItemWriter" scope="step">
+        <property name="deliveryId" value="#{jobParameters[deliveryId]}"/>
+        <property name="username" value="#{jobParameters[username]}"/>
+        <property name="deliveryDAO" ref="deliveryDAO"/>
+        <property name="eventRepository" ref="eventRepository"/>
+        <property name="personDAO" ref="personDAO"/>
+        <property name="plausierrorDAO" ref="plausierrorDAO"/>
+    </bean>
+
+    <oxm:xmlbeans-marshaller id="persMarshaller" options="persXmlBeansOptions"/>
+
+    <bean id="persXmlBeansOptions" class="ch.bfs.meb.sbg.server.business.PersXmlBeansOptions"/>
+
+    <bean id="concludeDeliveryTasklet" class="ch.bfs.meb.sbg.server.business.ConcludeDeliveryTasklet" scope="step">
+        <property name="deliveryId" value="#{jobParameters[deliveryId]}"/>
+        <property name="username" value="#{jobParameters[username]}"/>
+        <property name="locale" value="#{jobParameters[locale]}"/>
+        <property name="deliveryFile" value="#{jobParameters[filename]}"/>
+        <property name="interventionType" value="#{jobParameters[interventionType]}"/>
+        <property name="actionDAO" ref="actionDAO"/>
+		<property name="codegroupManager" ref="codegroupManager"/>
+        <property name="deliveryDAO" ref="deliveryDAO"/>
+        <property name="eventRepository" ref="eventRepository"/>
+        <property name="macroDAO" ref="macroDAO"/>
+        <property name="personDAO" ref="personDAO"/>
+        <property name="plausierrorDAO" ref="plausierrorDAO"/>
+        <property name="plausiFactory" ref="plausiFactory"/>
+        <property name="idmService" ref="${configuration.idm.implementation}"/>
+        <property name="sasService" ref="sasService"/>
+        <property name="localizationManager" ref="localizationManager"/>
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="configuration" ref="configuration"/>        
+    </bean>
+</beans>

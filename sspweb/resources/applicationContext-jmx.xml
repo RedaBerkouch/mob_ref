@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- **************************************** -->
+	<!-- * JMX managed beans                    * -->
+	<!-- **************************************** -->
+
+	<bean id="configuration" class="ch.bfs.meb.ssp.web.configuration.SspWebConfiguration">
+		<constructor-arg value="${SSPWEB_PROPERTIES_LOCATION}" />
+	</bean>
+
+	<!-- **************************************** -->
+	<!-- * JMX configuration                    * -->
+	<!-- **************************************** -->
+
+	<bean id="exporter"
+		class="org.springframework.jmx.export.annotation.AnnotationMBeanExporter">
+		<property name="notificationListeners">
+			<list>
+				<bean class="org.springframework.jmx.export.NotificationListenerBean">
+					<constructor-arg ref="configurationNotificationListener" />
+					<property name="mappedObjectNames">
+						<list>
+							<value>ch.bfs.meb:name=sspWebConfiguration</value>
+						</list>
+					</property>
+					<property name="handback">
+						<ref bean="configurationChangedNotifier" />
+					</property>
+					<property name="notificationFilter" ref="configurationNotificationListener" />
+				</bean>
+			</list>
+		</property>
+	</bean>
+
+	<!-- **************************************** -->
+	<!-- * JMX listener configuration           * -->
+	<!-- **************************************** -->
+
+	<bean id="configurationNotificationListener"
+		class="ch.bfs.meb.configuration.ConfigurationNotificationListener" />
+
+	<bean id="configurationChangedNotifier"
+		class="ch.bfs.meb.configuration.ConfigurationChangedNotifier">
+		<property name="listeners">
+			<list>
+				<ref bean="webServiceClientFactory" />
+				<ref bean="idmUserService" />
+			</list>
+		</property>
+	</bean>
+ 	
+</beans>

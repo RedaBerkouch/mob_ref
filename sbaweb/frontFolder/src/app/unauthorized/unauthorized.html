@@ -1,0 +1,29 @@
+<div class="unauthorized-wrapper">
+	<div class="accent-bar"></div>
+
+	<main class="unauthorized-container" role="main">
+
+		<div class="icon-zone">
+			<div class="shield-outer">
+				<div class="shield-inner">
+					<mat-icon class="lock-icon" aria-hidden="true">lock</mat-icon>
+				</div>
+			</div>
+			<div class="pulse-ring" aria-hidden="true"></div>
+			<div class="pulse-ring delay" aria-hidden="true"></div>
+		</div>
+
+		<div class="content-zone">
+			<p class="http-code">403</p>
+			<h1 class="title">{{ 'main.navigation.unauthorized.text' | translate }}</h1>
+
+			<div class="actions">
+				<button mat-flat-button color="primary" (click)="goHome()">
+					<mat-icon>home</mat-icon>
+					{{ 'main.navigation.unauthorized.gotohome' | translate }}
+				</button>
+			</div>
+		</div>
+
+	</main>
+</div>

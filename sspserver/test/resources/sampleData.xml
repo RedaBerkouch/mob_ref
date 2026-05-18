@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <Schools schoolid="20" burnr="2000" label="Schule XY"/>
+    <Ssp_Persons personId="9" id="4" idType="person:idType"/>
+    <Ssp_Cantons cantonId="101"/>
+    <Ssp_Deliveries deliveryId="8"/>
+    <Ssp_Plausis plausiId="7"   isConfirmable="1" isActive="1" type="0" objectlevel="0"/>
+    <Ssp_Plausis plausiId="103" isConfirmable="1" isActive="1" type="0" objectlevel="1"/>
+    <Ssp_Activities activityId="3" id="5" schoolId="2000" schoolIdType="CH.BUR"/>
+    <Ssp_PlausiErrors errorId="1"   activityId="3" plausiId="7"   deliveryId="8" personId="9" isConfirmed="1" isToDelete="0"/>
+    <Ssp_PlausiErrors errorId="100" activityId="3" plausiId="7"   deliveryId="8" personId="9" isConfirmed="0" isToDelete="0" cantonId="101"/>
+    <Ssp_PlausiErrors errorId="200" activityId="3" plausiId="103" deliveryId="8" personId="9" isConfirmed="0" isToDelete="0"/>
+</dataset>

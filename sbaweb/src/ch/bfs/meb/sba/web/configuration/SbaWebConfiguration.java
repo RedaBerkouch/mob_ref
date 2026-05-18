@@ -1,0 +1,55 @@
+/*
+  MEB Portal
+  Bundesamt für Statistik
+
+  adesso Schweiz AG
+  Copyright (c) 2009, 2010
+
+  Projekt: sbaweb
+
+  $Id: SbaWebConfiguration.java 661 2010-02-09 14:07:21Z lsc $
+
+ */
+package ch.bfs.meb.sba.web.configuration;
+
+import org.springframework.core.io.Resource;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedResource;
+
+import ch.bfs.meb.configuration.ConfigurationBase;
+
+/**
+ * Managed Bean mit den applikationsspezifischen Parametern, das vom Weblogic
+ * MBEAN-Server verwaltet wird.
+ */
+@ManagedResource(objectName = "ch.bfs.meb:name=sbaWebConfiguration", description = "Configuration for SBA web")
+public class SbaWebConfiguration extends ConfigurationBase implements ISbaWebConfiguration {
+    public SbaWebConfiguration(Resource resource) {
+        super(resource);
+    }
+
+    @Override
+    @ManagedAttribute(description = "MEB common webservices server url")
+    public String getCommonServerURL() {
+        return getAttribute(COMMON_SERVER_URL);
+    }
+
+    @Override
+    @ManagedAttribute(description = "SBA webservices server url")
+    public String getModuleServerURL() {
+        return getAttribute(SBA_SERVER_URL);
+    }
+
+    @Override
+    @ManagedAttribute(description = "Sets the MEB common webservices server url", persistPolicy = "always")
+    public void setCommonServerURL(String url) {
+        setAttribute(COMMON_SERVER_URL, url);
+    }
+
+    @Override
+    @ManagedAttribute(description = "Sets the SBA webservices server url")
+    public void setModuleServerURL(String url) {
+        setAttribute(SBA_SERVER_URL, url);
+    }
+
+}

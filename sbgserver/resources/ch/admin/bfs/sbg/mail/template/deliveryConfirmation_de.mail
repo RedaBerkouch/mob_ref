@@ -1,0 +1,3 @@
+Die Datenlieferung vom ${deliveryDate} durch ${deliveryUser} wurde abgeschlossen. Sie beinhaltete ${deliveryPersons} Personen.
+
+Für den Kanton ${cantonString} und das Jahr ${deliveryVersion} wurden ${nrPersons} Personen und ${nrEvents} Ereignisse geliefert.

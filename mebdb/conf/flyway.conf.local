@@ -1,0 +1,7 @@
+flyway.user=M_MEB
+flyway.password=<secretPassword>
+flyway.url=jdbc:oracle:thin:@localhost:1521:ORCL
+flyway.locations=filesystem:database/scripts
+flyway.baselineVersion=1
+flyway.baselineDescription=flyway current baseline
+flyway.baselineOnMigrate=true

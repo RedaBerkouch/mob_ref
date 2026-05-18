@@ -1,0 +1,1 @@
+mvn clean install -P local -pl sdl-xml-beans,sdlwsclient,sdlserver,sdlserverEAR,sdlweb,sdlwebEAR

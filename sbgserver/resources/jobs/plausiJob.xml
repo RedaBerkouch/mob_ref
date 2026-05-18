@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+      	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
+
+    <batch:step id="plausiStep">
+        <batch:tasklet>
+            <batch:chunk reader="personItemReader"
+                         writer="personPlausiWriter"
+                         processor="personPlausiProcessor"
+                         commit-interval="100"/>
+            <batch:transaction-attributes timeout="3000"/>
+        </batch:tasklet>
+    </batch:step>
+
+    <batch:step id="concludePlausiStep">
+        <batch:tasklet transaction-manager="transactionManager" ref="concludePlausiTasklet">
+            <batch:transaction-attributes timeout="3000"/>
+        </batch:tasklet>
+    </batch:step>
+
+    <batch:job id="sbgPlausiJob" job-repository="jobRepository" incrementer="mebJobIncrementer">
+        <batch:step id="plausi" parent="plausiStep" next="concludePlausi"/>
+        <batch:step id="concludePlausi" parent="concludePlausiStep"/>
+        <batch:listeners>
+            <batch:listener ref="mebJobExecutionListener"/>
+        </batch:listeners>
+    </batch:job>
+
+    <bean id="personItemReader" class="ch.admin.bfs.sbg.business.PersonIdItemReader">
+        <property name="personDAO" ref="personDAO"/>
+    </bean>
+
+    <bean id="personPlausiProcessor" class="ch.admin.bfs.sbg.business.PersonPlausiProcessor" scope="step">
+        <property name="deliveryId" value="#{jobParameters[deliveryId]}"/>
+        <property name="deliveryDAO" ref="deliveryDAO"/>
+        <property name="personDAO" ref="personDAO"/>
+   		<property name="codegroupManager" ref="codegroupManager"/>
+        <property name="macroDAO" ref="macroDAO"/>
+        <property name="plausierrorDAO" ref="plausierrorDAO"/>
+        <property name="plausiFactory" ref="plausiFactory"/>
+    </bean>
+
+    <bean id="personPlausiWriter" class="ch.admin.bfs.sbg.business.PersonPlausiWriter" scope="step">
+        <property name="deliveryId" value="#{jobParameters[deliveryId]}"/>
+        <property name="username" value="#{jobParameters[username]}"/>
+        <property name="personDAO" ref="personDAO"/>
+        <property name="eventRepository" ref="eventRepository"/>
+   		<property name="codegroupManager" ref="codegroupManager"/>
+        <property name="macroDAO" ref="macroDAO"/>
+        <property name="plausierrorDAO" ref="plausierrorDAO"/>
+        <property name="plausiFactory" ref="plausiFactory"/>
+    </bean>
+
+    <bean id="concludePlausiTasklet" class="ch.admin.bfs.sbg.business.ConcludePlausiTasklet" scope="step">
+        <property name="deliveryId" value="#{jobParameters[deliveryId]}"/>
+        <property name="interventionId" value="#{jobParameters[interventionId]}"/>
+        <property name="username" value="#{jobParameters[username]}"/>
+        <property name="deliveryDAO" ref="deliveryDAO"/>
+        <property name="personDAO" ref="personDAO"/>
+        <property name="actionDAO" ref="actionDAO"/>
+        <property name="eventRepository" ref="eventRepository"/>
+   		<property name="codegroupManager" ref="codegroupManager"/>
+        <property name="macroDAO" ref="macroDAO"/>
+        <property name="plausierrorDAO" ref="plausierrorDAO"/>
+        <property name="plausiFactory" ref="plausiFactory"/>
+        <property name="sasService" ref="sasService"/>
+        <property name="localizationManager" ref="localizationManager"/>
+    </bean>
+</beans>

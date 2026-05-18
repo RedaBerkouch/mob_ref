@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--Created with Liquid XML Studio - FREE Community Edition 7.0.2.746 (http://www.liquid-technologies.com)-->
+<xsd:schema elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:element name="MEBResponse">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element minOccurs="1" maxOccurs="1" name="Response" type="ResponseType" />
+        <xsd:element name="head">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="version">
+                <xsd:simpleType>
+                  <xsd:restriction base="xsd:integer">
+                    <xsd:totalDigits value="4" />
+                  </xsd:restriction>
+                </xsd:simpleType>
+              </xsd:element>
+              <xsd:element name="cantonId">
+                <xsd:simpleType>
+                  <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="01" />
+                    <xsd:maxInclusive value="26" />
+                  </xsd:restriction>
+                </xsd:simpleType>
+              </xsd:element>
+              <xsd:element name="dataDelivery">
+                <xsd:simpleType>
+                  <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="20" />
+                  </xsd:restriction>
+                </xsd:simpleType>
+              </xsd:element>
+              <xsd:element minOccurs="0" name="deliveryDate" type="xsd:token" />
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element minOccurs="0" name="ValidationErrors">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element minOccurs="0" maxOccurs="unbounded" name="ValidationError" type="ValidationErrorType" />
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:complexType name="ValidationErrorType">
+    <xsd:sequence>
+      <xsd:element minOccurs="1" maxOccurs="1" name="RuleId" type="xsd:string" />
+      <xsd:element minOccurs="1" maxOccurs="1" name="RuleName" type="xsd:string" />
+      <xsd:element minOccurs="1" maxOccurs="1" name="ObjectType" type="xsd:string" />
+      <xsd:element minOccurs="0" name="instIdCategory" type="xsd:token" />
+      <xsd:element minOccurs="0" name="instId" type="xsd:token" />
+      <xsd:element minOccurs="0" name="classId" type="xsd:token" />
+      <xsd:element minOccurs="0" name="personIdCategory" type="xsd:token" />
+      <xsd:element minOccurs="0" name="personId" type="xsd:token" />
+      <xsd:element minOccurs="1" maxOccurs="1" name="ErrorMessage" type="xsd:string" />
+      <xsd:element minOccurs="0" maxOccurs="1" name="OriginText" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ResponseType">
+    <xsd:sequence>
+      <xsd:element name="Message" type="xsd:string" />
+      <xsd:element minOccurs="0" name="Reason" type="xsd:string" />
+    </xsd:sequence>
+    <xsd:attribute name="code">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:int">
+          <xsd:enumeration value="0">
+            <xsd:annotation>
+              <xsd:documentation>Operation successful</xsd:documentation>
+            </xsd:annotation>
+          </xsd:enumeration>
+          <xsd:enumeration value="10">
+            <xsd:annotation>
+              <xsd:documentation>No plausi errors found</xsd:documentation>
+            </xsd:annotation>
+          </xsd:enumeration>
+          <xsd:enumeration value="11">
+            <xsd:annotation>
+              <xsd:documentation>Plausi Errors found</xsd:documentation>
+            </xsd:annotation>
+          </xsd:enumeration>
+          <xsd:enumeration value="30">
+            <xsd:annotation>
+              <xsd:documentation>Error in file format</xsd:documentation>
+            </xsd:annotation>
+          </xsd:enumeration>
+          <xsd:enumeration value="40">
+            <xsd:annotation>
+              <xsd:documentation>No permission</xsd:documentation>
+            </xsd:annotation>
+          </xsd:enumeration>
+          <xsd:enumeration value="50">
+            <xsd:annotation>
+              <xsd:documentation>DB locked by another process</xsd:documentation>
+            </xsd:annotation>
+          </xsd:enumeration>
+          <xsd:enumeration value="99">
+            <xsd:annotation>
+              <xsd:documentation>Unknown Infrastructure error</xsd:documentation>
+            </xsd:annotation>
+          </xsd:enumeration>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+  </xsd:complexType>
+</xsd:schema>

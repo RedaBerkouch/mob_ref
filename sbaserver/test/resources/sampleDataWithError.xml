@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <Schools schoolid="20" burnr="2000" label="Schule 1"/>
+    <Schools schoolid="21" burnr="2001" label="Schule 2"/>
+    <Ssp_Persons personId="9" id="4" idType="person:idType"/>
+    <Ssp_Deliveries deliveryId="30"/>
+    <Ssp_Plausis plausiId="7" isConfirmable="1" isActive="1" type="0" objectlevel="1"/>
+    <Ssp_Activities activityId="11" personid="9" id="1" schoolId="2000x" schoolIdType="ERROR"/>
+    <Ssp_PlausiErrors errorId="4" plausiId="7" deliveryId="30" personId="9" isConfirmed="0" isToDelete="0"/>
+</dataset>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+      	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
+
+	<batch:step id="plausiStep">
+		<batch:tasklet>
+			<batch:chunk reader="personIdItemReader" 
+						 writer="personPlausiWriter" 
+						 processor="personPlausiProcessor"
+						 commit-interval="1"/>
+			<batch:transaction-attributes timeout="3000"/>
+		</batch:tasklet>
+	</batch:step>
+	
+	<batch:step id="concludePlausiStep">
+		<batch:tasklet transaction-manager="transactionManager" ref="concludePlausiTasklet">
+			<batch:transaction-attributes timeout="3000"/>
+		</batch:tasklet>
+	</batch:step>
+
+	<batch:job id="sbaPlausiJob" job-repository="jobRepository" incrementer="mebJobIncrementer">
+		<batch:step id="plausi" parent="plausiStep" next="concludePlausi"/>
+		<batch:step id="concludePlausi" parent="concludePlausiStep"/>
+		<batch:listeners>
+			<batch:listener ref="mebJobExecutionListener"/>
+		</batch:listeners>
+	</batch:job>
+
+	<bean id="personIdItemReader" class="ch.bfs.meb.sba.server.business.PersonIdItemReader">
+		<property name="sessionFactory" ref="sessionFactory"/>
+	</bean>
+
+    <bean id="personPlausiProcessor" class="ch.bfs.meb.sba.server.business.PersonPlausiProcessor" scope="step">
+    	<property name="personRepository" ref="personRepository"/>
+    	<property name="qualificationRepository" ref="qualificationRepository"/>
+    	<property name="plausiFactory" ref="plausiFactory"/>
+    </bean>
+
+    <bean id="personPlausiWriter" class="ch.bfs.meb.sba.server.business.PersonPlausiWriter" scope="step">
+		<property name="username" value="#{jobParameters[username]}"/>
+    	<property name="deliveryRepository" ref="deliveryRepository"/>
+    	<property name="personRepository" ref="personRepository"/>
+    	<property name="qualificationRepository" ref="qualificationRepository"/>
+    	<property name="plausierrorRepository" ref="plausierrorRepository"/>
+    	<property name="burSchoolRepository" ref="burSchoolRepository"/>
+    </bean>
+
+	<bean id="concludePlausiTasklet" class="ch.bfs.meb.sba.server.business.ConcludePlausiTasklet" scope="step">
+		<property name="deliveryId" value="#{jobParameters[deliveryId]}" />
+		<property name="interventionId" value="#{jobParameters[interventionId]}" />
+		<property name="username" value="#{jobParameters[username]}"/>
+    	<property name="deliveryRepository" ref="deliveryRepository"/>
+    	<property name="plausiFactory" ref="plausiFactory"/>
+    	<property name="plausireportFactory" ref="plausireportFactory"/>
+    	<property name="interventionRepository" ref="interventionRepository"/>
+    	<property name="plausierrorRepository" ref="plausierrorRepository"/>
+    	<property name="localizationManager" ref="localizationManager"/>
+	</bean>
+</beans>

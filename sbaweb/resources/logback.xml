@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<layout class="ch.bfs.meb.logback.StandardLayout">
+			<Pattern>%d{dd.MM.yyyy HH:mm:ss.SSS} %property{username} [%thread] %-5level %logger - %msg%n</Pattern>
+		</layout>
+	</appender>
+
+	<appender name="MONITOR" class="ch.bfs.meb.logback.MebRollingFileAppender">
+		<File>${BASE_DIR}monitor-sbaweb.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${BASE_DIR}monitor-sbaweb.%d{yyyy-MM-dd}.log</FileNamePattern>
+			<MaxHistory>31</MaxHistory>
+		</rollingPolicy>
+<!--
+		<filter class="ch.bfs.meb.logback.MonitorFilter" />
+		<layout class="ch.bfs.meb.logback.MonitorLayout">
+			<Pattern>[%d{dd.MM.yyyy HH:mm:ss}] %msg%n%nopex</Pattern>
+		</layout>
+-->
+		<layout class="ch.bfs.meb.logback.StandardLayout">
+			<Pattern>%d{dd.MM.yyyy HH:mm:ss.SSS} %property{username} [%thread] %-5level %logger - %msg%n</Pattern>
+		</layout>
+	</appender>
+
+	<logger name="ch.bfs.meb" level="INFO" >
+		<appender-ref ref="MONITOR" />
+	</logger>
+
+	<root level="INFO">
+		<appender-ref ref="STDOUT" />
+	</root>
+</configuration>

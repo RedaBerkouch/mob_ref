@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <context:annotation-config />
+
+    <tx:annotation-driven transaction-manager="txManager" />
+    <bean id="txManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <bean id="sessionFactory"
+          class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+        <property name="dataSource">
+            <ref bean="dataSource" />
+        </property>
+        <property name="annotatedClasses">
+            <list>
+                <value>ch.bfs.meb.server.commons.integration.dto.CodeGroup</value>
+                <value>ch.bfs.meb.server.commons.integration.dto.BurSchoolExt</value>
+                <value>ch.bfs.meb.sdl.server.integration.dto.SdlParameter</value>
+                <value>ch.bfs.meb.sdl.server.integration.dto.SdlFilter</value>
+                <value>ch.bfs.meb.sdl.server.integration.dto.SdlPlausi</value>
+                <value>ch.bfs.meb.sdl.server.integration.dto.SdlExport</value>
+                <value>ch.bfs.meb.sdl.server.integration.dto.SdlDelivery</value>
+                <value>ch.bfs.meb.sdl.server.integration.dto.SdlSchool</value>
+                <value>ch.bfs.meb.sdl.server.integration.dto.SdlClass</value>
+                <value>ch.bfs.meb.sdl.server.integration.dto.SdlCanton</value>
+                <value>ch.bfs.meb.sdl.server.integration.dto.SdlConfigDelivery</value>
+                <value>ch.bfs.meb.sdl.server.integration.dto.SdlLearner</value>
+                <value>ch.bfs.meb.sdl.server.integration.dto.SdlBurSchool</value>
+                <value>ch.bfs.meb.sdl.server.integration.dto.SdlIntervention</value>
+                <value>ch.bfs.meb.sdl.server.integration.dto.SdlCantonIntervention</value>
+                <value>ch.bfs.meb.sdl.server.integration.dto.SdlPlausiError</value>
+            </list>
+        </property>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.HSQLDialect</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean class="ch.bfs.meb.sdl.server.integration.repository.PlausiErrorRepository"
+          id="plausierrorRepository">
+        <property name="sessionFactory" ref="sessionFactory" />
+    </bean>
+
+    <bean id="dataSource"
+          class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="org.hsqldb.jdbc.JDBCDriver" />
+        <property name="url" value="jdbc:hsqldb:mem:mymemdb" />
+        <property name="username" value="sa" />
+        <property name="password" value="" />
+    </bean>
+</beans>

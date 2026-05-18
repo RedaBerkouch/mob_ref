@@ -1,0 +1,47 @@
+<app-panel [title]="title">
+	<div class="form-container">
+		<div class="form-row">
+			<label class="file-label">{{ label }}:</label>
+
+			<div class="file-input-group" #fileUploadContainer>
+				<ob-file-upload
+					[singleRequest]="true"
+					[accept]="acceptedTypes()"
+					[multiple]="false"
+					[maxFileSize]="50"
+					[maxFileAmount]="1"
+					(uploadEvent)="onFileUploadEvent($event)">
+				</ob-file-upload>
+			</div>
+
+			<button
+				mat-raised-button
+				color="primary"
+				class="submit-button"
+				(click)="onSubmit()"
+				[disabled]="!selectedFile">
+				{{ labelButton }}
+			</button>
+		</div>
+
+		@if (selectedFile) {
+			<div class="selected-file-info">
+				<div class="file-details">
+					<mat-icon class="file-icon">insert_drive_file</mat-icon>
+					<div class="file-text">
+						<span class="file-name">{{ selectedFile.name }}</span>
+						<span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
+					</div>
+				</div>
+				<button
+					mat-icon-button
+					(click)="removeFile()"
+					color="warn"
+					matTooltip="Supprimer le fichier">
+					<mat-icon>delete</mat-icon>
+				</button>
+			</div>
+		}
+
+	</div>
+</app-panel>

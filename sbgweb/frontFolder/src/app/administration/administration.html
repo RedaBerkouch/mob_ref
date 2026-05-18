@@ -1,0 +1,13 @@
+
+@for (key of tableKeys(); track key) {
+	<app-datahandler
+		[config]="tables[key].config"
+		[dataSource]="tables[key].dataSource"
+		[title]="tables[key].config.title | translate"
+		(rowSelected)="handleRowSelected($event, key)"
+		(tableEvent)="handleTableEvent($event, key)">
+	</app-datahandler>
+}
+
+
+

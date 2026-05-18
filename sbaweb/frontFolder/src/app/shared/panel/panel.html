@@ -1,0 +1,26 @@
+<div class="advanced-table-section">
+	<div class="wrapper-box">
+		<div class="table-header-block">
+			<div class="table-header mb-2">
+				@if (title) {
+					<div class="header-top">
+						{{ title }}
+					</div>
+				}
+				@if (collapsable) {
+					<button
+						mat-icon-button
+						(click)="toggleCollapse()"
+						[attr.aria-label]="isCollapsed ? 'Développer le panneau' : 'Réduire le panneau'"
+						[attr.aria-expanded]="!isCollapsed">
+						<mat-icon>{{ isCollapsed ? 'expand_more' : 'expand_less' }}</mat-icon>
+					</button>
+				}
+			</div>
+		</div>
+
+		<div class="collapsible-content" [class.collapsed]="isCollapsed">
+			<ng-content></ng-content>
+		</div>
+	</div>
+</div>

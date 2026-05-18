@@ -1,0 +1,112 @@
+{
+  "persons": {
+    "title": "maintain.titlebar.person.name",
+    "isByDefaultCollapsed": false,
+    "selection": {
+      "mode": "multiple"
+    },
+    "columns": [
+      {"key": "pid", "label": "personTable.column.pid.name", "type": "text", "editable": false, "visible": false, "filterableOnContext": false},
+      {"key": "canton", "label": "personTable.column.canton.name", "width": "150px", "type": "select", "optionsSource": "cantonOptions", "editable": false, "filterableOnContext": true},
+      {"key": "version", "label": "personTable.column.version.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "idType", "label": "personTable.column.idtype.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "id", "label": "personTable.column.id.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "sex", "label": "personTable.column.sex.name", "width": "150px", "type": "select", "optionsSource": "genreOptions", "editable": false, "filterableOnContext": true},
+      {"key": "birthDate", "label": "personTable.column.birthdate.name", "width": "150px", "type": "date", "editable": true, "filterableOnContext": true},
+      {"key": "newBirthDate", "label": "personTable.column.newBirthDate.name", "width": "150px", "type": "date", "editable": true, "filterableOnContext": true},
+      {"key": "plausiErrors", "label": "plausiErrors", "editable": false, "visible": false, "filterableOnContext": false, "nonSelectable": true},
+      {
+        "key": "plausiStatus",
+        "label": "personTable.column.plausiStatus.name",
+        "width": "150px",
+        "type": "plausi-error",
+        "editable": false,
+        "visible": true,
+        "optionsSource": "plausiStatusOptions",
+        "filterableOnContext": true,
+        "plausiConfig": {
+          "errorArrayKey": "plausiErrors",
+          "statusKey": "plausiStatus",
+          "editableStatusValue": [0, 1, 3]
+        }
+      },
+      {"key": "status", "label": "personTable.column.status.name", "width": "150px", "type": "select", "optionsSource": "statusOptions", "editable": false, "filterableOnContext": true},
+      {"key": "modUser", "label": "personTable.column.modified.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "modDate", "label": "personTable.column.modDate.name", "width": "150px", "type": "date", "editable": false, "filterableOnContext": true},
+      {"key": "validUser", "label": "personTable.column.validUser.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "validDate", "label": "personTable.column.validDate.name", "width": "150px", "type": "date", "editable": false, "filterableOnContext": true},
+      {"key": "userComment", "label": "personTable.column.userComment.name", "width": "500px", "type": "text", "editable": false, "filterableOnContext": false},
+      {"key": "originText", "label": "personTable.column.originText.name", "width": "500px", "type": "text", "editable": false, "filterableOnContext": false},
+      {"key": "classCondition", "label": "condition", "width": "250px", "type": "text", "editable": false, "visible": false, "filterableOnContext": false, "nonSelectable": true}
+    ],
+    "actions": [
+      { "icon": "file_download", "tooltip": "Exporter CSV", "label": "Exporter CSV", "disabled": false },
+      { "icon": "switch_master", "src": "assets/icons/switch_master.gif", "tooltip": "Echanger la table principale", "label": "Echanger la table principale", "disabled": false },
+      { "icon": "done_all", "tooltip": "(pré)valider", "label": "(pré)valider", "disabled": false },
+      { "icon": "remove_done", "tooltip": "Dé(pré)valider", "label": "dé(pré)valider", "disabled": false },
+      { "icon": "save", "tooltip": "Enregistrer les modifications", "label": "Enregistrer les modifications", "disabled": true },
+      { "icon": "block", "tooltip": "Renoncer aux modifications", "label": "Renoncer aux modifications", "disabled": true },
+      { "icon": "add", "tooltip": "Ajouter", "label": "Insérer un enregistrement", "disabled": false },
+      { "icon": "delete", "tooltip": "Supprimer", "label": "Effacer l'enregistrement", "disabled": true }
+    ]
+  },
+  "qualifications": {
+    "title": "maintain.titlebar.qualification.name",
+    "selection": {
+      "mode": "multiple"
+    },
+    "columns": [
+      {"key": "eventid", "label": "qualificationTable.column.eventid.name", "width": "150px", "type": "text", "editable": false, "visible": false, "filterableOnContext": false},
+      {"key": "canton", "label": "qualificationTable.column.canton.name", "width": "150px", "type": "select", "optionsSource": "cantonOptions", "editable": false, "filterableOnContext": true},
+      {"key": "version", "label": "qualificationTable.column.version.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "plausiErrors", "label": "plausiErrors", "editable": false, "visible": false, "filterableOnContext": false, "nonSelectable": true},
+      {
+        "key": "plausiStatus",
+        "label": "qualificationTable.column.plausiStatus.name",
+        "width": "150px",
+        "type": "plausi-error",
+        "editable": false,
+        "visible": true,
+        "optionsSource": "plausiStatusOptions",
+        "filterableOnContext": true,
+        "plausiConfig": {
+          "errorArrayKey": "plausiErrors",
+          "statusKey": "plausiStatus",
+          "editableStatusValue": [0, 1, 3]
+        }
+      },
+      {"key": "type", "label": "qualificationTable.column.type.name", "width": "150px", "type": "select", "optionsSource": "typeOptions", "editable": false, "filterableOnContext": true},
+      {"key": "contractNr", "label": "qualificationTable.column.contractno.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "professionCode", "label": "qualificationTable.column.professioncode.name", "width": "150px", "type": "select", "optionsSource": "professionCodeOptions", "editable": false, "filterableOnContext": true},
+      {"key": "educationYear", "label": "qualificationTable.column.educationyear.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "sbfiCode", "label": "qualificationTable.column.sbficode.name", "width": "150px", "type": "select", "optionsSource": "sbfiCodeOptions", "editable": false, "filterableOnContext": true},
+      {"key": "contractType", "label": "qualificationTable.column.contracttype.name", "width": "150px", "type": "select", "optionsSource": "contractTypeOptions", "editable": false, "filterableOnContext": true},
+      {"key": "contractDate", "label": "qualificationTable.column.contractdate.name", "width": "150px", "type": "date", "editable": false, "filterableOnContext": true},
+      {"key": "cancelDate", "label": "qualificationTable.column.canceldate.name", "width": "150px", "type": "date", "editable": false, "filterableOnContext": true},
+      {"key": "cancelReason", "label": "qualificationTable.column.cancelreason.name", "width": "150px", "type": "select", "optionsSource": "cancelReasonOptions", "editable": false, "filterableOnContext": true},
+      {"key": "examType", "label": "qualificationTable.column.examtype.name", "width": "150px", "type": "select", "optionsSource": "examTypeOptions", "editable": false, "filterableOnContext": true},
+      {"key": "examResult", "label": "qualificationTable.column.examresult.name", "width": "150px", "type": "select", "optionsSource": "examResultOptions", "editable": false, "filterableOnContext": true},
+      {"key": "examNr", "label": "qualificationTable.column.examnr.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "examRepetition", "label": "qualificationTable.column.examrep.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "burnr", "label": "qualificationTable.column.burnr.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "firmName", "label": "qualificationTable.column.firstname.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "firmStreet", "label": "qualificationTable.column.firmstreet.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "firmStreetNr", "label": "qualificationTable.column.firmstreetno.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "firmPlz", "label": "qualificationTable.column.firmplz.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "firmMunicipality", "label": "qualificationTable.column.firmmunicipal.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "kantLbCode", "label": "qualificationTable.column.kantlbcode.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "userComment", "label": "qualificationTable.column.usercomment.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "modUser", "label": "qualificationTable.column.modified.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "modDate", "label": "qualificationTable.column.modDate.name", "width": "150px", "type": "date", "editable": false, "filterableOnContext": true},
+      {"key": "flagLbv", "label": "qualificationTable.column.flaglbv.name", "width": "50px", "type": "checkbox", "editable": false, "filterableOnContext": true}
+    ],
+    "actions": [
+      { "icon": "file_download", "tooltip": "Exporter CSV", "label": "Exporter CSV", "disabled": false },
+      { "icon": "switch_master", "src": "assets/icons/switch_master.gif", "tooltip": "Echanger la table principale", "label": "Echanger la table principale", "disabled": false },
+      { "icon": "save", "tooltip": "Enregistrer les modifications", "label": "Enregistrer les modifications", "disabled": true },
+      { "icon": "block", "tooltip": "Renoncer aux modifications", "label": "Renoncer aux modifications", "disabled": true },
+      { "icon": "add", "tooltip": "Ajouter", "label": "Insérer un enregistrement", "disabled": false },
+      { "icon": "delete", "tooltip": "Supprimer", "label": "Effacer l'enregistrement", "disabled": true }
+    ]
+  }
+}

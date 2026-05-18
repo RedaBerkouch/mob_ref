@@ -1,0 +1,1 @@
+mvn clean install -P local -pl sba-xml-beans,sbawsclient,sbaserver,sbaserverEAR,sbaweb,sbawebEAR

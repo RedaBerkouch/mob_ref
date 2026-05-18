@@ -1,0 +1,11 @@
+{
+  "/sbaweb": {
+    "target": "http://localhost:7001",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "headers": {
+      "Authorization": "Basic ZWE6dGVzdDEyMzQ="
+    }
+  }
+}

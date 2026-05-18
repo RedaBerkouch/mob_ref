@@ -1,0 +1,3 @@
+Nous accusons réception de la livraison du ${deliveryDate} par ${deliveryUser}. Elle comprend ${deliveryPersons} personnes.
+
+Pour le canton de/du ${cantonString} et l'année ${deliveryVersion}, ${nrPersons} personnes et ${nrEvents} événements ont été livrés.

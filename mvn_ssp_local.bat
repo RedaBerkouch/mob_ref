@@ -1,0 +1,1 @@
+mvn clean install -P local -pl ssp-xml-beans,sspwsclient,sspserver,sspserverEAR,sspweb,sspwebEAR

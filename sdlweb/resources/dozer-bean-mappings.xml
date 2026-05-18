@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mappings xmlns="http://dozer.sourceforge.net"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://dozer.sourceforge.net
+          http://dozer.sourceforge.net/schema/beanmapping.xsd">
+          
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebFilterContext</class-a>
+    <class-b>ch.bfs.meb.sdl.web.ws.sdldelivery.FilterContext</class-b>
+    <field>
+      <a>filter</a>
+      <b is-accessible="true">filter</b>
+    </field>
+    <field>
+      <a>whereFilter</a>
+      <b is-accessible="true">whereFilter</b>
+    </field>
+  </mapping>
+
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebFilterContext</class-a>
+    <class-b>ch.bfs.meb.sdl.web.ws.sdlschool.FilterContext</class-b>
+    <field>
+      <a>filter</a>
+      <b is-accessible="true">filter</b>
+    </field>
+    <field>
+      <a>whereFilter</a>
+      <b is-accessible="true">whereFilter</b>
+    </field>
+  </mapping>
+
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebFilter</class-a>
+    <class-b>ch.bfs.meb.sdl.web.ws.sdldelivery.Filter</class-b>
+    <field>
+      <a>parameters</a>
+      <b is-accessible="true">parameters</b>
+    </field>
+  </mapping>
+
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebFilter</class-a>
+    <class-b>ch.bfs.meb.sdl.web.ws.sdlschool.Filter</class-b>
+    <field>
+      <a>parameters</a>
+      <b is-accessible="true">parameters</b>
+    </field>
+  </mapping>
+
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebParameter</class-a>
+    <class-b>ch.bfs.meb.sdl.web.ws.sdldelivery.Parameter</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebParameter</class-a>
+    <class-b>ch.bfs.meb.sdl.web.ws.sdlschool.Parameter</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebWhereFilter</class-a>
+    <class-b>ch.bfs.meb.sdl.web.ws.sdldelivery.WhereFilter</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebWhereFilter</class-a>
+    <class-b>ch.bfs.meb.sdl.web.ws.sdlschool.WhereFilter</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebSortContext</class-a>
+    <class-b>ch.bfs.meb.sdl.web.ws.sdldelivery.SortContext</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebSortContext</class-a>
+    <class-b>ch.bfs.meb.sdl.web.ws.sdlschool.SortContext</class-b>
+  </mapping>
+</mappings>

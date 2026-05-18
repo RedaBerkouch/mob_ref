@@ -1,0 +1,149 @@
+{
+  "adminFilter": {
+    "title": "admin.titlebar.filter.name",
+    "isByDefaultCollapsed": false,
+    "selection": {
+      "mode": "single"
+    },
+    "columns": [
+      { "key": "isActive", "label": "adminFilterTable.column.active.name", "width": "", "type": "checkbox", "editable": true, "visible" : true },
+      { "key": "filterOrder", "label": "adminFilterTable.column.sortorder.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "nameDe", "label": "adminFilterTable.column.name.german.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "nameFr", "label": "adminFilterTable.column.name.french.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "refObject", "label": "adminFilterTable.column.object.name", "width": "", "type": "select", "editable": true, "optionsSource": "this.objectTypeOptions()","required": true, "visible" : true },
+      { "key": "authorisationLevel", "label": "adminFilterTable.column.authorisation.name", "width": "", "type": "select", "editable": true,"optionsSource": "this.MebRoleOptions()","required": true, "visible" : true },
+      { "key": "source", "label": "adminFilterTable.column.source.name", "width": "", "type": "text", "editable": true ,"required": true, "visible" : true},
+      { "key": "isDefault", "label": "adminFilterTable.column.default.name", "width": "", "type": "checkbox", "editable": true, "visible" : true },
+      { "key": "nameIt", "label": "adminFilterTable.column.name.italian.name", "width": "", "type": "text", "editable": true, "visible" : false },
+      { "key": "descriptionDe", "label": "adminFilterTable.column.description.german.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "descriptionFr", "label": "adminFilterTable.column.description.french.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "descriptionIt", "label": "adminFilterTable.column.description.italian.name", "width": "", "type": "text", "editable": true, "visible" : true }
+    ],
+    "actions": [
+
+      { "icon": "save", "tooltip": "Enregistrer", "label": "Enregidtrer", "disabled": false },
+      { "icon": "block", "tooltip": "Annuler", "label": "Annuler", "disabled": false },
+      { "icon": "add", "tooltip": "Ajouter", "label": "Ajouter", "disabled": false },
+      { "icon": "delete", "tooltip": "Supprimer", "label": "Supprimer", "disabled": false }
+    ]
+  },
+  "paramAdminFilter": {
+    "title": "admin.titlebar.filter.parameter.name",
+    "isByDefaultCollapsed": true,
+    "selection": {
+      "mode": "single"
+    },
+    "columns": [
+      { "key": "parameterOrder", "label": "adminParamTable.column.sortorder.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "uniqueName", "label": "adminParamTable.column.id.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "nameDe", "label": "adminParamTable.column.name.german.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "nameFr", "label": "adminParamTable.column.name.french.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "nameIt", "label": "adminParamTable.column.name.italian.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "defaultValue", "label": "adminParamTable.column.default.name", "width": "", "type": "text", "editable": true, "visible" : true }
+    ],
+    "actions": [
+      { "icon": "save", "tooltip": "Enregistrer", "label": "Enregidtrer", "disabled": false },
+      { "icon": "block", "tooltip": "Annuler", "label": "Annuler", "disabled": false },
+      { "icon": "add", "tooltip": "Ajouter", "label": "Ajouter", "disabled": false },
+      { "icon": "delete", "tooltip": "Supprimer", "label": "Supprimer", "disabled": false }
+    ]
+  },
+  "reglePlausi": {
+    "title": "admin.titlebar.plausi.name",
+    "isByDefaultCollapsed": false,
+    "selection": {
+      "mode": "single"
+    },
+    "columns": [
+      { "key": "isActive", "label": "adminPlausiTable.column.active.name", "width": "", "type": "checkbox", "editable": true, "visible" : true },
+      { "key": "plausiOrder", "label": "adminPlausiTable.column.order.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "nameDe", "label": "adminPlausiTable.column.name.german.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "nameFr", "label": "adminPlausiTable.column.name.french.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "type", "label": "adminPlausiTable.column.type.name", "width": "", "type": "select", "editable": true,"required": true,"optionsSource": "this.MebPlausiTypes()", "visible" : true },
+      { "key": "objectLevel", "label": "adminPlausiTable.column.object.name", "width": "", "type": "select", "editable": true,"required": true, "optionsSource": "this.objectTypeOptions()" , "visible" : true},
+      { "key": "isConfirmable", "label": "adminPlausiTable.column.confirmable.name", "width": "", "type": "checkbox", "editable": true , "visible" : true},
+      { "key": "validFrom", "label": "adminPlausiTable.column.validFrom.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "validTo", "label": "adminPlausiTable.column.validTo.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "source", "label": "adminPlausiTable.column.source.name", "width": "", "type": "text", "editable": true ,"required": true, "visible" : true},
+      { "key": "plausiId", "label": "adminPlausiTable.column.id.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "nameIt", "label": "adminPlausiTable.column.name.italian.name", "width": "", "type": "text", "editable": true, "visible" : false },
+      { "key": "descriptionDe", "label": "adminPlausiTable.column.description.german.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "descriptionFr", "label": "adminPlausiTable.column.description.french.name", "width": "", "type": "text", "editable": true , "visible" : true},
+      { "key": "descriptionIt", "label": "adminPlausiTable.column.description.italian.name", "width": "", "type": "text", "editable": true, "visible" : true }
+    ],
+    "actions": [
+      { "icon": "save", "tooltip": "Enregistrer", "label": "Enregidtrer", "disabled": false },
+      { "icon": "block", "tooltip": "Annuler", "label": "Annuler", "disabled": false },
+      { "icon": "add", "tooltip": "Ajouter", "label": "Ajouter", "disabled": false },
+      { "icon": "delete", "tooltip": "Supprimer", "label": "Supprimer", "disabled": false }
+    ]
+  },
+  "paramReglePlausi": {
+    "title": "admin.titlebar.plausi.parameter.name",
+    "isByDefaultCollapsed": true,
+    "selection": {
+      "mode": "single"
+    },
+    "columns": [
+      { "key": "parameterOrder", "label": "adminParamTable.column.sortorder.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "uniqueName", "label": "adminParamTable.column.id.name", "width": "", "type": "text", "editable": true , "visible" : true},
+      { "key": "nameDe", "label": "adminParamTable.column.name.german.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "nameFr", "label": "adminParamTable.column.name.french.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "nameIt", "label": "adminParamTable.column.name.italian.name", "width": "", "type": "text", "editable": true, "visible" : true },
+      { "key": "defaultValue", "label": "adminParamTable.column.default.name", "width": "", "type": "text", "editable": true, "visible" : true }
+    ],
+    "actions": [
+      { "icon": "save", "tooltip": "Enregistrer", "label": "Enregidtrer", "disabled": false },
+      { "icon": "block", "tooltip": "Annuler", "label": "Annuler", "disabled": false },
+      { "icon": "add", "tooltip": "Ajouter", "label": "Ajouter", "disabled": false },
+      { "icon": "delete", "tooltip": "Supprimer", "label": "Supprimer", "disabled": false }
+    ]
+  },
+  "adminExploitation": {
+    "title": "admin.titlebar.export.name",
+    "isByDefaultCollapsed": false,
+    "selection": {
+      "mode": "single"
+    },
+    "columns": [
+      { "key": "isActive", "label": "adminExportTable.column.active.name", "width": "", "type": "checkbox", "editable": true,"visible" : true },
+      { "key": "filterOrder", "label": "adminExportTable.column.order.name", "width": "", "type": "text", "editable": true,"visible" : true },
+      { "key": "nameDe", "label": "adminExportTable.column.name.german.name", "width": "", "type": "text", "editable": true,"visible" : true },
+      { "key": "nameFr", "label": "adminExportTable.column.name.french.name", "width": "", "type": "text", "editable": true,"visible" : true },
+      { "key": "type", "label": "adminExportTable.column.type.name", "width": "", "type": "select", "editable": true,"optionsSource": "this.MebExportTypes()","required": true,"visible" : true  },
+      { "key": "authorisationLevel", "label": "adminExportTable.column.authorisation.name", "width": "", "type": "select", "editable": true,"optionsSource": "this.MebRoleOptions()","required": true,"visible" : true },
+      { "key": "source", "label": "adminExportTable.column.source.name", "width": "", "type": "text", "editable": true,"required": true,"visible" : true },
+      { "key": "nameIt", "label": "adminExportTable.column.name.italian.name", "width": "", "type": "text", "editable": true,"visible" : true },
+      { "key": "descriptionDe", "label": "adminExportTable.column.description.german.name", "width": "", "type": "text", "editable": true,"visible" : true },
+      { "key": "descriptionFr", "label": "adminExportTable.column.description.french.name", "width": "", "type": "text", "editable": true, "visible" : true},
+      { "key": "descriptionIt", "label": "adminExportTable.column.description.italian.name", "width": "", "type": "text", "editable": true, "visible" : true}
+    ],
+    "actions": [
+      { "icon": "save", "tooltip": "Enregistrer", "label": "Enregidtrer", "disabled": false },
+      { "icon": "block", "tooltip": "Annuler", "label": "Annuler", "disabled": false },
+      { "icon": "add", "tooltip": "Ajouter", "label": "Ajouter", "disabled": false },
+      { "icon": "delete", "tooltip": "Supprimer", "label": "Supprimer", "disabled": false }
+    ]
+  },
+  "paramExploitation": {
+    "title": "admin.titlebar.export.parameter.name",
+    "isByDefaultCollapsed": true,
+    "selection": {
+      "mode": "single"
+    },
+    "columns": [
+      { "key": "parameterOrder", "label": "adminParamTable.column.sortorder.name", "width": "", "type": "text", "editable": true },
+      { "key": "uniqueName", "label": "adminParamTable.column.id.name", "width": "", "type": "text", "editable": true },
+      { "key": "nameDe", "label": "adminParamTable.column.name.german.name", "width": "", "type": "text", "editable": true },
+      { "key": "nameFr", "label": "adminParamTable.column.name.french.name", "width": "", "type": "text", "editable": true },
+      { "key": "nameIt", "label": "adminParamTable.column.name.italian.name", "width": "", "type": "text", "editable": true },
+      { "key": "defaultValue", "label": "adminParamTable.column.default.name", "width": "", "type": "text", "editable": true }
+    ],
+    "actions": [
+      { "icon": "save", "tooltip": "Enregistrer", "label": "Enregidtrer", "disabled": false },
+      { "icon": "block", "tooltip": "Annuler", "label": "Annuler", "disabled": false },
+      { "icon": "add", "tooltip": "Ajouter", "label": "Ajouter", "disabled": false },
+      { "icon": "delete", "tooltip": "Supprimer", "label": "Supprimer", "disabled": false }
+    ]
+  }
+}

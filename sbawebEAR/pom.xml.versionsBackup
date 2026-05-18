@@ -1,0 +1,73 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>ch.bfs.meb</groupId>
+    <artifactId>sbawebEAR</artifactId>
+    <packaging>ear</packaging>
+    <name>sbaweb ear</name>
+    <version>03.00.22-SNAPSHOT</version>
+    <profiles>
+    </profiles>
+    <parent>
+        <artifactId>portal</artifactId>
+        <groupId>ch.bfs.meb</groupId>
+        <version>03.00.22-SNAPSHOT</version>
+    </parent>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-ear-plugin</artifactId>
+                <version>2.10.1</version>
+                <configuration>
+                    <defaultJavaBundleDir>lib/</defaultJavaBundleDir>
+                    <earSourceDirectory>${basedir}/EarContent</earSourceDirectory>
+                </configuration>
+            </plugin>
+            <plugin>
+                <executions>
+                    <execution>
+                        <id>deploy.to.weblogic</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>deploy</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>weblogic-maven-plugin</artifactId>
+                <version>2.9.5</version>
+                <configuration>
+                    <adminServerHostName>localhost</adminServerHostName>
+                    <adminServerPort>7001</adminServerPort>
+                    <adminServerProtocol>t3</adminServerProtocol>
+                    <userId>weblogic</userId>
+                    <password>weblogic</password>
+                    <upload>false</upload>
+                    <remote>false</remote>
+                    <verbose>false</verbose>
+                    <debug>false</debug>
+                    <targetNames>AdminServer</targetNames>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+
+        <!-- MEB -->
+        <dependency>
+            <groupId>ch.bfs.meb</groupId>
+            <artifactId>sbaweb</artifactId>
+            <version>03.00.22-SNAPSHOT</version>
+            <type>war</type>
+        </dependency>
+
+    </dependencies>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>localRepository</id>
+            <name>Local Repository</name>
+            <url>file://C:/Users/dwi/.m2/repository</url>
+        </snapshotRepository>
+    </distributionManagement>
+</project>

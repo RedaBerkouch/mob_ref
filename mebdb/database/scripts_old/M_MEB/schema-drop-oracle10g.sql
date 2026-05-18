@@ -1,0 +1,28 @@
+
+WHENEVER SQLERROR CONTINUE;
+
+/****************************************************************************
+ *	DropBatch Tables - copied from spring-batch-core-2.0.4.RELEASE.jar
+ ****************************************************************************/
+
+DROP TABLE  BATCH_STEP_EXECUTION_CONTEXT ;
+
+DROP TABLE  BATCH_JOB_EXECUTION_CONTEXT ;
+
+DROP TABLE  BATCH_STEP_EXECUTION ;
+
+DROP TABLE  BATCH_JOB_EXECUTION ;
+
+DROP TABLE  BATCH_JOB_PARAMS ;
+
+DROP TABLE  BATCH_JOB_INSTANCE ;
+
+
+
+DROP SEQUENCE  BATCH_STEP_EXECUTION_SEQ ;
+
+DROP SEQUENCE  BATCH_JOB_EXECUTION_SEQ ;
+
+DROP SEQUENCE  BATCH_JOB_SEQ ;
+
+COMMIT;

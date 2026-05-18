@@ -1,0 +1,105 @@
+.form-row {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.file-input-group {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex: 1;
+	min-width: 0;
+}
+
+.browse-button {
+	min-width: 100px;
+}
+
+.file-name {
+	font-size: 14px;
+	color: rgba(0, 0, 0, 0.6);
+	flex: 1;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.submit-button {
+	flex-shrink: 0;
+}
+
+.form-container {
+	padding: 16px 0;
+}
+
+.form-row {
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	align-items: center;
+	gap: 16px;
+}
+
+.file-label {
+	font-size: 1.2rem;
+	color: rgba(0, 0, 0, 0.87);
+	white-space: nowrap;
+}
+
+.file-input-group {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-width: 0;
+}
+
+.submit-button {
+	flex-shrink: 0;
+}
+
+.selected-file-info {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 16px;
+	margin-top: 16px;
+	background-color: #f5f5f5;
+	border: 1px solid #e0e0e0;
+	border-radius: 4px;
+	transition: background-color 0.2s;
+
+	&:hover {
+		background-color: #eeeeee;
+	}
+
+	.file-details {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		flex: 1;
+
+		.file-icon {
+			color: #666;
+			font-size: 24px;
+			width: 24px;
+			height: 24px;
+		}
+
+		.file-text {
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+
+			.file-name {
+				font-size: 14px;
+				font-weight: 500;
+				color: rgba(0, 0, 0, 0.87);
+			}
+
+			.file-size {
+				font-size: 12px;
+				color: rgba(0, 0, 0, 0.6);
+			}
+		}
+	}
+}

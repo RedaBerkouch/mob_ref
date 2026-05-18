@@ -1,0 +1,6 @@
+/**
+ * v2.39.00 MEB-62 SBA: Extend codegroup field length.
+ */
+
+ALTER TABLE CODEGROUPS
+MODIFY (CODEGROUPID VARCHAR2(30));

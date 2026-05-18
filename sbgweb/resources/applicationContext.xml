@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- **************************************** -->
+	<!-- * Spring annotations                   * -->
+	<!-- **************************************** -->
+
+	<context:annotation-config />
+
+	<!-- **************************************** -->
+	<!-- * Spring placeholder replacement       * -->
+	<!-- * ${TOKEN}                             * -->
+	<!-- **************************************** -->
+
+	<context:property-placeholder location="${SBGWEB_PROPERTIES_LOCATION}"/>
+
+	<!-- **************************************** -->
+	<!-- * Application context provider         * -->
+	<!-- **************************************** -->
+
+	<bean id="applicationContextProvider" class="ch.bfs.meb.util.ApplicationContextProvider" />
+
+	<!-- **************************************** -->
+	<!-- * Webservices                          * -->
+	<!-- **************************************** -->
+
+	<bean id="webServiceClientFactory"
+		class="ch.bfs.meb.sbg.web.service.client.WebServiceClientFactory">
+		<property name="configuration">
+			<ref bean="configuration" />
+		</property>
+	</bean>
+	
+	<!-- **************************************** -->
+	<!-- * Dozer Mapping                        * -->
+	<!-- **************************************** -->
+
+	<bean id="org.dozer.Mapper" class="org.dozer.DozerBeanMapper">
+		<property name="mappingFiles">
+			<list>
+				<value>dozer-bean-mappings.xml</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- **************************************** -->
+	<!-- * Dhtmlx globals                       * -->
+	<!-- **************************************** -->
+
+	<bean id="maintainglobals" class="ch.bfs.meb.web.commons.dhtmlx.javascript.MaintainGlobals" scope="session"/>
+
+	<!-- **************************************** -->
+	<!-- * Advices                              * -->
+	<!-- **************************************** -->
+
+	<!-- moved to sbgweb-servlet.xml -->
+
+	<!-- **************************************** -->
+	<!-- * Quartz                               * -->
+	<!-- **************************************** -->
+
+
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<!--bean id="cronAliveTrigger"
+					class="org.springframework.scheduling.quartz.CronTriggerBean">
+					<property name="jobDetail" ref="doAliveTest" />
+					<property name="cronExpression" value="0 */5 * * * ?" />
+				</bean-->
+				<bean id="cronLoadCodegroupsTrigger"
+					class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+					<property name="jobDetail" ref="doLoadCodegroups" />
+					<property name="cronExpression" value="0/30 * * * * ?" />
+				</bean>
+			</list>
+		</property>
+	</bean>
+
+<!--
+	<bean id="doAliveTest" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="aliveTest" />
+		<property name="targetMethod" value="testService" />
+		<property name="concurrent" value="false" />
+	</bean>
+	
+	<bean id="aliveTest" class="ch.bfs.meb.sbg.web.service.test.AliveTest" />
+ -->
+	
+	<!-- Optimization for codegroup cache loading -->
+	<bean id="doLoadCodegroups" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="codegroupLoader" />
+		<property name="targetMethod" value="loadCodegroups" />
+		<property name="concurrent" value="false" />
+	</bean>
+
+	<bean id="codegroupLoader" class="ch.bfs.meb.web.commons.i18n.CodegroupLoader">
+		<property name="dummyAuthenticationUsername" value="sbg-codegroup-reload" />
+	</bean>
+
+	<bean id="codeGroupService" class="ch.bfs.meb.web.commons.i18n.CodeGroupService">
+		<property name="codeGroupServiceProvider" ref="codeGroupServiceProvider"/>
+		<property name="hourlyRefreshedCodegroups" value="" />
+		<property name="dailyRefreshedCodegroups" value="MEB_PLAUSISTATUS,SBG_DELIVERYSTATUS,SBG_PERSONSTATUS,SBG_PLAUSISTATUS,SBG_SBFICODE,SBG_EVENTTYPE,SBG_OBJECTTYPE,SBG_ACTIONTYPE,SBG_MACROTYPE,SBG_KEYASPECTTYPE,SBG_ROLE,CANTON,SEX,PROFESSIONCODE,CONTRACTTYPE,EXAMTYPE,EXAMRESULT,CANCELREASON" />
+		<property name="delayMinutes" value="10" />
+	</bean>
+
+	<bean id="codeGroupServiceProvider" class="ch.bfs.meb.sbg.web.service.CodeGroupServiceProvider"/>
+
+</beans>

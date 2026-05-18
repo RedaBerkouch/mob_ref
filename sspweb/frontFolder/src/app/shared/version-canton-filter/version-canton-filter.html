@@ -1,0 +1,54 @@
+<app-panel [title]="'deliver.titlebar.filter.name' | translate" class="filter-panel">
+	<form [formGroup]="filterForm" (ngSubmit)="applyFilter()" class="filter-form">
+		<!-- Champ "Version" -->
+		<mat-form-field appearance="outline" class="filter-field">
+			<mat-label>{{ 'deliver.version.text' | translate }}</mat-label>
+			<input matInput formControlName="versionFilter" placeholder="ex: 2024" type="number" />
+		</mat-form-field>
+
+		<!-- Champ "Canton" -->
+		<mat-form-field appearance="outline" class="filter-field">
+			<mat-label>{{ 'deliver.canton.text' | translate }}</mat-label>
+			<mat-select formControlName="cantonFilter">
+				@for (c of cantons; track c.value) {
+					<mat-option [value]="c.value">
+						{{ c.label }}
+					</mat-option>
+				}
+			</mat-select>
+		</mat-form-field>
+
+		@if (yearInit) {
+			<div class="filter-center">
+				<button mat-raised-button color="primary" class="filter-button" (click)="initVersion()">
+					{{ yearInitLabel | translate }}
+				</button>
+				<mat-checkbox formControlName="syncSchool">
+					{{ schoolSynchroLabel | translate }}
+				</mat-checkbox>
+			</div>
+		}
+
+		<!-- Boutons d'action -->
+		<div class="filter-actions">
+			<button mat-raised-button color="primary" type="submit" class="apply-button">
+				<mat-icon>search</mat-icon>
+				{{ 'shared.utils.button.apply' | translate }}
+			</button>
+
+			@if (hasActiveFilters()) {
+				<button mat-button type="button" (click)="resetFilters()" class="reset-button">
+					<mat-icon>clear</mat-icon>
+					{{ 'shared.utils.button.reinit' | translate }}
+				</button>
+			}
+		</div>
+	</form>
+
+	<app-pre-advance-filter
+		[(contextFilters)]="contextFilters"
+		[(selectedPredefinedFilters)]="selectedPredefinedFilters"
+		[predefinedFilters]="predefinedFilters"
+		[contextFiltersConfig]="contextFiltersConfig">
+	</app-pre-advance-filter>
+</app-panel>

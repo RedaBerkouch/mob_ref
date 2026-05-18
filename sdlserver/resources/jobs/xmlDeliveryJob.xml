@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:oxm="http://www.springframework.org/schema/oxm"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+      	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd
+
+
+
+		http://www.springframework.org/schema/oxm http://www.springframework.org/schema/oxm/spring-oxm.xsd">
+
+	<bean id="mebJobIncrementer" class="ch.bfs.meb.sdl.server.integration.batch.MebJobIncrementer" />
+	
+	<bean id="dlUserUnconfiguredSchools" class="ch.bfs.meb.server.commons.integration.batch.DlUserUnconfiguredSchools"/>
+
+	<batch:step id="concludeDeliveryStep">
+		<batch:tasklet transaction-manager="transactionManager" ref="concludeDeliveryTasklet">
+			<batch:transaction-attributes timeout="3000"/>
+		</batch:tasklet>
+	</batch:step>
+
+	<batch:job id="sdlXmlDeliveryJob" job-repository="jobRepository" incrementer="mebJobIncrementer">
+		<batch:step id="xmlInst" next="xmlConclude">
+			<batch:tasklet transaction-manager="transactionManager">
+				<batch:chunk reader="instItemReader" 
+							 writer="instItemWriter" 
+							 processor="instItemProcessor"
+							 commit-interval="1"/>
+				<batch:transaction-attributes timeout="3000"/>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="xmlConclude" parent="concludeDeliveryStep"/>
+		<batch:listeners>
+			<batch:listener ref="mebJobExecutionListener"/>
+		</batch:listeners>
+	</batch:job>
+	
+	<bean id="instItemReader" class="ch.bfs.meb.sdl.server.business.InstItemReader" scope="step">
+		<property name="fragmentRootElementName" value="inst" />
+		<property name="resource" value="#{jobParameters[filename]}" />
+		<property name="unmarshaller" ref="instMarshaller" />
+	</bean>
+
+    <bean id="instItemProcessor" class="ch.bfs.meb.sdl.server.business.InstItemProcessor" scope="step">
+		<property name="deliveryId" value="#{jobParameters[deliveryId]}" />
+		<property name="username" value="#{jobParameters[username]}"/>
+		<property name="dlUser" value="#{jobParameters[dlUser]}"/>
+		<property name="interventionType" value="#{jobParameters[interventionType]}"/>
+    	<property name="deliveryRepository" ref="deliveryRepository"/>
+    	<property name="dlUserUnconfiguredSchools" ref="dlUserUnconfiguredSchools"/>
+    	<property name="configDeliveryRepository" ref="configDeliveryRepository"/>
+    	<property name="burSchoolRepository" ref="burSchoolRepository"/>
+    	<property name="plausiFactory" ref="plausiFactory"/>
+    	<property name="idmService" ref="${configuration.idm.implementation}"/>
+    </bean>
+
+    <bean id="instItemWriter" class="ch.bfs.meb.sdl.server.business.InstItemWriter" scope="step">
+		<property name="deliveryId" value="#{jobParameters[deliveryId]}" />
+		<property name="username" value="#{jobParameters[username]}"/>
+    	<property name="deliveryRepository" ref="deliveryRepository"/>
+    	<property name="schoolRepository" ref="schoolRepository"/>
+    	<property name="classRepository" ref="classRepository"/>
+    	<property name="learnerRepository" ref="learnerRepository"/>
+    	<property name="plausierrorRepository" ref="plausierrorRepository"/>
+    </bean>
+
+	<oxm:xmlbeans-marshaller id="instMarshaller" options="instXmlBeansOptions"/>
+
+	<bean id="instXmlBeansOptions" class="ch.bfs.meb.sdl.server.business.InstXmlBeansOptions"/>
+
+	<bean id="concludeDeliveryTasklet" class="ch.bfs.meb.sdl.server.business.ConcludeDeliveryTasklet" scope="step">
+		<property name="deliveryId" value="#{jobParameters[deliveryId]}" />
+		<property name="username" value="#{jobParameters[username]}"/>
+		<property name="deliveryFile" value="#{jobParameters[filename]}" />
+		<property name="interventionType" value="#{jobParameters[interventionType]}"/>
+    	<property name="plausiFactory" ref="plausiFactory"/>
+    	<property name="deliveryRepository" ref="deliveryRepository"/>
+		<property name="schoolRepository" ref="schoolRepository" />
+		<property name="classRepository" ref ="classRepository" />
+		<property name="learnerRepository" ref ="learnerRepository" />
+    	<property name="cantonRepository" ref="cantonRepository"/>
+    	<property name="plausireportFactory" ref="plausireportFactory"/>
+    	<property name="interventionRepository" ref="interventionRepository"/>
+    	<property name="plausierrorRepository" ref="plausierrorRepository"/>
+    	<property name="localizationManager" ref="localizationManager"/>
+		<property name="transactionManager" ref="transactionManager"/>
+	</bean>
+</beans>

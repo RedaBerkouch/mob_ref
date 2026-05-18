@@ -1,0 +1,645 @@
+{
+  "canton": {
+    "title": "init.titlebar.canton.name",
+    "entityName": "cantons",
+    "minViewHeader": true,
+    "isByDefaultCollapsed": false,
+    "selection": {
+      "mode": "single"
+    },
+    "columns": [
+      {
+        "key": "cantonId",
+        "label": "cantonTable.column.cantonId.name",
+        "width": "30px",
+        "type": "text",
+        "editable": false,
+        "unsortable": true,
+        "visible": false,
+        "nonSelectable": true
+      },
+      {
+        "key": "canton",
+        "label": "cantonTable.column.canton.name",
+        "width": "280px",
+        "type": "select",
+        "optionsSource": "cantonOptions",
+        "filterOptionsSource": "missingCantonOptions",
+        "editable": false
+      },
+      {
+        "key": "deliveryStatus",
+        "label": "cantonTable.column.deliveryStatus.name",
+        "width": "150px",
+        "type": "select",
+        "optionsSource": "deliveryStatusOptions",
+        "editable": false
+      },
+      {
+        "key": "plausiStatus",
+        "label": "cantonTable.column.plausiStatus.name",
+        "width": "280px",
+        "type": "plausi-error",
+        "optionsSource": "plausiStatusOptions",
+        "editable": false,
+        "plausiConfig": {
+          "errorArrayKey": "plausiErrors",
+          "statusKey": "plausiStatus",
+          "editableStatusValue": [1],
+          "tooltip": "tableColumn.plausistatus.tooltip"
+        }
+      },
+      {
+        "key": "plausiDateString",
+        "label": "cantonTable.column.plausiDate.name",
+        "width": "200px",
+        "type": "text",
+        "editable": false
+      },
+      {
+        "key": "plausiUser",
+        "label": "cantonTable.column.plausiUser.name",
+        "width": "320px",
+        "type": "text",
+        "editable": false
+      },
+      {
+        "key": "creationDateString",
+        "label": "cantonTable.column.creationDate.name",
+        "width": "200px",
+        "type": "text",
+        "editable": false
+      },
+      {
+        "key": "creationUser",
+        "label": "cantonTable.column.creationUser.name",
+        "width": "320px",
+        "type": "text",
+        "editable": false
+      },
+      {
+        "key": "modificationDateString",
+        "label": "cantonTable.column.modificationDate.name",
+        "width": "200px",
+        "type": "text",
+        "editable": false
+      },
+      {
+        "key": "modificationUser",
+        "label": "cantonTable.column.modificationUser.name",
+        "width": "320px",
+        "type": "text",
+        "editable": false
+      },
+      {
+        "key": "validationDateString",
+        "label": "cantonTable.column.validationUser.name",
+        "width": "200px",
+        "type": "text",
+        "editable": false
+      },
+      {
+        "key": "validationUser",
+        "label": "cantonTable.column.validationUser.name",
+        "width": "320px",
+        "type": "text",
+        "editable": false
+      },
+      {
+        "key": "finalisationDateString",
+        "label": "cantonTable.column.finalisationDate.name",
+        "width": "200px",
+        "type": "text",
+        "editable": false
+      },
+      {
+        "key": "finalisationUser",
+        "label": "cantonTable.column.finalisationUser.name",
+        "width": "320px",
+        "type": "text",
+        "editable": false
+      },
+      {
+        "key": "userText",
+        "label": "cantonTable.column.userText.name",
+        "width": "560px",
+        "type": "text",
+        "editable": true
+      },
+      {
+        "key": "classCondition",
+        "label": "condition",
+        "width": "250px",
+        "type": "text",
+        "editable": false,
+        "visible": false,
+        "filterableOnContext": false,
+        "nonSelectable": true
+      },
+      {
+        "key": "fileId",
+        "label": "unnecessary",
+        "width": "30px",
+        "type": "text",
+        "editable": false,
+        "unsortable": true,
+        "visible": false,
+        "nonSelectable": true
+      }
+    ],
+    "actions": [
+      {
+        "icon": "file_download",
+        "tooltip": "init.titlebar.icon.exportcsv.name",
+        "disabled": false
+      },
+      { "icon": "lock", "tooltip": "init.titlebar.icon.finalize.name", "disabled": false },
+      {
+        "icon": "lock_open_right",
+        "tooltip": "init.titlebar.icon.finalizeundo.name",
+        "disabled": false
+      },
+      { "icon": "done_all", "tooltip": "init.titlebar.icon.validate.name", "disabled": false },
+      {
+        "icon": "remove_done",
+        "tooltip": "init.titlebar.icon.validateundo.name",
+        "disabled": false
+      },
+      {
+        "icon": "create_plausireport",
+        "src": "assets/icons/create_plausireport.png",
+        "tooltip": "init.titlebar.icon.createplausi.name",
+        "disabled": false
+      },
+      {
+        "icon": "load_plausireport",
+        "src": "assets/icons/load_plausireport.png",
+        "tooltip": "init.titlebar.icon.showplausi.name",
+        "disabled": false
+      },
+      { "icon": "save", "tooltip": "init.titlebar.icon.savemodification.name", "disabled": false },
+      {
+        "icon": "block",
+        "tooltip": "init.titlebar.icon.undo.name",
+        "label": "Renoncer",
+        "disabled": false
+      },
+      {
+        "icon": "add",
+        "tooltip": "init.titlebar.icon.newrecord.name",
+        "label": "Insérer",
+        "disabled": false
+      },
+      {
+        "icon": "delete",
+        "tooltip": "init.titlebar.icon.deleterecord.name",
+        "label": "Supprimer",
+        "disabled": false
+      }
+    ]
+  },
+  "cantonIntervention": {
+    "title": "canton.titlebar.interventions.name",
+    "entityName": "cantonInterventions",
+    "minViewHeader": true,
+    "isByDefaultCollapsed": true,
+    "selection": {
+      "mode": "single"
+    },
+    "columns": [
+      {
+        "key": "interventionId",
+        "label": "interventionTable.column.interventionid.name",
+        "width": "30px",
+        "type": "text",
+        "editable": false,
+        "visible": false,
+        "nonSelectable": true
+      },
+      {
+        "key": "canton",
+        "label": "interventionTable.column.canton.name",
+        "width": "420px",
+        "type": "select",
+        "optionsSource": "cantonOptions",
+        "editable": false
+      },
+      {
+        "key": "version",
+        "label": "interventionTable.column.version.name",
+        "width": "100px",
+        "type": "text",
+        "editable": false
+      },
+      {
+        "key": "interventionUser",
+        "label": "interventionTable.column.interventionuser.name",
+        "width": "280px",
+        "type": "text",
+        "editable": false
+      },
+      {
+        "key": "interventionDateString",
+        "label": "interventionTable.column.interventiondate.name",
+        "width": "250px",
+        "type": "text",
+        "editable": false
+      },
+      {
+        "key": "type",
+        "label": "interventionTable.column.type.name",
+        "width": "420px",
+        "type": "select",
+        "optionsSource": "cantonInterventionOptions",
+        "editable": true
+      },
+      {
+        "key": "text",
+        "label": "interventionTable.column.text.name",
+        "width": "1200px",
+        "type": "text",
+        "editable": true
+      }
+    ],
+    "actions": [
+      {
+        "icon": "load_deliveryfile",
+        "src": "assets/icons/load_deliveryfile.png",
+        "tooltip": "intervention.titlebar.icon.showdelivery.name",
+        "disabled": false
+      },
+      {
+        "icon": "file_download",
+        "tooltip": "init.titlebar.icon.exportcsv.name",
+        "disabled": false
+      },
+      {
+        "icon": "load_plausireport",
+        "src": "assets/icons/load_plausireport.png",
+        "tooltip": "deliver.titlebar.icon.showplausi.name",
+        "disabled": false
+      },
+      {
+        "icon": "save",
+        "tooltip": "intervention.titlebar.icon.savemodification.name",
+        "disabled": false
+      },
+      { "icon": "block", "tooltip": "intervention.titlebar.icon.undo.name", "disabled": false },
+      { "icon": "add", "tooltip": "intervention.titlebar.icon.newrecord.name", "disabled": false },
+      {
+        "icon": "delete",
+        "tooltip": "intervention.titlebar.icon.deleterecord.name",
+        "disabled": false
+      }
+    ]
+  },
+  "configDelivery": {
+    "title": "init.titlebar.configdelivery.name",
+    "entityName": "configDeliveries",
+    "isByDefaultCollapsed": false,
+    "selection": {
+      "mode": "multiple"
+    },
+    "columns": [
+      {
+        "key": "deliveryId",
+        "label": "configDeliveryTable.column.deliveryId.name",
+        "width": "30px",
+        "type": "text",
+        "editable": false,
+        "visible": false,
+        "nonSelectable": true,
+        "filterableOnContext": true
+      },
+      {
+        "key": "canton",
+        "label": "configDeliveryTable.column.canton.name",
+        "width": "280px",
+        "type": "select",
+        "optionsSource": "cantonOptions",
+        "editable": true,
+        "filterableOnContext": true
+      },
+      {
+        "key": "deliveryCode",
+        "label": "configDeliveryTable.column.deliveryCode.name",
+        "width": "230px",
+        "type": "text",
+        "editable": true,
+        "filterableOnContext": true
+      },
+      {
+        "key": "isDefault",
+        "label": "configDeliveryTable.column.default.name",
+        "width": "100px",
+        "type": "checkbox",
+        "editable": true,
+        "filterableOnContext": true
+      },
+      {
+        "key": "dlUsersParameters",
+        "label": "configDeliveryTable.column.dlUsers.name",
+        "width": "550px",
+        "type": "parametre",
+        "editable": true,
+        "filterableOnContext": true
+      },
+      {
+        "key": "roUsersParameters",
+        "label": "configDeliveryTable.column.roUsers.name",
+        "width": "550px",
+        "type": "parametre",
+        "editable": true,
+        "filterableOnContext": true
+      },
+      {
+        "key": "dueDateDate",
+        "label": "configDeliveryTable.column.dueDate.name",
+        "width": "200px",
+        "type": "date",
+        "editable": true,
+        "filterableOnContext": true
+      },
+      {
+        "key": "referenceDateDate",
+        "label": "configDeliveryTable.column.referenceDate.name",
+        "width": "200px",
+        "type": "date",
+        "editable": true,
+        "filterableOnContext": true
+      },
+      {
+        "key": "creationDateString",
+        "label": "configDeliveryTable.column.creationDate.name",
+        "width": "190px",
+        "type": "text",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "creationUser",
+        "label": "configDeliveryTable.column.creationUser.name",
+        "width": "340px",
+        "type": "text",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "modificationDateString",
+        "label": "configDeliveryTable.column.modificationDate.name",
+        "width": "190px",
+        "type": "text",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "modificationUser",
+        "label": "configDeliveryTable.column.modificationUser.name",
+        "width": "340px",
+        "type": "text",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "userText",
+        "label": "configDeliveryTable.column.userText.name",
+        "width": "560px",
+        "type": "text",
+        "editable": true,
+        "filterableOnContext": true
+      }
+    ],
+    "actions": [
+      {
+        "icon": "file_download",
+        "tooltip": "main.titlebar.icon.exportcsv.name",
+        "disabled": false
+      },
+      {
+        "icon": "switch_master",
+        "src": "assets/icons/switch_master.gif",
+        "tooltip": "init.titlebar.icon.master.name",
+        "disabled": false
+      },
+      { "icon": "save", "tooltip": "init.titlebar.icon.savemodification.name", "disabled": false },
+      { "icon": "block", "tooltip": "init.titlebar.icon.undo.name", "disabled": false },
+      { "icon": "add", "tooltip": "init.titlebar.icon.newrecord.name", "disabled": false },
+      { "icon": "delete", "tooltip": "init.titlebar.icon.deleterecord.name", "disabled": false }
+    ]
+  },
+  "configSchool": {
+    "title": "init.titlebar.burschool.name",
+    "entityName": "schools",
+    "isByDefaultCollapsed": false,
+    "selection": {
+      "mode": "multiple"
+    },
+    "columns": [
+      {
+        "key": "schoolId",
+        "label": "burSchoolTable.column.schoolId.name",
+        "width": "30px",
+        "type": "text",
+        "editable": false,
+        "visible": false,
+        "nonSelectable": true,
+        "filterableOnContext": true
+      },
+      {
+        "key": "canton",
+        "label": "burSchoolTable.column.canton.name",
+        "width": "280px",
+        "type": "select",
+        "optionsSource": "cantonOptions",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "burNr",
+        "label": "burSchoolTable.column.burNr.name",
+        "width": "220px",
+        "type": "text",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "label",
+        "label": "burSchoolTable.column.label.name",
+        "width": "270px",
+        "type": "text",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "charPublFlg",
+        "label": "burSchoolTable.column.charPublFlg.name",
+        "width": "110px",
+        "type": "checkbox",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "charPrivSubFlg",
+        "label": "burSchoolTable.column.charPrivSubFlg.name",
+        "width": "110px",
+        "type": "checkbox",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "charPrivNoSubFlg",
+        "label": "burSchoolTable.column.charPrivNoSubFlg.name",
+        "width": "110px",
+        "type": "checkbox",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "isSpecialSchool",
+        "label": "burSchoolTable.column.isSpecialSchool.name",
+        "width": "110px",
+        "type": "checkbox",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "deliveryCode",
+        "label": "burSchoolTable.column.deliveryCode.name",
+        "width": "220px",
+        "type": "text",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "municipality",
+        "label": "burSchoolTable.column.municipality.name",
+        "width": "280px",
+        "type": "select",
+        "optionsSource": "municipalityOptions",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "synchStatusBur",
+        "label": "burSchoolTable.column.synchStatusBur.name",
+        "width": "220px",
+        "type": "select",
+        "optionsSource": "synchStatusOptions",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "nameBur",
+        "label": "burSchoolTable.column.nameBur.name",
+        "width": "280px",
+        "type": "text",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "burCharPublFlg",
+        "label": "burSchoolTable.column.burCharPublFlg.name",
+        "width": "110px",
+        "type": "checkbox",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "burCharPrivSubFlg",
+        "label": "burSchoolTable.column.burCharPrivSubFlg.name",
+        "width": "110px",
+        "type": "checkbox",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "burCharPrivNoSubFlg",
+        "label": "burSchoolTable.column.burCharPrivNoSubFlg.name",
+        "width": "110px",
+        "type": "checkbox",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "isSpecialSchoolBur",
+        "label": "burSchoolTable.column.isSpecialSchoolBur.name",
+        "width": "110px",
+        "type": "checkbox",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "cantonBur",
+        "label": "burSchoolTable.column.cantonBur.name",
+        "width": "275px",
+        "type": "select",
+        "optionsSource": "cantonOptions",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "municipalityBur",
+        "label": "burSchoolTable.column.municipalityBur.name",
+        "width": "275px",
+        "type": "select",
+        "optionsSource": "municipalityOptions",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "burvalidFromSba",
+        "label": "burSchoolTable.column.validFromBur.name",
+        "width": "220px",
+        "type": "text",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "burValidToSba",
+        "label": "burSchoolTable.column.validToBur.name",
+        "width": "220px",
+        "type": "text",
+        "editable": false,
+        "filterableOnContext": true
+      },
+      {
+        "key": "userText",
+        "label": "burSchoolTable.column.userText.name",
+        "width": "560px",
+        "type": "text",
+        "editable": true,
+        "filterableOnContext": true
+      }
+    ],
+    "actions": [
+      {
+        "icon": "file_download",
+        "tooltip": "main.titlebar.icon.exportcsv.name",
+        "disabled": false
+      },
+      {
+        "icon": "switch_master",
+        "src": "assets/icons/switch_master.gif",
+        "tooltip": "init.titlebar.icon.master.name",
+        "disabled": false
+      },
+      {
+        "icon": "autorenew",
+        "tooltip": "init.titlebar.icon.synchronize.name",
+        "disabled": false
+      },
+      {
+        "icon": "done_all",
+        "tooltip": "init.titlebar.icon.getallbur.name",
+        "disabled": false
+      },
+      {
+        "icon": "check",
+        "tooltip": "init.titlebar.icon.getbur.name",
+        "disabled": false
+      },
+      { "icon": "save", "tooltip": "init.titlebar.icon.savemodification.name", "disabled": false },
+      { "icon": "block", "tooltip": "init.titlebar.icon.undo.name", "disabled": false }
+    ]
+  }
+}

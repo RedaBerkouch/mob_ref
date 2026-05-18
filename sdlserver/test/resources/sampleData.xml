@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <Schools schoolId="300" burnr="69509146" label="schools.label300"/>
+    <Sdl_Learners learnerId="9" id="4" idType="learner:idType"/>
+    <Sdl_Cantons cantonId="101"/>
+    <Sdl_Deliveries deliveryId="8"/>
+    <Sdl_Classes classId="13" id="170237"/>
+    <Sdl_Schools schoolId="12" idType="CH.BUR" id="69509146"/>
+    <Sdl_Plausis plausiId="7"   isConfirmable="1" isActive="1" type="0" objectlevel="0"/>
+    <Sdl_Plausis plausiId="103" isConfirmable="1" isActive="1" type="0" objectlevel="1"/>
+    <Sdl_PlausiErrors errorId="100" plausiId="7"   deliveryId="8" learnerId="9" isConfirmed="0" isToDelete="0" schoolId="12" classId="13" cantonId="101"/>
+    <Sdl_PlausiErrors errorId="1"   plausiId="7"   deliveryId="8" learnerId="9" isConfirmed="1" isToDelete="0" schoolId="12" classId="13"/>
+    <Sdl_PlausiErrors errorId="200" plausiId="103" deliveryId="8" learnerId="9" isConfirmed="0" isToDelete="0" schoolId="12" classId="13"/>
+
+</dataset>

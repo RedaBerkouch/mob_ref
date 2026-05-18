@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <Schools schoolid="20" burnr="2000" label="Schule XY"/>
+    <Sba_Persons personId="9" id="4" idType="person:idType"/>
+    <Sba_Cantons cantonId="101"/>
+    <Sba_Deliveries deliveryId="8"/>
+    <Sba_Plausis plausiId="7"   isConfirmable="1" isActive="1" type="0" objectlevel="0"/>
+    <Sba_Plausis plausiId="103" isConfirmable="1" isActive="1" type="0" objectlevel="1"/>
+    <Sba_Qualifications qualificationId="3" schoolId="2000" schoolIdType="CH.BUR" examNr="1"/>
+    <Sba_PlausiErrors errorId="1"   qualificationId="3" plausiId="7"   deliveryId="8" personId="9" isConfirmed="1" isToDelete="0"/>
+    <Sba_PlausiErrors errorId="100" qualificationId="3" plausiId="7"   deliveryId="8" personId="9" isConfirmed="0" isToDelete="0" cantonId="101"/>
+    <Sba_PlausiErrors errorId="200" qualificationId="3" plausiId="103" deliveryId="8" personId="9" isConfirmed="0" isToDelete="0"/>
+</dataset>

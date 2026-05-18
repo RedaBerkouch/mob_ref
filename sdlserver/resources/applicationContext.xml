@@ -1,0 +1,664 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:oxm="http://www.springframework.org/schema/oxm"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx.xsd
+
+
+
+
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/oxm 
+		http://www.springframework.org/schema/oxm/spring-oxm.xsd">
+
+	<!-- **************************************** -->
+	<!-- * Spring annotations                   * -->
+	<!-- **************************************** -->
+
+	<context:annotation-config />
+
+	<!-- **************************************** -->
+	<!-- * Spring placeholder replacement       * -->
+	<!-- * ${TOKEN}                             * -->
+	<!-- **************************************** -->
+
+	<context:property-placeholder location="${SDLSERVER_PROPERTIES_LOCATION}"/>
+
+	<!-- **************************************** -->
+	<!-- * Application context provider         * -->
+	<!-- **************************************** -->
+
+	<bean id="applicationContextProvider" class="ch.bfs.meb.util.ApplicationContextProvider" />
+
+	<!-- **************************************** -->
+	<!-- * Transaction manager                  * -->
+	<!-- **************************************** -->
+
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<bean
+		class="org.springframework.transaction.jta.WebLogicJtaTransactionManager"
+		id="transactionManager" />
+
+	<!-- **************************************** --> 
+	<!-- * Hibernate session factory            * --> 
+	<!-- **************************************** --> 
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="dataSource">
+			<ref bean="dataSource" />
+		</property>
+		<property name="annotatedClasses">
+			<list>
+				<value>ch.bfs.meb.server.commons.integration.dto.CodeGroup</value>
+				<value>ch.bfs.meb.server.commons.integration.dto.BurSchoolExt</value>
+				<value>ch.bfs.meb.sdl.server.integration.dto.SdlParameter</value>
+				<value>ch.bfs.meb.sdl.server.integration.dto.SdlFilter</value>
+				<value>ch.bfs.meb.sdl.server.integration.dto.SdlPlausi</value>
+				<value>ch.bfs.meb.sdl.server.integration.dto.SdlExport</value>
+				<value>ch.bfs.meb.sdl.server.integration.dto.SdlDelivery</value>
+				<value>ch.bfs.meb.sdl.server.integration.dto.SdlSchool</value>
+				<value>ch.bfs.meb.sdl.server.integration.dto.SdlClass</value>
+				<value>ch.bfs.meb.sdl.server.integration.dto.SdlCanton</value>
+				<value>ch.bfs.meb.sdl.server.integration.dto.SdlConfigDelivery</value>
+				<value>ch.bfs.meb.sdl.server.integration.dto.SdlLearner</value>
+				<value>ch.bfs.meb.sdl.server.integration.dto.SdlBurSchool</value>
+				<value>ch.bfs.meb.sdl.server.integration.dto.SdlIntervention</value>
+				<value>ch.bfs.meb.sdl.server.integration.dto.SdlCantonIntervention</value>
+				<value>ch.bfs.meb.sdl.server.integration.dto.SdlPlausiError</value>
+				<value>ch.bfs.meb.sdl.server.integration.dto.SdlUploadFile</value>
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+				<prop key="hibernate.format_sql">${hibernate.format_sql}</prop>
+				<prop key="hibernate.dialect">org.hibernate.dialect.Oracle12cDialect</prop>
+				<prop key="hibernate.transaction.jta.platform">org.hibernate.service.jta.platform.internal.WeblogicJtaPlatform</prop>
+				<prop key="hibernate.transaction.coordinator_class">org.hibernate.resource.transaction.backend.jta.internal.JtaTransactionCoordinatorBuilderImpl</prop>
+				<prop key="hibernate.jdbc.fetch_size">100</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!--  **************************************** -->
+	<!--  * Datasource                           * -->
+	<!--  **************************************** -->
+
+	<bean class="org.springframework.jndi.JndiObjectFactoryBean" id="dataSource">
+		<property name="jndiName">
+			<value>${jndi.datasource}</value>
+		</property>
+	</bean>
+
+	<!-- **************************************** -->
+	<!-- * Spring services                      * -->
+	<!-- **************************************** -->
+
+	<bean class="ch.bfs.meb.sdl.server.service.impl.FilterServiceProvider" id="filterServiceProvider">
+		<property name="filterRepository">
+			<ref bean="filterRepository" />
+		</property>
+	</bean>
+	
+	<bean class="ch.bfs.meb.server.commons.service.impl.FilterServiceImpl" id="filterServiceImpl">
+		<property name="filterServiceProvider">
+			<ref bean="filterServiceProvider" />
+		</property>
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.service.impl.PlausiServiceProvider" id="plausiServiceProvider">
+		<property name="plausiRepository">
+			<ref bean="plausiRepository" />
+		</property>
+		<property name="plausiErrorRepository">
+			<ref bean="plausierrorRepository" />
+		</property>
+	</bean>
+	
+	<bean class="ch.bfs.meb.server.commons.service.impl.PlausiServiceImpl" id="plausiServiceImpl">
+		<property name="plausiServiceProvider">
+			<ref bean="plausiServiceProvider" />
+		</property>
+	</bean>
+
+	<bean class="ch.bfs.meb.sdl.server.service.impl.ExportServiceProvider" id="exportServiceProvider">
+		<property name="exportRepository">
+			<ref bean="exportRepository" />
+		</property>
+		<property name="deliveryRepository">
+			<ref bean="deliveryRepository" />
+		</property>
+		<property name="burSchoolRepository">
+			<ref bean="burSchoolRepository" />
+		</property>
+		<property name="schoolRepository">
+			<ref bean="schoolRepository" />
+		</property>
+		<property name="classRepository">
+			<ref bean="classRepository" />
+		</property>
+		<property name="learnerRepository">
+			<ref bean="learnerRepository" />
+		</property>
+		<property name="exportUsersFactory" ref="exportUsersFactory"/>
+		<property name="exportInitStatusFactory" ref="exportInitStatusFactory"/>
+		<property name="idmService" ref="${configuration.idm.implementation}"/>
+		<property name="configDeliveryRepository">
+			<ref bean="configDeliveryRepository" />
+		</property>
+		<property name="localizationManager" ref="localizationManager"/>
+		<property name="codegroupManager" ref="codegroupManager"/>
+		<property name="plausiErrorRepository" ref="plausierrorRepository"/>
+		<property name="plausiRepository" ref="plausiRepository"/>
+	</bean>
+	
+	<bean class="ch.bfs.meb.server.commons.service.impl.ExportServiceImpl" id="exportServiceImpl">
+		<property name="exportServiceProvider" ref="exportServiceProvider"/>
+		<property name="burSchoolServiceProvider" ref="burSchoolServiceProvider"/>
+		<property name="sasService" ref="sasService"/>
+		<property name="localizationManager" ref="localizationManager"/>
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.service.impl.ParameterServiceProvider" id="parameterServiceProvider">
+		<property name="parameterRepository">
+			<ref bean="parameterRepository" />
+		</property>
+	</bean>
+	
+	<bean class="ch.bfs.meb.server.commons.service.impl.ParameterServiceImpl" id="parameterServiceImpl">
+		<property name="parameterServiceProvider">
+			<ref bean="parameterServiceProvider" />
+		</property>
+	</bean>
+
+	<bean class="ch.bfs.meb.sdl.server.service.impl.DeliveryServiceImpl" id="deliveryServiceImpl">
+		<property name="deliveryRepository" ref="deliveryRepository"/>
+		<property name="interventionRepository" ref="interventionRepository"/>
+		<property name="plausierrorRepository" ref="plausierrorRepository"/>
+		<property name="cantonRepository" ref="cantonRepository"/>
+		<property name="schoolRepository" ref="schoolRepository"/>
+		<property name="classRepository" ref="classRepository"/>
+		<property name="learnerRepository" ref="learnerRepository"/>
+		<property name="codegroupManager" ref="codegroupManager"/>
+    	<property name="configDeliveryRepository" ref="configDeliveryRepository"/>
+    	<property name="filterRepository" ref="filterRepository"/>
+    	<property name="idmService" ref="${configuration.idm.implementation}"/>
+		<property name="filterServiceProvider" ref="filterServiceProvider" />
+		<property name="plausiFactory" ref="plausiFactory"/>
+		<property name="plausireportFactory" ref="plausireportFactory"/>
+		<property name="localizationManager" ref="localizationManager"/>
+		<property name="transactionManager" ref="transactionManager"/>
+	</bean>
+
+	<bean class="ch.bfs.meb.sdl.server.service.impl.UploadFileServiceImpl" id="uploadFileServiceImpl">
+		<property name="uploadFileRepository" ref="uploadFileRepository"/>
+		<property name="codegroupManager" ref="codegroupManager"/>
+		<property name="idmService" ref="${configuration.idm.implementation}"/>
+	</bean>
+
+	<bean class="ch.bfs.meb.sdl.server.service.impl.InterventionServiceProvider" id="interventionServiceProvider">
+		<property name="interventionRepository" ref="interventionRepository"/>
+	</bean>
+
+	<bean class="ch.bfs.meb.server.commons.service.impl.InterventionServiceImpl" id="interventionServiceImpl">
+		<property name="interventionServiceProvider" ref="interventionServiceProvider"/>
+	</bean>
+
+	<bean class="ch.bfs.meb.sdl.server.service.impl.CantonInterventionServiceProvider" id="cantonInterventionServiceProvider">
+		<property name="cantonInterventionRepository" ref="cantonInterventionRepository"/>
+	</bean>
+
+	<bean class="ch.bfs.meb.server.commons.service.impl.CantonInterventionServiceImpl" id="cantonInterventionServiceImpl">
+		<property name="cantonInterventionServiceProvider" ref="cantonInterventionServiceProvider"/>
+	</bean>
+
+	<bean class="ch.bfs.meb.sdl.server.service.impl.UploadServiceProvider" id="uploadServiceProvider">
+		<property name="deliveryRepository" ref="deliveryRepository"/>
+		<property name="interventionRepository" ref="interventionRepository"/>
+		<property name="cantonRepository" ref="cantonRepository"/>
+		<property name="configDeliveryRepository" ref="configDeliveryRepository"/>
+		<property name="filterUtility" ref="filterUtility" />
+		<property name="deliveryService" ref="deliveryServiceImpl"/>
+		<property name="transactionManager" ref="transactionManager"/>
+		<property name="headReader" ref="headItemReader"/>
+		<property name="csvHeadReader" ref="csvHeadReader"/>
+		<property name="localizationManager" ref="localizationManager"/>
+	</bean>
+	
+	<bean class="ch.bfs.meb.server.commons.service.impl.UploadServiceImpl" id="uploadServiceImpl">
+		<property name="uploadServiceProvider">
+			<ref bean="uploadServiceProvider"/>
+		</property>
+	</bean>
+
+	<bean id="headItemReader" class="ch.bfs.meb.sdl.server.business.HeadItemReader">
+		<property name="fragmentRootElementName" value="head" />
+		<property name="unmarshaller" ref="headUnmarshaller" />
+	</bean>
+
+	<oxm:xmlbeans-marshaller id="headUnmarshaller" options="headXmlBeansOptions"/>
+
+	<bean id="headXmlBeansOptions" class="ch.bfs.meb.sdl.server.business.HeadXmlBeansOptions"/>
+
+	<bean id="csvHeadReader" class="org.springframework.batch.item.file.FlatFileItemReader">
+		<property name="lineMapper">
+			<bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+				<property name="lineTokenizer">
+					<bean class="ch.bfs.meb.sdl.server.business.delivery.csv.CsvDelimitedLineTokenizer">
+						<property name="names" value="VERSION,CANTONID,DATADELIVERY,DELIVERYDATE,CONFIRMDELIVERY,DUMMY1,DUMMY2,DUMMY3,DUMMY4,DUMMY5,DUMMY6,DUMMY7,DUMMY8,DUMMY9,DUMMY10,DUMMY11,DUMMY12,DUMMY13,DUMMY14,DUMMY15,DUMMY16,DUMMY17,DUMMY18,DUMMY19,DUMMY20,DUMMY21,DUMMY22,DUMMY23,DUMMY24" />
+						<property name="delimiter" value=";"/>
+					</bean>
+				</property>
+				<property name="fieldSetMapper">
+					<bean class="ch.bfs.meb.sdl.server.business.delivery.csv.CsvHeadFieldSetMapper" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.service.impl.ConfigDeliveryServiceProvider" id="configDeliveryServiceProvider">
+		<property name="configDeliveryRepository" ref="configDeliveryRepository"/>
+    	<property name="idmService" ref="${configuration.idm.implementation}"/>
+	</bean>
+	
+	<bean class="ch.bfs.meb.server.commons.service.impl.ConfigDeliveryServiceImpl" id="configDeliveryServiceImpl">
+		<property name="configDeliveryServiceProvider" ref="configDeliveryServiceProvider" />
+		<property name="filterServiceProvider" ref="filterServiceProvider" />
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.SecurityFilters" id="securityFilters">
+		<property name="codegroupManager" ref="codegroupManager"/>
+		<property name="filterRepository" ref="filterRepository" />
+    	<property name="idmService" ref="${configuration.idm.implementation}"/>
+	</bean>
+	
+	<bean class="ch.bfs.meb.server.commons.util.FilterUtility" id="filterUtility">
+		<property name="securityFilters" ref="securityFilters" />
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.service.impl.BurSchoolServiceProvider" id="burSchoolServiceProvider">
+		<property name="burSchoolRepository" ref="burSchoolRepository" />
+		<property name="configDeliveryRepository" ref="configDeliveryRepository" />
+		<property name="filterRepository" ref="filterRepository" />
+	</bean>
+	
+	<bean class="ch.bfs.meb.server.commons.service.impl.BurSchoolServiceImpl" id="burSchoolServiceImpl">
+		<property name="burSchoolServiceProvider" ref="burSchoolServiceProvider" />
+		<property name="configDeliveryServiceProvider" ref="configDeliveryServiceProvider" />
+		<property name="filterServiceProvider" ref="filterServiceProvider" />
+	</bean>
+
+	<bean class="ch.bfs.meb.sdl.server.service.impl.CantonServiceProvider" id="cantonServiceProvider">
+		<property name="cantonRepository" ref="cantonRepository" />
+		<property name="deliveryRepository" ref="deliveryRepository"/>
+		<property name="interventionRepository" ref="interventionRepository"/>
+		<property name="cantonInterventionRepository" ref="cantonInterventionRepository"/>
+		<property name="codegroupManager" ref="codegroupManager"/>
+		<property name="plausierrorRepository" ref="plausierrorRepository"/>
+		<property name="plausiFactory" ref="plausiFactory"/>
+		<property name="plausireportFactory" ref="plausireportFactory"/>
+    	<property name="idmService" ref="${configuration.idm.implementation}"/>
+		<property name="transactionManager" ref="transactionManager"/>
+	</bean>
+	
+	<bean class="ch.bfs.meb.server.commons.service.impl.CantonServiceImpl" id="cantonServiceImpl">
+		<property name="cantonServiceProvider" ref="cantonServiceProvider"/>
+		<property name="burSchoolServiceProvider" ref="burSchoolServiceProvider"/>
+		<property name="configDeliveryServiceProvider" ref="configDeliveryServiceProvider"/>
+		<property name="codegroupManager" ref="codegroupManager"/>
+		<property name="burSchoolService" ref="burSchoolServiceImpl"/>
+	</bean>
+
+	<bean class="ch.bfs.meb.sdl.server.business.plausi.PlausireportFactory" id="plausireportFactory">
+		<property name="plausiErrorRepository" ref="plausierrorRepository"/>
+		<property name="codegroupManager" ref="codegroupManager"/>
+		<property name="plausiRepository" ref="plausiRepository"/>
+		<property name="learnerRepository" ref="learnerRepository"/>
+		<property name="localizationManager" ref="localizationManager"/>
+	</bean>
+
+	<bean class="ch.bfs.meb.sdl.server.service.impl.ClassServiceImpl" id="classServiceImpl">
+		<property name="classRepository" ref="classRepository"/>
+		<property name="schoolRepository" ref="schoolRepository"/>
+		<property name="learnerRepository" ref="learnerRepository"/>
+		<property name="deliveryRepository" ref="deliveryRepository"/>
+		<property name="interventionRepository" ref="interventionRepository"/>
+		<property name="plausierrorRepository" ref="plausierrorRepository"/>
+		<property name="transactionManager" ref="transactionManager"/>
+		<property name="filterServiceProvider" ref="filterServiceProvider" />
+		<property name="plausiFactory" ref="plausiFactory"/>
+	</bean>
+
+	<bean class="ch.bfs.meb.sdl.server.service.impl.LearnerServiceImpl" id="learnerServiceImpl">
+		<property name="learnerRepository" ref="learnerRepository"/>
+		<property name="classRepository" ref="classRepository"/>
+		<property name="schoolRepository" ref="schoolRepository"/>
+		<property name="deliveryRepository" ref="deliveryRepository"/>
+		<property name="interventionRepository" ref="interventionRepository"/>
+		<property name="plausierrorRepository" ref="plausierrorRepository"/>
+		<property name="transactionManager" ref="transactionManager"/>
+		<property name="plausiFactory" ref="plausiFactory"/>
+		<property name="filterServiceProvider" ref="filterServiceProvider" />
+	</bean>
+
+	<bean class="ch.bfs.meb.sdl.server.service.impl.SchoolServiceImpl" id="schoolServiceImpl">
+		<property name="schoolRepository" ref="schoolRepository"/>
+		<property name="classRepository" ref="classRepository"/>
+		<property name="learnerRepository" ref="learnerRepository"/>
+		<property name="deliveryRepository" ref="deliveryRepository"/>
+		<property name="cantonRepository" ref="cantonRepository"/>
+		<property name="interventionRepository" ref="interventionRepository"/>
+		<property name="configDeliveryRepository" ref="configDeliveryRepository"/>
+		<property name="plausierrorRepository" ref="plausierrorRepository"/>
+		<property name="burSchoolRepository" ref="burSchoolRepository"/>
+		<property name="transactionManager" ref="transactionManager"/>
+		<property name="filterServiceProvider" ref="filterServiceProvider" />
+		<property name="plausiFactory" ref="plausiFactory"/>
+		<property name="idmService" ref="${configuration.idm.implementation}"/>
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.service.impl.WizardServiceImpl" id="wizardServiceImpl">
+		<property name="deliveryService" ref="deliveryServiceImpl"/>
+		<property name="deliveryRepository" ref="deliveryRepository"/>
+		<property name="schoolRepository" ref="schoolRepository"/>
+		<property name="schoolService" ref="schoolServiceImpl"/>
+		<property name="classService" ref="classServiceImpl"/>
+		<property name="learnerService" ref="learnerServiceImpl"/>
+		<property name="interventionRepository" ref="interventionRepository"/>
+		<property name="cantonRepository" ref="cantonRepository"/>
+		<property name="configDeliveryRepository" ref="configDeliveryRepository"/>
+		<property name="plausierrorRepository" ref="plausierrorRepository"/>
+		<property name="plausireportFactory" ref="plausireportFactory"/>
+		<property name="filterUtility" ref="filterUtility" />
+	</bean>
+
+	<bean class="ch.bfs.meb.server.commons.integration.sas.SasService" id="sasService">
+		<property name="configuration" ref="configuration"/>
+	</bean>
+	
+	<bean class="ch.bfs.meb.server.commons.service.impl.ExportUsersFactory" id="exportUsersFactory">
+		<property name="codegroupManager" ref="codegroupManager"/>
+	</bean>
+	
+	<bean class="ch.bfs.meb.server.commons.service.impl.ExportInitStatusFactory" id="exportInitStatusFactory">
+		<property name="codegroupManager" ref="codegroupManager"/>
+	</bean>
+
+	<!-- **************************************** -->
+	<!-- * Repositories                         * -->
+	<!-- **************************************** -->
+	
+	<bean class="ch.bfs.meb.server.commons.integration.repository.CodeGroupRepository"
+		id="codeGroupRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.FilterRepository"
+		id="filterRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.PlausiRepository"
+		id="plausiRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.PlausiErrorRepository"
+		id="plausierrorRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.ExportRepository"
+		id="exportRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.ParameterRepository"
+		id="parameterRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.DeliveryRepository"
+		id="deliveryRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="filterUtility" ref="filterUtility" />
+	</bean>
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.UploadFileRepository"
+		  id="uploadFileRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.SchoolRepository"
+		id="schoolRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="filterUtility" ref="filterUtility" />
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.ClassRepository"
+		id="classRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="filterUtility" ref="filterUtility" />
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.LearnerRepository"
+		id="learnerRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="filterUtility" ref="filterUtility" />
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.ConfigDeliveryRepository"
+		id="configDeliveryRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="filterUtility" ref="filterUtility" />
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.BurSchoolRepository"
+		id="burSchoolRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="filterUtility" ref="filterUtility" />
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.CantonRepository"
+		id="cantonRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="filterUtility" ref="filterUtility" />
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.InterventionRepository"
+		id="interventionRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+	<bean class="ch.bfs.meb.sdl.server.integration.repository.CantonInterventionRepository"
+		id="cantonInterventionRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+	<!-- **************************************** -->
+	<!-- * Plausi                               * -->
+	<!-- **************************************** -->
+
+	<bean class="ch.bfs.meb.sdl.server.business.plausi.PlausiFactory" id="plausiFactory">
+		<property name="plausiRepository" ref="plausiRepository"/>
+		<property name="plausierrorRepository" ref="plausierrorRepository"/>
+		<property name="deliveryRepository" ref="deliveryRepository"/>
+		<property name="schoolRepository" ref="schoolRepository"/>
+		<property name="classRepository" ref="classRepository"/>
+		<property name="learnerRepository" ref="learnerRepository"/>
+		<property name="burSchoolRepository" ref="burSchoolRepository"/>
+		<property name="codegroupManager" ref="codegroupManager"/>
+    	<property name="idmService" ref="${configuration.idm.implementation}"/>
+    	<property name="sasService" ref="sasService"/>
+    	<property name="localizationManager" ref="localizationManager"/>
+	</bean>
+	
+	<!-- **************************************** -->
+	<!-- * codegroup cache                      * -->
+	<!-- **************************************** -->
+
+	<bean id="codegroupManager" class="ch.bfs.meb.server.commons.codes.CodegroupManager">
+		<property name="codegroupRepository" ref="codeGroupRepository"></property>
+		<property name="hourlyRefreshedCodegroups" value="SCHOOL_TYPE,SCHOOL_DEP_TYPE" />
+		<property name="dailyRefreshedCodegroups" value="MEB_DELIVERYSTATUS,MEB_DATASTATUS,MEB_CANTONSTATUS,MEB_SYNCHSTATUS,MEB_PLAUSISTATUS,MEB_EXPORTTYPE,MEB_PLAUSITYPE,MEB_INTERVENTIONTYPE,SDL_CANTONINTTYPE,MEB_BUR_ACTIVITY_STATUS,MEB_ROLE,MEB_APPLICATION,SDL_OBJECTTYPE,CANTON,SEX,LANGUAGE,MUNICIPALITY,MUNICIPALITY_HIST,COUNTRY,NATIONALITY,TEACH_PLAN_STATUS,PROF_MATURA,EDUCATION_TYPE" />
+	</bean>
+
+	<!-- **************************************** -->
+	<!-- * Advices                              * -->
+	<!-- **************************************** -->
+
+	<bean id="wizardServiceAdviceBean" class="ch.bfs.meb.sdl.server.service.impl.WizardServiceAdvice" />
+	<bean id="plausiErrorServiceAdviceBean" class="ch.bfs.meb.sdl.server.service.impl.PlausiErrorServiceAdvice" />
+	<bean id="deliveryServiceAdviceBean" class="ch.bfs.meb.sdl.server.service.impl.DeliveryServiceAdvice" />
+	<bean id="interventionServiceAdviceBean" class="ch.bfs.meb.sdl.server.service.impl.InterventionServiceAdvice" />
+	<bean id="cantonInterventionServiceAdviceBean" class="ch.bfs.meb.sdl.server.service.impl.CantonInterventionServiceAdvice" />
+	<bean id="exportServiceAdviceBean" class="ch.bfs.meb.server.commons.service.impl.ExportServiceAdvice" />
+	<bean id="filterServiceAdviceBean" class="ch.bfs.meb.server.commons.service.impl.FilterServiceAdvice" />
+	<bean id="parameterServiceAdviceBean" class="ch.bfs.meb.server.commons.service.impl.ParameterServiceAdvice" />
+	<bean id="plausiServiceAdviceBean" class="ch.bfs.meb.server.commons.service.impl.PlausiServiceAdvice" />
+	<bean id="uploadServiceAdviceBean" class="ch.bfs.meb.server.commons.service.impl.UploadServiceAdvice" />
+	<bean id="cantonServiceAdviceBean" class="ch.bfs.meb.server.commons.service.impl.CantonServiceAdvice" />
+	<bean id="configDeliveryServiceAdviceBean" class="ch.bfs.meb.server.commons.service.impl.ConfigDeliveryServiceAdvice" />
+	<bean id="burSchoolServiceAdviceBean" class="ch.bfs.meb.server.commons.service.impl.BurSchoolServiceAdvice" />
+	<bean id="classServiceAdviceBean" class="ch.bfs.meb.sdl.server.service.impl.ClassServiceAdvice" />
+	<bean id="learnerServiceAdviceBean" class="ch.bfs.meb.sdl.server.service.impl.LearnerServiceAdvice" />
+	<bean id="schoolServiceAdviceBean" class="ch.bfs.meb.sdl.server.service.impl.SchoolServiceAdvice" />
+
+	<aop:config>
+		<!-- DlWizardService -->
+		<aop:aspect ref="wizardServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.sdl.server.integration.dto.SdlWizardSchoolListResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleListException"/>
+		</aop:aspect>
+		<!-- PlausiErrorService -->
+		<aop:aspect ref="plausiErrorServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.sdl.server.integration.dto.SdlPlausiErrorListResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleListException"/>
+		</aop:aspect>
+		<!-- DeliveryService -->
+		<aop:aspect ref="deliveryServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.sdl.server.integration.dto.SdlDeliveryResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.sdl.server.integration.dto.SdlDeliveryListResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleListException"/>
+		</aop:aspect>
+		<!-- InterventionService -->
+		<aop:aspect ref="interventionServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.InterventionResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.InterventionListResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleListException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.InterventionResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.InterventionListResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleListException"/>
+		</aop:aspect>
+		<!-- CantonInterventionService -->
+		<aop:aspect ref="cantonInterventionServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.CantonInterventionResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.CantonInterventionListResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleListException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.CantonInterventionResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.CantonInterventionListResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleListException"/>
+		</aop:aspect>
+		<!-- ExportService -->
+		<aop:aspect ref="exportServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.ExportResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.ExportListResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleListException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.FileResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleFileException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.ExportResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.ExportListResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleListException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.FileResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleFileException"/>
+		</aop:aspect>
+		<!-- FilterService -->
+		<aop:aspect ref="filterServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.FilterResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.FilterListResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleListException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.FilterResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.FilterListResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleListException"/>
+		</aop:aspect>
+		<!-- ParameterService -->
+		<aop:aspect ref="parameterServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.ParameterResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.ParameterListResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleListException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.ParameterResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.ParameterListResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleListException"/>
+		</aop:aspect>
+		<!-- PlausiService -->
+		<aop:aspect ref="plausiServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.PlausiResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.PlausiListResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleListException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.PlausiResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.PlausiListResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleListException"/>
+		</aop:aspect>
+		<!-- UploadService -->
+		<aop:aspect ref="uploadServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.UploadResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.UploadResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleException"/>
+			<!-- not implemented yet -->
+			<!--aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.UploadListResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleListException"/-->
+		</aop:aspect>
+		<!-- CantonService -->
+		<aop:aspect ref="cantonServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.CantonResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.CantonListResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleListException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.CantonResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.CantonListResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleListException"/>
+		</aop:aspect>
+		<!-- ConfigDeliveryService -->
+		<aop:aspect ref="configDeliveryServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.ConfigDeliveryResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.ConfigDeliveryListResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleListException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.ConfigDeliveryResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.ConfigDeliveryListResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleListException"/>
+		</aop:aspect>
+		<!-- BurSchoolService -->
+		<aop:aspect ref="burSchoolServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.BurSchoolResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.BurSchoolListResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleListException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.BurSchoolResult ch.bfs.meb.server.commons.service.impl.I*ervice.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.BurSchoolListResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleListException"/>
+		</aop:aspect>
+		<!-- ClassService -->
+		<aop:aspect ref="classServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.sdl.server.integration.dto.SdlClassResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.sdl.server.integration.dto.SdlClassListResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleListException"/>
+		</aop:aspect>
+		<!-- LearnerService -->
+		<aop:aspect ref="learnerServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.sdl.server.integration.dto.SdlLearnerResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.sdl.server.integration.dto.SdlLearnerListResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleListException"/>
+		</aop:aspect>
+		<!-- SchoolService -->
+		<aop:aspect ref="schoolServiceAdviceBean">
+			<aop:around pointcut="execution(ch.bfs.meb.sdl.server.integration.dto.SdlSchoolResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleException"/>
+			<aop:around pointcut="execution(ch.bfs.meb.sdl.server.integration.dto.SdlSchoolListResult ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleListException"/>
+		</aop:aspect>
+		<aop:aspect ref="loggerAdviceBean">
+			<aop:around pointcut="execution(* ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleAround"/>
+			<aop:around pointcut="execution(* ch.bfs.meb.sdl.server.service.impl.I*Service.*(..))" method="handleAround"/>
+			<aop:around pointcut="execution(* ch.bfs.meb.security.idm.INevisIdmUserServiceProvider.get*(..))" method="handleAround"/>
+		</aop:aspect>
+	</aop:config>
+
+	<bean id="loggerAdviceBean" class="ch.bfs.meb.logging.LoggerAdvice" />
+
+	<!-- **************************************** -->
+	<!-- * Localization                         * -->
+	<!-- **************************************** -->
+
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basenames">
+        	<list>
+        		<value>ch/bfs/meb/sdl/server/business/SdlServer</value>
+        		<value>ch/bfs/meb/server/commons/messages/server-commons-messages</value>
+        	</list>
+        </property>
+    </bean>
+
+    <!-- Used also by singleton beans -->
+	<bean id="localizationManager" class="ch.bfs.meb.server.commons.i18n.ServerLocalizationManager">
+		<property name="messageSource" ref="messageSource"/>
+		<aop:scoped-proxy/>
+	</bean>
+</beans>

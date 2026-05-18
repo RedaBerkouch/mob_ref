@@ -1,0 +1,1 @@
+mvn clean install -P local -pl sbg-xml-beans,sbgwsclient,sbgserver,sbgserverEAR,sbgweb,sbgwebEAR

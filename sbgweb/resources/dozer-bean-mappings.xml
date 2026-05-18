@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mappings xmlns="http://dozer.sourceforge.net"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://dozer.sourceforge.net
+          http://dozer.sourceforge.net/schema/beanmapping.xsd">
+          
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebSortContext</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgevent.SortContext</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebSortContext</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgperson.SortContext</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebFilterContext</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgdelivery.FilterContext</class-b>
+    <field>
+      <a>filter</a>
+      <b is-accessible="true">filter</b>
+    </field>
+    <field>
+      <a>whereFilter</a>
+      <b is-accessible="true">whereFilter</b>
+    </field>
+  </mapping>
+
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebFilterContext</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgevent.FilterContext</class-b>
+    <field>
+      <a>filter</a>
+      <b is-accessible="true">filter</b>
+    </field>
+    <field>
+      <a>whereFilter</a>
+      <b is-accessible="true">whereFilter</b>
+    </field>
+  </mapping>
+
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebFilterContext</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgperson.FilterContext</class-b>
+    <field>
+      <a>filter</a>
+      <b is-accessible="true">filter</b>
+    </field>
+    <field>
+      <a>whereFilter</a>
+      <b is-accessible="true">whereFilter</b>
+    </field>
+  </mapping>
+
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebFilter</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgdelivery.Filter</class-b>
+    <field>
+      <a>parameters</a>
+      <b is-accessible="true">parameters</b>
+    </field>
+  </mapping>
+
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebFilter</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgevent.Filter</class-b>
+    <field>
+      <a>parameters</a>
+      <b is-accessible="true">parameters</b>
+    </field>
+  </mapping>
+
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebFilter</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgfilter.Filter</class-b>
+    <field>
+      <a>parameters</a>
+      <b is-accessible="true">parameters</b>
+    </field>
+  </mapping>
+
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebFilter</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgperson.Filter</class-b>
+    <field>
+      <a>parameters</a>
+      <b is-accessible="true">parameters</b>
+    </field>
+  </mapping>
+
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebParameter</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgdelivery.Parameter</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebParameter</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgevent.Parameter</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebParameter</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgfilter.Parameter</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebParameter</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgperson.Parameter</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebParameter</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgmacro.Parameter</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebWhereFilter</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgdelivery.WhereFilter</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebWhereFilter</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgevent.WhereFilter</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebWhereFilter</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgperson.WhereFilter</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.web.commons.dhtmlx.table.WebFilterResult</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgfilter.FilterResult</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.sbg.web.ws.sbgmacroparameter.Parameter</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgfilter.Parameter</class-b>
+  </mapping>
+  
+  <mapping>
+    <class-a>ch.bfs.meb.sbg.web.ws.sbgmacroparameter.Parameter</class-a>
+    <class-b>ch.bfs.meb.sbg.web.ws.sbgmacro.Parameter</class-b>
+  </mapping>
+</mappings>

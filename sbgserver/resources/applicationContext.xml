@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:oxm="http://www.springframework.org/schema/oxm"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/oxm 
+		http://www.springframework.org/schema/oxm/spring-oxm.xsd">
+
+    <!-- **************************************** -->
+    <!-- * Spring annotations                   * -->
+    <!-- **************************************** -->
+
+    <context:annotation-config/>
+
+    <!-- **************************************** -->
+    <!-- * Spring placeholder replacement       * -->
+    <!-- * ${TOKEN}                             * -->
+    <!-- **************************************** -->
+
+    <context:property-placeholder location="${SBGSERVER_PROPERTIES_LOCATION}"/>
+
+    <!-- **************************************** -->
+    <!-- * Application context provider         * -->
+    <!-- **************************************** -->
+
+    <bean id="applicationContextProvider" class="ch.bfs.meb.util.ApplicationContextProvider"/>
+
+    <!-- **************************************** -->
+    <!-- * Transaction manager                  * -->
+    <!-- **************************************** -->
+
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <bean
+            class="org.springframework.transaction.jta.WebLogicJtaTransactionManager"
+            id="transactionManager"/>
+
+    <!-- **************************************** -->
+    <!-- * Hibernate session factory            * -->
+    <!-- **************************************** -->
+
+    <bean id="sessionFactory"
+          class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+        <property name="dataSource">
+            <ref bean="dataSource"/>
+        </property>
+        <property name="annotatedClasses">
+            <list>
+                <value>ch.bfs.meb.sbg.server.integration.dto.SbgFilter</value>
+                <value>ch.bfs.meb.sbg.server.integration.dto.SbgParameter</value>
+                <value>ch.bfs.meb.sbg.server.integration.dto.SbgEvent</value>
+                <value>ch.admin.bfs.sbg.transfer.Macro</value>
+                <value>ch.bfs.meb.sbg.server.integration.dto.SbgUploadFile</value>
+            </list>
+        </property>
+        <property name="mappingResources">
+            <list>
+                <value>ch/admin/bfs/sbg/psist/mapping/Codegroup.hbm.xml</value>
+                <value>ch/admin/bfs/sbg/psist/mapping/KeyAspect.hbm.xml</value>
+                <value>ch/admin/bfs/sbg/psist/mapping/Person.hbm.xml</value>
+                <value>ch/admin/bfs/sbg/psist/mapping/Delivery.hbm.xml</value>
+                <value>ch/admin/bfs/sbg/psist/mapping/Action.hbm.xml</value>
+                <value>ch/admin/bfs/sbg/psist/mapping/Plausierror.hbm.xml</value>
+            </list>
+        </property>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+                <prop key="hibernate.format_sql">${hibernate.format_sql}</prop>
+                <prop key="hibernate.dialect">org.hibernate.dialect.Oracle12cDialect</prop>
+                <prop key="hibernate.transaction.jta.platform">org.hibernate.service.jta.platform.internal.WeblogicJtaPlatform</prop>
+                <prop key="hibernate.transaction.coordinator_class">org.hibernate.resource.transaction.backend.jta.internal.JtaTransactionCoordinatorBuilderImpl</prop>
+                <prop key="hibernate.jdbc.fetch_size">100</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!--  **************************************** -->
+    <!--  * Datasource                           * -->
+    <!--  **************************************** -->
+
+    <bean class="org.springframework.jndi.JndiObjectFactoryBean" id="dataSource">
+        <property name="jndiName">
+            <value>${jndi.datasource}</value>
+        </property>
+    </bean>
+
+    <!-- **************************************** -->
+    <!-- * Spring services                      * -->
+    <!-- **************************************** -->
+
+    <bean class="ch.admin.bfs.sbg.webservice.ActionServiceImpl" id="actionServiceImpl">
+        <property name="actionDAO" ref="actionDAO"/>
+    </bean>
+
+    <bean class="ch.admin.bfs.sbg.webservice.FilterServiceImpl" id="filterServiceImpl">
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="filterRepository" ref="filterRepository"/>
+        <property name="macroParameterDAO" ref="macroParameterDAO"/>
+    </bean>
+
+    <bean class="ch.admin.bfs.sbg.webservice.MacroParameterServiceImpl" id="macroParameterServiceImpl">
+        <property name="macroParameterDAO" ref="macroParameterDAO"/>
+    </bean>
+
+    <bean class="ch.admin.bfs.sbg.webservice.MacroServiceImpl" id="macroServiceImpl">
+        <property name="deliveryDAO" ref="deliveryDAO"/>
+        <property name="macroDAO" ref="macroDAO"/>
+        <property name="macroParameterDAO" ref="macroParameterDAO"/>
+        <property name="personDAO" ref="personDAO"/>
+        <property name="plausierrorDAO" ref="plausierrorDAO"/>
+        <property name="sasService" ref="sasService"/>
+    </bean>
+
+    <bean class="ch.admin.bfs.sbg.webservice.UploadServiceProvider" id="uploadServiceProvider">
+        <property name="actionDAO" ref="actionDAO"/>
+        <property name="deliveryDAO" ref="deliveryDAO"/>
+        <property name="headReader" ref="headItemReader"/>
+        <property name="csvHeadReader" ref="csvHeadReader"/>
+        <property name="transactionManager" ref="transactionManager"/>
+    </bean>
+    <bean class="ch.admin.bfs.sbg.webservice.UploadFileServiceImpl" id="uploadFileServiceImpl">
+        <property name="uploadFileRepository" ref="uploadFileRepository"/>
+        <property name="idmService" ref="${configuration.idm.implementation}"/>
+    </bean>
+    <bean class="ch.bfs.meb.server.commons.service.impl.UploadServiceImpl" id="uploadServiceImpl">
+        <property name="uploadServiceProvider">
+            <ref bean="uploadServiceProvider"/>
+        </property>
+    </bean>
+
+    <bean class="ch.admin.bfs.sbg.webservice.DeliveryServiceImpl" id="deliveryServiceImpl">
+        <property name="idmService" ref="${configuration.idm.implementation}"/>
+        <property name="filterService" ref="filterServiceImpl"/>
+        <property name="actionDAO" ref="actionDAO"/>
+		<property name="codegroupManager" ref="codegroupManager"/>
+        <property name="deliveryDAO" ref="deliveryDAO"/>
+        <property name="filterRepository" ref="filterRepository"/>
+        <property name="personDAO" ref="personDAO"/>
+        <property name="eventRepository" ref="eventRepository"/>
+        <property name="plausierrorDAO" ref="plausierrorDAO"/>
+        <property name="macroDAO" ref="macroDAO"/>
+        <property name="plausiFactory" ref="plausiFactory"/>
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="sasService" ref="sasService"/>
+        <property name="localizationManager" ref="localizationManager"/>
+        <property name="configuration" ref="configuration"/>        
+    </bean>
+
+    <bean class="ch.admin.bfs.sbg.webservice.PersonServiceImpl" id="personServiceImpl">
+        <property name="idmService" ref="${configuration.idm.implementation}"/>
+        <property name="filterService" ref="filterServiceImpl"/>
+        <property name="actionDAO" ref="actionDAO"/>
+		<property name="codegroupManager" ref="codegroupManager"/>
+        <property name="deliveryDAO" ref="deliveryDAO"/>
+        <property name="eventRepository" ref="eventRepository"/>
+        <property name="filterRepository" ref="filterRepository"/>
+        <property name="personDAO" ref="personDAO"/>
+        <property name="plausierrorDAO" ref="plausierrorDAO"/>
+        <property name="macroDAO" ref="macroDAO"/>
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="plausiFactory" ref="plausiFactory"/>
+        <property name="sasService" ref="sasService"/>
+        <property name="configuration" ref="configuration"/>        
+    </bean>
+
+    <bean class="ch.admin.bfs.sbg.webservice.EventServiceImpl" id="eventServiceImpl">
+        <property name="filterService" ref="filterServiceImpl"/>
+		<property name="codegroupManager" ref="codegroupManager"/>
+        <property name="deliveryDAO" ref="deliveryDAO"/>
+        <property name="eventRepository" ref="eventRepository"/>
+        <property name="filterRepository" ref="filterRepository"/>
+        <property name="keyAspectDAO" ref="keyAspectDAO"/>
+        <property name="personDAO" ref="personDAO"/>
+        <property name="plausierrorDAO" ref="plausierrorDAO"/>
+        <property name="macroDAO" ref="macroDAO"/>
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="plausiFactory" ref="plausiFactory"/>
+        <property name="sasService" ref="sasService"/>
+    </bean>
+
+    <bean class="ch.bfs.meb.server.commons.integration.sas.SasService" id="sasService">
+        <property name="configuration" ref="configuration"/>
+    </bean>
+
+    <bean id="headItemReader" class="ch.bfs.meb.sbg.server.business.HeadItemReader">
+        <property name="fragmentRootElementName" value="head"/>
+        <property name="unmarshaller" ref="headUnmarshaller"/>
+    </bean>
+
+    <oxm:xmlbeans-marshaller id="headUnmarshaller" options="headXmlBeansOptions"/>
+
+    <bean id="headXmlBeansOptions" class="ch.bfs.meb.sbg.server.business.HeadXmlBeansOptions"/>
+
+    <bean id="csvHeadReader" class="org.springframework.batch.item.file.FlatFileItemReader">
+        <property name="lineMapper">
+            <bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+                <property name="lineTokenizer">
+                    <bean class="ch.bfs.meb.sbg.server.business.delivery.csv.CsvDelimitedLineTokenizer">
+                        <property name="names"
+                                  value="YEAR,CANTON,LIDAT,DUMMY1,DUMMY2,DUMMY3,DUMMY4,DUMMY5,DUMMY6,DUMMY7,DUMMY8,DUMMY9,DUMMY10,DUMMY11,DUMMY12,DUMMY13,DUMMY14,DUMMY15"/>
+                        <property name="delimiter" value=";"/>
+                    </bean>
+                </property>
+                <property name="fieldSetMapper">
+                    <bean class="ch.bfs.meb.sbg.server.business.delivery.csv.CsvHeadFieldSetMapper"/>
+                </property>
+            </bean>
+        </property>
+    </bean>
+
+    <!-- **************************************** -->
+    <!-- * Repositories                         * -->
+    <!-- **************************************** -->
+
+	<bean class="ch.bfs.meb.server.commons.integration.repository.CodeGroupRepository"
+		id="codeGroupRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+	<bean class="ch.admin.bfs.sbg.db.dao.ActionDAO" id="actionDAO">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <bean class="ch.admin.bfs.sbg.db.dao.DeliveryDAO" id="deliveryDAO">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <bean class="ch.bfs.meb.sbg.server.integration.repository.UploadFileRepository"
+          id="uploadFileRepository">
+        <property name="sessionFactory" ref="sessionFactory" />
+    </bean>
+
+    <bean class="ch.bfs.meb.sbg.server.integration.repository.EventRepository" id="eventRepository">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <bean class="ch.bfs.meb.sbg.server.integration.repository.FilterRepository" id="filterRepository">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <bean class="ch.admin.bfs.sbg.db.dao.KeyAspectDAO" id="keyAspectDAO">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <bean class="ch.admin.bfs.sbg.db.dao.MacroDAO" id="macroDAO">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <bean class="ch.admin.bfs.sbg.db.dao.MacroParameterDAO" id="macroParameterDAO">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <bean class="ch.admin.bfs.sbg.db.dao.PersonDAO" id="personDAO">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <bean class="ch.admin.bfs.sbg.db.dao.PlausierrorDAO" id="plausierrorDAO">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <!-- **************************************** -->
+    <!-- * codegroup cache                      * -->
+    <!-- **************************************** -->
+
+	<bean id="codegroupManager" class="ch.bfs.meb.server.commons.codes.CodegroupManager">
+		<property name="codegroupRepository" ref="codeGroupRepository"></property>
+		<property name="hourlyRefreshedCodegroups" value="" />
+		<property name="dailyRefreshedCodegroups" value="MEB_PLAUSISTATUS,SBG_DELIVERYSTATUS,SBG_PERSONSTATUS,SBG_PLAUSISTATUS,SBG_SBFICODE,SBG_EVENTTYPE,SBG_OBJECTTYPE,SBG_ACTIONTYPE,SBG_MACROTYPE,SBG_KEYASPECTTYPE,SBG_ROLE,CANTON,SEX,PROFESSIONCODE,CONTRACTTYPE,EXAMTYPE,EXAMRESULT,CANCELREASON" />
+	</bean>
+
+    <!-- **************************************** -->
+    <!-- * Plausi                               * -->
+    <!-- **************************************** -->
+
+    <bean class="ch.admin.bfs.sbg.business.plausi.PlausiFactory" id="plausiFactory">
+        <property name="eventRepository" ref="eventRepository"/>
+        <property name="sasService" ref="sasService"/>
+        <property name="keyAspectManager" ref="keyAspectCacheManager"/>
+    </bean>
+
+
+    <!-- **************************************** -->
+    <!-- * KeyAspectCache                       * -->
+    <!-- **************************************** -->
+
+    <bean id="keyAspectCacheManager" class="ch.bfs.meb.sbg.server.keyaspect.KeyAspectManager">
+        <property name="keyAspectDao" ref="keyAspectDAO"></property>
+    </bean>
+
+    <!-- **************************************** -->
+    <!-- * Advices                              * -->
+    <!-- **************************************** -->
+
+    <bean id="actionServiceAdviceBean" class="ch.admin.bfs.sbg.webservice.ActionServiceAdvice"/>
+    <bean id="deliveryServiceAdviceBean" class="ch.admin.bfs.sbg.webservice.DeliveryServiceAdvice"/>
+    <bean id="eventServiceAdviceBean" class="ch.admin.bfs.sbg.webservice.EventServiceAdvice"/>
+    <bean id="filterServiceAdviceBean" class="ch.bfs.meb.server.commons.service.impl.FilterServiceAdvice"/>
+    <bean id="macroParameterServiceAdviceBean" class="ch.admin.bfs.sbg.webservice.MacroParameterServiceAdvice"/>
+    <bean id="macroServiceAdviceBean" class="ch.admin.bfs.sbg.webservice.MacroServiceAdvice"/>
+    <bean id="personServiceAdviceBean" class="ch.admin.bfs.sbg.webservice.PersonServiceAdvice"/>
+    <bean id="uploadServiceAdviceBean" class="ch.bfs.meb.server.commons.service.impl.UploadServiceAdvice"/>
+
+    <aop:config>
+        <!-- ActionService -->
+        <aop:aspect ref="actionServiceAdviceBean">
+            <aop:around
+                    pointcut="execution(ch.admin.bfs.sbg.transfer.ActionResult ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleException"/>
+            <aop:around
+                    pointcut="execution(ch.admin.bfs.sbg.transfer.ActionList ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleListException"/>
+            <aop:around
+                    pointcut="execution(ch.admin.bfs.sbg.transfer.PlausireportResult ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleFileException"/>
+        </aop:aspect>
+        <!-- DeliveryService -->
+        <aop:aspect ref="deliveryServiceAdviceBean">
+            <aop:around
+                    pointcut="execution(ch.admin.bfs.sbg.transfer.DeliveryResult ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleException"/>
+            <aop:around
+                    pointcut="execution(ch.admin.bfs.sbg.transfer.SbgDeliveryListResult ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleListException"/>
+        </aop:aspect>
+        <!-- EventService -->
+        <aop:aspect ref="eventServiceAdviceBean">
+            <aop:around
+                    pointcut="execution(ch.admin.bfs.sbg.transfer.EventResult ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleException"/>
+            <aop:around
+                    pointcut="execution(ch.admin.bfs.sbg.transfer.EventList ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleListException"/>
+        </aop:aspect>
+        <!-- FilterService -->
+        <aop:aspect ref="filterServiceAdviceBean">
+            <aop:around
+                    pointcut="execution(ch.bfs.meb.server.commons.integration.dto.FilterResult ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleException"/>
+            <aop:around
+                    pointcut="execution(ch.bfs.meb.server.commons.integration.dto.FilterListResult ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleListException"/>
+            <aop:around
+                    pointcut="execution(ch.bfs.meb.server.commons.integration.dto.FilterResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))"
+                    method="handleException"/>
+            <aop:around
+                    pointcut="execution(ch.bfs.meb.server.commons.integration.dto.FilterListResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))"
+                    method="handleListException"/>
+        </aop:aspect>
+        <!-- MacroParameterService -->
+        <aop:aspect ref="macroParameterServiceAdviceBean">
+            <aop:around
+                    pointcut="execution(ch.bfs.meb.sbg.server.integration.dto.ParameterListResult ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleException"/>
+            <aop:around
+                    pointcut="execution(ch.bfs.meb.sbg.server.integration.dto.ParameterListResult ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleListException"/>
+        </aop:aspect>
+        <!-- MacroService -->
+        <aop:aspect ref="macroServiceAdviceBean">
+            <aop:around
+                    pointcut="execution(ch.admin.bfs.sbg.transfer.MacroResult ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleException"/>
+            <aop:around
+                    pointcut="execution(ch.admin.bfs.sbg.transfer.MacroList ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleListException"/>
+            <aop:around
+                    pointcut="execution(ch.admin.bfs.sbg.transfer.ExportResult ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleFileException"/>
+        </aop:aspect>
+        <!-- PersonService -->
+        <aop:aspect ref="personServiceAdviceBean">
+            <aop:around
+                    pointcut="execution(ch.admin.bfs.sbg.transfer.PersonResult ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleException"/>
+            <aop:around
+                    pointcut="execution(ch.admin.bfs.sbg.transfer.PersonList ch.admin.bfs.sbg.webservice.I*Service.*(..))"
+                    method="handleListException"/>
+        </aop:aspect>
+        <!-- UploadService -->
+        <aop:aspect ref="uploadServiceAdviceBean">
+            <aop:around
+                    pointcut="execution(ch.bfs.meb.server.commons.integration.dto.UploadResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))"
+                    method="handleException"/>
+            <!-- not implemented yet -->
+            <!--aop:around pointcut="execution(ch.bfs.meb.server.commons.integration.dto.UploadListResult ch.bfs.meb.server.commons.service.impl.I*Service.*(..))" method="handleListException"/-->
+        </aop:aspect>
+        <!-- LoggerService -->
+        <aop:aspect ref="loggerAdviceBean">
+            <aop:around pointcut="execution(* ch.bfs.meb.server.commons.service.impl.I*Service.*(..))"
+                        method="handleAround"/>
+            <aop:around pointcut="execution(* ch.admin.bfs.sbg.webservice.I*Service.*(..))" method="handleAround"/>
+            <aop:around pointcut="execution(* ch.bfs.meb.security.idm.INevisIdmUserServiceProvider.get*(..))"
+                        method="handleAround"/>
+        </aop:aspect>
+    </aop:config>
+
+    <bean id="loggerAdviceBean" class="ch.bfs.meb.logging.LoggerAdvice"/>
+
+    <!-- **************************************** -->
+    <!-- * SAS Access                           * -->
+    <!-- **************************************** -->
+
+    <!--	<bean class="ch.bfs.meb.server.commons.integration.sas.SASWorkspace" id="sasWorkspace">
+            <property name="configuration" ref="configuration"/>
+        </bean> -->
+
+    <!-- **************************************** -->
+    <!-- * Localization                         * -->
+    <!-- **************************************** -->
+
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basenames">
+            <list>
+                <value>ch/bfs/meb/sbg/server/business/SbgServer</value>
+                <value>ch/bfs/meb/server/commons/messages/server-commons-messages</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- Used also by singleton beans -->
+    <bean id="localizationManager" class="ch.bfs.meb.server.commons.i18n.ServerLocalizationManager">
+        <property name="messageSource" ref="messageSource"/>
+        <aop:scoped-proxy/>
+    </bean>
+    
+    
+    <!-- **************************************** -->
+	<!-- * Quartz                               * -->
+	<!-- **************************************** -->
+
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<bean id="cronLoadCodegroupsTrigger"
+					class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+					<property name="jobDetail" ref="doLoadCodegroups" />
+					<property name="cronExpression" value="0/30 * * * * ?" />
+				</bean>
+			</list>
+		</property>
+	</bean>
+
+	<!-- Optimization for codegroup cache loading -->
+	<bean id="doLoadCodegroups" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="codegroupLoader" />
+		<property name="targetMethod" value="refreshCodegroups" />
+		<property name="concurrent" value="false" />
+	</bean>
+	
+	<bean id="codegroupLoader" class="ch.bfs.meb.server.commons.integration.batch.ServerJobCodeGroupLoaderDetails">
+			<property name="codegroupManager" ref="codegroupManager" />
+	</bean>
+	
+</beans>

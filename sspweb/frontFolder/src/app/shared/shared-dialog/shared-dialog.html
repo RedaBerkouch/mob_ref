@@ -1,0 +1,21 @@
+<div mat-dialog-content>
+	<p>{{ data.message }}</p>
+</div>
+<div mat-dialog-actions>
+	@if (data.showCancel){
+		<button
+			type="button"
+			mat-button
+			obButton="secondary"
+			(click)="onCancel()">
+			{{ data.cancelLabel || 'Annuler' }}
+		</button>
+	}
+	<button
+		type="button"
+		mat-button
+		obButton="primary"
+		(click)="onConfirm()">
+		{{ data.confirmLabel || 'OK' }}
+	</button>
+</div>

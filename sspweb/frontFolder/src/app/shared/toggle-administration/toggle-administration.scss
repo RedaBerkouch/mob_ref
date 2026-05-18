@@ -1,0 +1,67 @@
+:host {
+	display: block;
+	font-family: 'Roboto', sans-serif;
+	background: #E6FFB3;
+	padding: 0.75rem 1rem;
+	color: #333;
+	zoom: 0.65;
+}
+
+.container {
+	background: #ffffff;
+	border: 1px solid #e1e8ed;
+	border-radius: 6px;
+	padding: 12px 16px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+	transition: box-shadow 0.2s ease, border-color 0.2s ease;
+
+	&:hover {
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+		border-color: #d1d9e0;
+	}
+
+	::ng-deep mat-slide-toggle.label {
+		.mdc-label {
+			text-decoration: none;
+			white-space: nowrap;
+			font-size: 1rem;
+			font-weight: 500;
+			color: #1f2937;
+			letter-spacing: -0.01em;
+		}
+
+		// Améliorer les couleurs du toggle
+		.mdc-switch {
+			// État inactif
+			&:not(.mdc-switch--selected) {
+				.mdc-switch__track {
+					background-color: #e5e7eb;
+					border-color: #d1d5db;
+				}
+
+				.mdc-switch__handle {
+					&::after {
+						background-color: #ffffff;
+					}
+				}
+			}
+
+			// État actif (primary color preserved)
+			&.mdc-switch--selected {
+				.mdc-switch__track {
+					opacity: 1;
+				}
+			}
+		}
+
+		// Transition smooth
+		.mdc-switch__track,
+		.mdc-switch__handle::after {
+			transition: all 0.2s ease;
+		}
+	}
+}
+
+.mb-2 {
+	margin-bottom: 0.5rem;
+}

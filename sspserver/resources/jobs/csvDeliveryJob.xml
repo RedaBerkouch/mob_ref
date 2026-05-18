@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+      	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
+
+	<batch:job id="sspCsvDeliveryJob" job-repository="jobRepository" incrementer="mebJobIncrementer">
+		<batch:step id="csvInst" next="concludeCsv">
+			<batch:tasklet transaction-manager="transactionManager">
+				<batch:chunk reader="csvItemReader" 
+							 writer="persItemWriter" 
+							 processor="persItemProcessor"
+							 commit-interval="100"/>
+				<batch:transaction-attributes timeout="3000"/>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="concludeCsv" parent="concludeDeliveryStep"/>
+		<batch:listeners>
+			<batch:listener ref="mebJobExecutionListener"/>
+		</batch:listeners>
+	</batch:job>
+
+	<bean id="csvItemReader" class="ch.bfs.meb.ssp.server.business.delivery.csv.CsvItemReader" scope="step">
+		<property name="resource" value="#{jobParameters[filename]}" />
+		<property name="linesToSkip" value="1" />
+		<property name="encoding" value="UTF-8" />
+		<property name="lineMapper">
+			<bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+				<property name="lineTokenizer">
+					<bean class="ch.bfs.meb.ssp.server.business.delivery.csv.CsvDelimitedLineTokenizer">
+						<property name="names" value="PERSONIDTYPE,PERSONID,PERSONSEX,PERSONBIRTHDATE,PERSONNATIONALITY,PERSONYEARSINACT,ACTIVITYNR,ACTIVITYCATPERS,ACTIVITYSTATUS,ACTIVITYQUALIFICATION,ACTIVITYIDTYPE,ACTIVITYID,ACTIVITYVOLACT,ACTIVITYFULLTIMEREF,ACTIVITYSCHOOLTYPE,ACTIVITYUSERTEXT,CONFIRMPERSON,CONFIRMACTIVITY" />
+						<property name="delimiter" value=";"/>
+					</bean>
+				</property>
+				<property name="fieldSetMapper">
+					<bean class="ch.bfs.meb.ssp.server.business.delivery.csv.CsvFieldSetMapper" />
+				</property>
+			</bean>
+		</property>
+		<property name="recordSeparatorPolicy">
+			<bean class="ch.bfs.meb.server.commons.business.CsvRecordSeparatorPolicy" />
+		</property>
+	</bean>
+</beans>

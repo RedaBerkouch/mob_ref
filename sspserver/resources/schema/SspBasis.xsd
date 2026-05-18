@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<!-- Version 4 du Schema XML pour Ssp sans les nomenclatures. 
+	 Cette version  corrige cantonId à la place de canton et 
+     permet les valeurs vides pour preCtSchArt et preCtSchYear -->
+<!-- edited with XMLSpy v2007 sp2 (http://www.altova.com) by Martin Stingelin (Stingelin Informatik GmbH) -->
+<!-- edited with XMLSPY v2004 rel. 3 U (http://www.xmlspy.com) by BITUSER (Bundesamt für Informatik und Telekommunikation) -->
+ 
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+    elementFormDefault="qualified" attributeFormDefault="unqualified"
+	version="1.0">
+	
+	<xs:complexType name="namedPersonIdType">
+		<xs:sequence>
+			<xs:element name="personIdCategory" type="xs:token" minOccurs="0"/>
+			<xs:element name="personId" type="xs:token" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="personIdentificationType">
+		<xs:sequence>
+			<xs:element name="localPersonId" minOccurs="0" type="namedPersonIdType" />
+			<xs:element name="sex" type="xs:token" minOccurs="0"/>
+			<xs:element name="dateOfBirth" type="xs:token" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:element name="table">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="head">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="version">
+								<xs:simpleType>
+									<xs:restriction base="xs:integer">
+										<xs:totalDigits value="4" />
+									</xs:restriction>
+								</xs:simpleType>
+							</xs:element>
+							<xs:element name="cantonId">
+								<xs:simpleType>
+									<xs:restriction base="xs:integer">
+										<xs:minInclusive value="01" />
+										<xs:maxInclusive value="26" />
+									</xs:restriction>
+								</xs:simpleType>
+							</xs:element>
+							<xs:element name="dataDelivery">
+								<xs:simpleType>
+									<xs:restriction base="xs:string">
+										<xs:maxLength value="20" />
+									</xs:restriction>
+								</xs:simpleType>
+							</xs:element>
+							<xs:element name="deliveryDate" type="xs:token" minOccurs="0"/>
+						</xs:sequence>
+						<xs:attribute name="confirmRules" type="confirmRulesSimpleType" use="optional"/>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="pers" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="personIdentification" minOccurs="0" type="personIdentificationType" />
+							<xs:element name="nationality" type="xs:token" minOccurs="0"/>
+							<xs:element name="yearsInAct" type="xs:token" minOccurs="0"/>
+							<xs:element name="com" type="xs:token" minOccurs="0"/>
+							<xs:element name="act" minOccurs="0" maxOccurs="unbounded" type="actType"/>
+						</xs:sequence>
+						<xs:attribute name="confirmRules" type="confirmRulesSimpleType" use="optional"/>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+    <xs:complexType name="actType">
+    	<xs:sequence>
+    		<xs:element name="actNr" type="xs:token" minOccurs="0"/>
+    		<xs:element name="catPers" type="xs:token" minOccurs="0"/>
+    		<xs:element name="status" type="xs:token" minOccurs="0"/>
+    		<xs:element name="qualification" type="xs:token" minOccurs="0"/>
+			<xs:element name="instIdCategory" type="xs:token" minOccurs="0"/>
+			<xs:element name="instId" type="xs:token" minOccurs="0"/>
+    		<xs:element name="volAct" type="xs:token" minOccurs="0"/>
+    		<xs:element name="fulltimeRef" type="xs:token" minOccurs="0"/>
+    		<xs:element name="classSchArt" type="xs:token" minOccurs="0"/>
+			<xs:element name="com" type="xs:token" minOccurs="0"/>
+    	</xs:sequence>
+		<xs:attribute name="confirmRules" type="confirmRulesSimpleType" use="optional"/>
+    </xs:complexType>
+	<xs:simpleType name="confirmRulesSimpleType">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[^|]{1,20}(\|[^|]{1,20})*"></xs:pattern>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

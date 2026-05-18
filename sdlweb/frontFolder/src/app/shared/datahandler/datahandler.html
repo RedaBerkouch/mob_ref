@@ -1,0 +1,341 @@
+<div class="advanced-table-section">
+	<div class="wrapper-box">
+
+		<div class="table-header-block">
+			<div class="table-header mb-4">
+				<div class="header-top">
+					<div class="table-title">{{ config.title | translate }}</div>
+
+					@if (!config.minViewHeader) {
+						<div class="table-stats">
+							{{ 'displaynumber.gefiltert' | translate }} : {{ totalFiltered }} /
+							{{ 'displaynumber.geladen' | translate }} : {{ totalLoaded }} /
+							{{ 'displaynumber.markiert' | translate }} : {{ totalSelected }}
+						</div>
+					}
+
+					<button mat-stroked-button color="primary" (click)="openColumnDialog()">
+						<mat-icon>view_column</mat-icon>
+						{{ 'table.columns.button' | translate }}
+					</button>
+				</div>
+
+				<div class="header-controls">
+					<div class="toolbar">
+						@for (action of config.actions; track action.icon) {
+							<button
+								mat-icon-button
+								[disabled]="isDisabledAction(action)"
+								matTooltip="{{ (action.tooltip || action.label) | translate }}"
+								(click)="onActionClick(action.icon)">
+								@if (action.src) {
+									<img class="mat-icon" [src]="action.src" alt="" />
+								} @else {
+									<mat-icon>{{ action.icon }}</mat-icon>
+								}
+							</button>
+						}
+					</div>
+				</div>
+			</div>
+
+			<button mat-icon-button (click)="toggleCollapse()">
+				<mat-icon>{{ isCollapsed ? 'expand_more' : 'expand_less' }}</mat-icon>
+			</button>
+		</div>
+
+		@if (isLoading) {
+			<mat-progress-bar mode="indeterminate" color="primary"></mat-progress-bar>
+		}
+
+		<div class="collapsible-content" [class.collapsed]="isCollapsed">
+			<div
+				#tableContainer
+				class="table-container overflow-auto"
+				(scroll)="onScroll($event)"
+				cdkDropList
+				cdkDropListOrientation="horizontal"
+				(cdkDropListDropped)="drop($event)">
+
+				<table
+					mat-table
+					[dataSource]="displayedFormGroups"
+					class="mat-elevation-z8 w-full fixed-layout"
+					[style.width.px]="tableWidthPx">
+
+					<!-- ============================ -->
+					<!--  SELECT checkbox column FIXE -->
+					<!-- ============================ -->
+					<ng-container matColumnDef="select" sticky>
+						<th
+							mat-header-cell
+							*matHeaderCellDef
+							class="cdk-column-select select-col"
+							[style.width.px]="52"
+							[style.minWidth.px]="52"
+							[style.maxWidth.px]="52">
+							@if (config.selection?.mode === 'multiple') {
+								<mat-checkbox
+									(change)="toggleSelectAll($event)"
+									[checked]="isAllSelected()"
+									[indeterminate]="isSomeSelected()">
+								</mat-checkbox>
+							}
+						</th>
+
+						<td
+							mat-cell
+							*matCellDef="let row; let i = index"
+							class="cdk-column-select select-col"
+							[style.width.px]="52"
+							[style.minWidth.px]="52"
+							[style.maxWidth.px]="52">
+							@if (config.selection?.mode !== 'none') {
+								<mat-checkbox
+									(click)="onCheckboxClick($event, i)"
+									[checked]="isRowSelected(i)">
+								</mat-checkbox>
+							}
+						</td>
+					</ng-container>
+
+					<!-- ============================ -->
+					<!--        DYNAMIC COLUMNS       -->
+					<!-- ============================ -->
+					@for (col of config.columns; track trackByKey($index, col)) {
+						@if (visibleColumns.includes(col.key)) {
+
+							<ng-container [matColumnDef]="col.key">
+
+								<th
+									mat-header-cell
+									*matHeaderCellDef
+									class="resizable-th"
+									[class.sorted]="sortState.active === col.key"
+									[style.minWidth.px]="getMinWidthPx(col)"
+									[attr.data-col-key]="col.key">
+
+									<div class="header-wrapper" [style.width]="col.width">
+
+										<!-- title + sort -->
+										<div
+											class="header-title"
+											(click)="onSortClick(col.key)"
+											cdkDrag
+											[cdkDragDisabled]="isResizing"
+											(cdkDragStarted)="onDragStart()"
+											(cdkDragEnded)="onDragEnd()">
+
+											<!-- ✅ IMPORTANT: ref pour mesurer -->
+											<span class="title-text" #headerCell>
+                        {{ col.label | translate }}
+                      </span>
+
+											@if (sortState.active === col.key) {
+												<span class="sort-arrow">
+                          @if (sortState.direction === 'asc') {
+							  <mat-icon class="sort-icon">arrow_upward</mat-icon>
+						  }
+													@if (sortState.direction === 'desc') {
+														<mat-icon class="sort-icon">arrow_downward</mat-icon>
+													}
+                        </span>
+											}
+										</div>
+
+										<!-- FILTER header -->
+										@if (filtersForm) {
+											<div class="header-filter" (click)="$event.stopPropagation()" [formGroup]="filtersForm">
+												<input
+													matInput
+													[placeholder]="'table.filter.placeholder' | translate"
+													class="filter-input"
+													[formControlName]="col.key"
+													(keydown.enter)="applyFiltersFromForm()"
+												/>
+											</div>
+										}
+									</div>
+
+									<span class="resizer-visible" (mousedown)="onResizeMouseDown($event, col)"></span>
+								</th>
+
+								<td
+									mat-cell
+									*matCellDef="let formGroup; let i = index"
+									[style.width]="col.width"
+									[style.minWidth.px]="getMinWidthPx(col)"
+									[class.readonly-cell]="!isEditable(col, i)"
+									[class.invalid-cell]="col.required && formGroup.get(col.key)?.invalid && formGroup.get(col.key)?.touched">
+
+									@switch (col.type) {
+
+										@case ('text') {
+											<input
+												matInput
+												type="text"
+												autocomplete="off"
+												[formControl]="formGroup.controls[col.key]"
+												[readonly]="!isEditable(col, i)"
+												(focus)="onCellFocus(col.key, i)"
+												(blur)="onCellCommit(col.key, i)"
+												(keydown.enter)="onCellCommit(col.key, i)"
+												[class.invalid-input]="col.required && formGroup.get(col.key)?.invalid && formGroup.get(col.key)?.touched"
+											/>
+										}
+
+										@case ('checkbox') {
+											<mat-checkbox
+												[formControl]="formGroup.controls[col.key]"
+												(change)="onCellChange(col.key, $event.checked, i)"
+												[class.readonly-select]="!isEditable(col, i)">
+											</mat-checkbox>
+										}
+
+										@case ('select') {
+
+											@if (!(editingSelect && editingSelect.row === i && editingSelect.key === col.key)) {
+
+												<div
+													class="select-display"
+													(click)="$event.stopPropagation()"
+													(dblclick)="startEditingSelect(i, col.key, formGroup.controls[col.key].value)">
+													{{ getSelectLabel(col, formGroup.controls[col.key].value) }}
+												</div>
+
+											} @else {
+
+												<mat-form-field class="w-full" appearance="outline" (click)="$event.stopPropagation()">
+													<input
+														#selectEditorInput
+														matInput
+														autocomplete="off"
+														[formControl]="getAutoCtrl(i, col.key)"
+														[matAutocomplete]="auto"
+														(keydown.enter)="$event.preventDefault()"
+														(blur)="onAutoBlur(i, col.key)"
+													/>
+
+													<mat-autocomplete
+														#auto="matAutocomplete"
+														[displayWith]="autoDisplay(col)"
+														(optionSelected)="onAutoSelected(col, i, $event.option.value)">
+
+														@for (opt of getFilteredSelectOptions(col, i); track opt.value) {
+															<mat-option [value]="opt">{{ opt.label }}</mat-option>
+														}
+
+													</mat-autocomplete>
+												</mat-form-field>
+											}
+										}
+
+										@case ('date') {
+											<span class="cell-date-wrapper">
+												<input
+													matInput
+													[matDatepicker]="picker"
+													[formControl]="formGroup.controls[col.key]"
+													(dateChange)="onCellChange(col.key, $event.value, i)"
+													[readonly]="!isEditable(col, i)"
+													class="cell-date-input"
+												/>
+												<mat-datepicker-toggle [for]="picker"></mat-datepicker-toggle>
+												<mat-datepicker #picker></mat-datepicker>
+											</span>
+										}
+
+										@case ('parametre') {
+											<div class="parametre-cell">
+												<div
+													class="parametre-display"
+													(click)="startEditingParam(i, col.key, formGroup.get(col.key)?.value)">
+													{{ formGroup.get(col.key)?.value }}
+												</div>
+
+												@if (editingParam?.row === i && editingParam?.key === col.key) {
+													<div class="parametre-editor" (click)="$event.stopPropagation()">
+														<table class="inner-table">
+															@for (entry of editableParams; track entry.key) {
+																<tr>
+																	<td class="param-key">{{ entry.key }}</td>
+																	<td class="param-value">
+																		<input matInput [(ngModel)]="entry.value" type="text" autocomplete="off" />
+																	</td>
+																</tr>
+															}
+														</table>
+
+														<div class="param-buttons">
+															<button mat-icon-button color="primary" (click)="saveParamEditor(i, col.key)">
+																<mat-icon>check</mat-icon>
+															</button>
+															<button mat-icon-button color="warn" (click)="cancelParamEditor()">
+																<mat-icon>close</mat-icon>
+															</button>
+														</div>
+													</div>
+												}
+											</div>
+										}
+
+										@case ('plausi-error') {
+											<app-plausi-error-editor
+												[formGroup]="formGroup"
+												[plausiConfig]="col.plausiConfig!"
+												[statusOptions]="col.options || []"
+												[rowIndex]="i"
+												(errorsChanged)="onPlausiErrorsChanged($event)"
+												(rowModified)="onPlausiRowModified($event)">
+											</app-plausi-error-editor>
+										}
+									}
+								</td>
+
+							</ng-container>
+						}
+					}
+
+					<tr mat-header-row *matHeaderRowDef="visibleColumns; sticky: true"></tr>
+
+					<tr
+						mat-row
+						*matRowDef="let formGroup; let i = index; columns: visibleColumns"
+						[formGroup]="formGroup"
+						[ngClass]="getRowClass(displayedRows[i], displayedRows[i]?.__globalIndex)"
+						[class.selected]="isRowSelected(i)">
+					</tr>
+
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+<ng-template #columnDialog>
+	<h2 mat-dialog-title>Afficher les colonnes</h2>
+
+	<mat-dialog-content class="column-dialog-content">
+		<div class="column-dialog-actions">
+			<button mat-button (click)="toggleAllColumns(true)">Tout afficher</button>
+			<button mat-button (click)="toggleAllColumns(false)">Tout masquer</button>
+		</div>
+
+		<mat-divider></mat-divider>
+
+		<mat-selection-list>
+			@for (col of dialogColumns; track col.key) {
+				@if(!col.nonSelectable) {
+					<mat-list-option [(selected)]="col.visible">
+						{{ col.label | translate }}
+					</mat-list-option>
+				}
+			}
+		</mat-selection-list>
+	</mat-dialog-content>
+
+	<mat-dialog-actions align="end">
+		<button mat-button (click)="closeColumnDialog()">Annuler</button>
+		<button mat-raised-button color="primary" (click)="confirmColumnDialog()">Valider</button>
+	</mat-dialog-actions>
+</ng-template>

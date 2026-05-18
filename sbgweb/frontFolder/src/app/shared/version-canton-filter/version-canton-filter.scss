@@ -1,0 +1,108 @@
+.filter-panel {
+	::ng-deep .panel-content {
+		padding: 1rem;
+	}
+}
+
+.filter-form {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 1rem;
+	align-items: center;
+
+	@media (max-width: 767px) {
+		grid-template-columns: 1fr;
+		gap: 1rem;
+	}
+}
+
+.filter-field {
+	width: 100%;
+	max-width: 250px;
+	justify-self: center;
+
+	@media (max-width: 767px) {
+		max-width: 100%;
+		justify-self: stretch;
+	}
+
+	::ng-deep {
+		.mat-mdc-form-field-infix {
+			padding-top: 0.75rem;
+			padding-bottom: 0.75rem;
+		}
+
+		.mat-mdc-text-field-wrapper {
+			padding-bottom: 0;
+		}
+	}
+}
+
+.filter-center {
+	display: flex;
+	flex-direction: row;
+	gap: 0.5rem;
+	align-items: center;
+	justify-self: center;
+	white-space: nowrap;
+
+	@media (max-width: 767px) {
+		flex-direction: column;
+		align-items: stretch;
+		white-space: normal;
+	}
+
+	.filter-button {
+		flex-shrink: 0;
+	}
+
+	mat-checkbox {
+		flex-shrink: 0;
+
+		::ng-deep .mdc-form-field {
+			white-space: nowrap;
+		}
+	}
+}
+
+.filter-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	justify-self: center;
+
+	@media (max-width: 767px) {
+		justify-self: stretch;
+		justify-content: center;
+	}
+}
+
+.apply-button {
+	height: 40px;
+
+	mat-icon {
+		margin-right: 0.25rem;
+	}
+}
+
+.reset-button {
+	height: 40px;
+
+	mat-icon {
+		margin-right: 0.25rem;
+		font-size: 18px;
+		width: 18px;
+		height: 18px;
+	}
+}
+
+// pre-advance-filter en pleine largeur
+app-pre-advance-filter {
+	display: block;
+	grid-column: 1 / -1;
+	margin-top: 1rem;
+
+	@media (max-width: 767px) {
+		margin-top: 1rem;
+	}
+}

@@ -1,0 +1,41 @@
+<app-aide-documentation [links]="helpLinks"></app-aide-documentation>
+@if (deliveryService.lastFilters()) {
+	<app-version-canton-filter
+		tabStorage="data-delivery"
+		(filterChanged)="filterChange($event)"
+		[cantons]="cantonOptions()"
+		[initialCanton]="deliveryService.lastFilters()?.canton"
+		[initialVersion]="deliveryService.lastFilters()?.version"
+		[predefinedFilters]="deliveryService.predefinedFilters()"
+		[contextFiltersConfig]="contextFiltersConfig()"
+	>
+	</app-version-canton-filter>
+}
+<app-upload-file
+	[title]="'deliver.upload.subject.name' | translate"
+	[label]="'deliver.upload.sbafile.name' | translate"
+	[labelButton]="'deliver.upload.sbafile.button' | translate"
+	[notificationOnUpload]="'upload.confirm.delivery.message' | translate"
+	(uploaded)="uploadFile($event)"
+></app-upload-file>
+<app-datahandler
+	[config]="livraisonsConfig()"
+	[dataSource]="deliveryService.deliveries()"
+	[isLoading]="deliveryService.isLoading()"
+	[selectFirstRowOnInit]="true"
+	[clearSelection]="clearDeliverySelection"
+	(rowSelected)="selectDelivery($event)">
+</app-datahandler>
+<app-datahandler
+	[config]="historiesConfig()"
+	[dataSource]="interventionService.interventions()"
+	[isLoading]="interventionService.isLoading()"
+	[clearSelection]="clearInterventionsSelection"
+	(rowSelected)="selectIntervention($event)"
+	(tableEvent)="handleTableEventforIntervention($event)"
+></app-datahandler>
+<app-datahandler
+	[config]="exportationsConfig"
+	[dataSource]="exportationService.exportations()"
+	(rowSelected)="selectExportation($event)">
+</app-datahandler>

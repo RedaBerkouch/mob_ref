@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx.xsd
+
+
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<!-- **************************************** -->
+	<!-- * Spring annotations                   * -->
+	<!-- **************************************** -->
+
+	<context:annotation-config />
+
+	<!-- **************************************** -->
+	<!-- * Spring placeholder replacement       * -->
+	<!-- * ${TOKEN}                             * -->
+	<!-- **************************************** -->
+
+	<context:property-placeholder location="${MEBSERVER_PROPERTIES_LOCATION}"/>
+
+	<!-- **************************************** -->
+	<!-- * Application context provider         * -->
+	<!-- **************************************** -->
+
+	<bean id="applicationContextProvider" class="ch.bfs.meb.util.ApplicationContextProvider" />
+
+	<!-- **************************************** -->
+	<!-- * Transaction manager                  * -->
+	<!-- **************************************** -->
+
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<bean
+		class="org.springframework.transaction.jta.WebLogicJtaTransactionManager"
+		id="transactionManager" />
+
+	<!-- **************************************** --> 
+	<!-- * Hibernate session factory            * --> 
+	<!-- **************************************** --> 
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="dataSource">
+			<ref bean="dataSource" />
+		</property>
+		<property name="annotatedClasses">
+			<list>
+				<value>ch.bfs.meb.server.commons.integration.dto.CodeGroup</value>
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+				<prop key="hibernate.format_sql">${hibernate.format_sql}</prop>
+				<prop key="hibernate.dialect">org.hibernate.dialect.Oracle12cDialect</prop>
+				<prop key="hibernate.transaction.jta.platform">org.hibernate.service.jta.platform.internal.WeblogicJtaPlatform</prop>
+				<prop key="hibernate.transaction.coordinator_class">org.hibernate.resource.transaction.backend.jta.internal.JtaTransactionCoordinatorBuilderImpl</prop>
+				<prop key="hibernate.jdbc.fetch_size">100</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!--  **************************************** -->
+	<!--  * Datasource                           * -->
+	<!--  **************************************** -->
+
+	<bean class="org.springframework.jndi.JndiObjectFactoryBean" id="dataSource">
+		<property name="jndiName">
+			<value>${jndi.datasource}</value>
+		</property>
+	</bean>
+
+	<!-- **************************************** -->
+	<!-- * Spring services                      * -->
+	<!-- **************************************** -->
+
+	<bean class="ch.bfs.meb.server.service.impl.CodeGroupServiceImpl" id="codeGroupServiceImpl">
+		<property name="codegroupManager">
+			<ref bean="codegroupManager" />
+		</property>
+	</bean>
+
+	<bean class="ch.bfs.meb.server.service.impl.MonitoringServiceImpl" id="monitoringServiceImpl">
+		<property name="monitoringRepository">
+			<ref bean="monitoringRepository" />
+		</property>
+		<property name="codeGroupRepository">
+			<ref bean="codeGroupRepository" />
+		</property>
+		<property name="metastatService" ref="metastatService"/>
+		<property name="sasService" ref="sasService"/>
+		<property name="idmService" ref="${configuration.idm.implementation}"/>
+	</bean>
+
+	<bean class="ch.bfs.meb.server.commons.integration.sas.SasService" id="sasService">
+		<property name="configuration" ref="configuration"/>
+	</bean>
+	
+	<!-- **************************************** -->
+	<!-- * Repositories                         * -->
+	<!-- **************************************** -->
+
+	<bean class="ch.bfs.meb.server.commons.integration.repository.CodeGroupRepository"
+		id="codeGroupRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<bean class="ch.bfs.meb.server.integration.repository.MonitoringRepository"
+		id="monitoringRepository">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<!-- **************************************** -->
+	<!-- * Metastat services                    * -->
+	<!-- **************************************** -->
+
+	<bean id="metastatService"
+		class="ch.bfs.meb.server.rest.metastat.MetastatService">
+		<property name="metastatServiceProvider">
+			<ref bean="${service.metastatServiceProvider}" />
+		</property>
+	</bean>
+	
+	<bean id="metastatServiceProvider" class="ch.bfs.meb.server.rest.metastat.MetastatServiceProvider" lazy-init="true">
+		<property name="configuration">
+			<ref bean="configuration" />
+		</property>
+	</bean>
+	
+	<bean id="metastatServiceProviderMock" class="ch.bfs.meb.server.rest.metastat.MetastatMockServiceProvider" lazy-init="true"/>
+	
+	<!-- **************************************** -->
+	<!-- * Advices                              * -->
+	<!-- **************************************** -->
+	
+	<!--bean id="codeGroupServiceAdviceBean" class="ch.bfs.meb.server.service.impl.CodeGroupServiceAdvice" />
+	
+	<aop:config>
+		<!- - DeliveryService - ->
+		<aop:aspect ref="codeGroupServiceAdviceBean">
+			<aop:around pointcut="execution(java.util.List ch.bfs.meb.server.service.impl.ICodeGroupService.*(..))" method="handleListException"/>
+		</aop:aspect>
+	</aop:config-->
+	
+	<aop:config>
+		<aop:aspect ref="loggerAdviceBean">
+			<aop:around pointcut="execution(* ch.bfs.meb.server.service.impl.I*Service.*(..))" method="handleAround"/>
+			<aop:around pointcut="execution(* ch.bfs.meb.security.idm.INevisIdmUserServiceProvider.get*(..))" method="handleAround"/>
+		</aop:aspect>
+	</aop:config>
+
+	<bean id="loggerAdviceBean" class="ch.bfs.meb.logging.LoggerAdvice" />
+	
+	<!-- **************************************** -->
+	<!-- * codegroup cache                      * -->
+	<!-- **************************************** -->
+
+	<bean id="codegroupManager" class="ch.bfs.meb.server.commons.codes.CodegroupManager">
+		<property name="codegroupRepository" ref="codeGroupRepository"></property>
+		<property name="hourlyRefreshedCodegroups" value="SCHOOL_TYPE,SCHOOL_DEP_TYPE" />
+		<property name="dailyRefreshedCodegroups" value="MEB_DELIVERYSTATUS,MEB_DATASTATUS,MEB_CANTONSTATUS,MEB_SYNCHSTATUS,MEB_PLAUSISTATUS,MEB_EXPORTTYPE,MEB_PLAUSITYPE,MEB_INTERVENTIONTYPE,SDL_CANTONINTTYPE,SSP_CANTONINTTYPE,SBA_CANTONINTTYPE,MEB_BUR_ACTIVITY_STATUS,MEB_ROLE,MEB_APPLICATION,SDL_OBJECTTYPE,SSP_OBJECTTYPE,SBA_OBJECTTYPE,CANTON,SEX,LANGUAGE,MUNICIPALITY,MUNICIPALITY_HIST,COUNTRY,NATIONALITY,TEACH_PLAN_STATUS,PROF_MATURA,EDUCATION_TYPE,PERS_CATEGORY,TYPE_CONTRACT,QUALIFICATION,EXAM_EDUCATION_TYPE,EXAM_TYPE,EXAM_RESULT,SBG_ACTIONTYPE,SBG_OBJECTTYPE,EXAMRESULT,CONTRACTTYPE,SBG_DELIVERYSTATUS,SBG_PERSONSTATUS,PROFESSIONCODE,CANCELREASON,SBG_EVENTTYPE,SBG_PLAUSISTATUS,SBG_SBFICODE,EXAMTYPE,PERSONIDTYPE,
+SBG_KEYASPECTTYPE,SBG_MACROTYPE,SBG_ROLE,SBG_KEYASPECTTYPE,SBA_MATURITY_LANGUAGES" />
+	</bean>
+	
+</beans>

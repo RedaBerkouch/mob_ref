@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by dwi (glance) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0"
+		   elementFormDefault="unqualified" attributeFormDefault="unqualified">
+	<xs:element name="tabbar">
+		<xs:annotation>
+			<xs:documentation>Dhtmlx tabbar</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="row">
+					<xs:complexType>
+						<xs:choice minOccurs="0" maxOccurs="unbounded">
+							<xs:element name="tab">
+								<xs:complexType mixed="true">
+									<xs:choice minOccurs="0" maxOccurs="unbounded">
+										<xs:element name="content"/>
+									</xs:choice>
+									<xs:attribute name="id" type="xs:string" use="required"/>
+									<xs:attribute name="width" type="xs:string" use="required"/>
+									<xs:attribute name="selected" type="xs:int"/>
+									<xs:attribute name="href" type="xs:string"/>
+									<xs:attribute name="node" type="xs:string"/>
+								</xs:complexType>
+							</xs:element>
+						</xs:choice>
+					</xs:complexType>
+				</xs:element>
+			</xs:choice>
+			<xs:attribute name="skinColors"/>
+			<xs:attribute name="align">
+				<xs:simpleType>
+					<xs:annotation>
+						<xs:documentation>Tab aligment</xs:documentation>
+					</xs:annotation>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="left"/>
+						<xs:enumeration value="right"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="offset" type="xs:string"/>
+			<xs:attribute name="tabstyle">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="winDflt"/>
+						<xs:enumeration value="winScarf"/>
+						<xs:enumeration value="winBiScarf"/>
+						<xs:enumeration value="winRound"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="margin"/>
+			<xs:attribute name="hrefmode">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="ajax"/>
+						<xs:enumeration value="ajax-html"/>
+						<xs:enumeration value="iframe"/>
+						<xs:enumeration value="iframes"/>
+						<xs:enumeration value="iframe-on-demand"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

@@ -1,0 +1,638 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>ch.bfs.meb</groupId>
+    <artifactId>portal</artifactId>
+    <packaging>pom</packaging>
+    <version>03.00.25-SNAPSHOT</version>
+    <name>MEB Portal</name>
+
+    <properties>
+        <!-- Placeholders for Manifest file properties. They have to be provided in Jenkins. -->
+        <git.commit.hash>N/A</git.commit.hash>
+        <jenkins.build.tag>N/A</jenkins.build.tag>
+        <jenkins.build.number>N/A</jenkins.build.number>
+        <!-- Java Version -->
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <!-- Encoding -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!-- eIAM Integration -->
+        <version.mwx.common.login>1.0.4</version.mwx.common.login>
+        <!-- Dependencies: spring -->
+       <version.spring>5.3.39</version.spring> <!-- last spring 5-->
+        <version.springsecurity>5.8.11</version.springsecurity>
+        <version.spring.oxm>4.1.9.RELEASE</version.spring.oxm> <!-- latest version supporting xml-beans -->
+        <version.spring.aspects>3.0.7.RELEASE</version.spring.aspects>
+        <version.springbatch>4.2.2.RELEASE</version.springbatch>
+        <!-- Guava -->
+        <version.guava>33.2.1-jre</version.guava>
+        <!-- Dependencies: javax -->
+        <version.javax.mail>1.4.1</version.javax.mail>
+        <version.javax.servlet>2.5</version.javax.servlet>
+        <version.javax.jsp>2.1</version.javax.jsp>
+        <version.javax.jax-ws>2.3.0</version.javax.jax-ws>
+        <!-- Dependencies: Weblogic -->
+        <version.wls.api>12.2.1</version.wls.api>
+        <version.wls.core.utils.full>1.4.0.0</version.wls.core.utils.full>
+        <version.wls.xml.rpc>1.2.1</version.wls.xml.rpc>
+        <version.wls.wseeclient>10.3</version.wls.wseeclient>
+        <version.wls.glassfish.stax.ex>1.0.0.0_1-2</version.wls.glassfish.stax.ex>
+        <version.wls.jws>2.0</version.wls.jws>
+        <!-- Dependencies: test -->
+        <version.junit>4.12</version.junit>
+        <version.mockito>2.2.15</version.mockito>
+        <version.powermock>1.7.4</version.powermock>
+        <!-- Hibernate -->
+       <version.hibernate.core>5.2.18.Final</version.hibernate.core> <!--  Last in Hibernate 5.2.+ est compatible avec vieux weblogic et utilise encore javax.persistence, ce qui fonctionne sans problème avec JDK 8-->
+        <version.hibernate.jpa-api>1.0.2.Final</version.hibernate.jpa-api>
+        <!-- apache commons -->
+        <version.commons.logging>1.1.1</version.commons.logging>
+        <version.commons.fileupload>1.2.1</version.commons.fileupload>
+        <version.commons.io>2.16.1</version.commons.io>
+        <version.commons.lang>3.5</version.commons.lang>
+        <!-- Dependencies: other -->
+        <version.slf4j>1.7.32</version.slf4j>
+        <version.aspectj>1.6.7</version.aspectj>
+        <version.quartz>2.3.2</version.quartz>
+        <version.qos.logback>1.2.9</version.qos.logback>
+        <version.ognl>3.0.12</version.ognl>
+        <version.sas>9.2</version.sas>
+        <version.poi>3.17</version.poi>
+        <version.jcraft>0.1.54</version.jcraft>
+        <version.guessencoding>1.4</version.guessencoding>
+        <version.lombok>1.14.8</version.lombok>
+        <version.xmlbeans>2.4.0</version.xmlbeans>
+        <version.javassist>3.30.2-GA</version.javassist>
+        <version.cglib>2.2</version.cglib>
+        <version.jstl>1.1.2</version.jstl>
+        <version.taglibs>1.1.2</version.taglibs>
+        <version.xstream>1.4.20</version.xstream>
+        <version.xml-apis>2.0.2</version.xml-apis>
+        <version.dozer>5.3.1</version.dozer>
+        <version.jaxws.plugin>2.6</version.jaxws.plugin>
+        <version.hsqldb>2.5.0</version.hsqldb>
+        <version.dbunit>2.5.1</version.dbunit>
+        <version.springtestdbunit>1.3.0</version.springtestdbunit>
+        <version.caffeine>2.9.3</version.caffeine>
+        <version.jackson>2.13.4.1</version.jackson>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>local</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <meb.profile.id>local</meb.profile.id>
+            </properties>
+        </profile>
+        <profile>
+            <id>bit</id>
+            <properties>
+                <meb.profile.id>bit</meb.profile.id>
+            </properties>
+        </profile>
+    </profiles>
+
+
+    <modules>
+
+        <module>meb-commons</module>
+        <module>server-commons</module>
+        <module>web-commons</module>
+        <module>dhtmlx-xml-beans</module>
+
+        <module>sdmx-xml-beans</module>
+        <module>mebserver</module>
+        <module>mebserverEAR</module>
+        <module>mebwsclient</module>
+        <module>mebweb</module>
+        <module>mebwebEAR</module>
+
+        <module>sba-xml-beans</module>
+        <module>sbaserver</module>
+        <module>sbawsclient</module>
+        <module>sbaserverEAR</module>
+        <module>sbaweb</module>
+        <module>sbawebEAR</module>
+
+        <module>sbg-xml-beans</module>
+        <module>sbgserver</module>
+        <module>sbgwsclient</module>
+        <module>sbgserverEAR</module>
+        <module>sbgweb</module>
+        <module>sbgwebEAR</module>
+
+        <module>sdl-xml-beans</module>
+        <module>sdlserver</module>
+        <module>sdlwsclient</module>
+        <module>sdlserverEAR</module>
+        <module>sdlweb</module>
+        <module>sdlwebEAR</module>
+
+        <module>ssp-xml-beans</module>
+        <module>sspserver</module>
+        <module>sspwsclient</module>
+        <module>sspserverEAR</module>
+        <module>sspweb</module>
+        <module>sspwebEAR</module>
+
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${version.jackson}</version>  <!-- use the version suited for your project -->
+            </dependency>
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>${version.caffeine}</version>
+            </dependency>
+            <!-- eIAM Integration -->
+            <dependency>
+                <groupId>ch.admin.astra.bit</groupId>
+                <artifactId>mwx-common-login</artifactId>
+                <version>${version.mwx.common.login}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>servlet-api</artifactId>
+                <version>${version.javax.servlet}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>javax.servlet.jsp</groupId>
+                <artifactId>jsp-api</artifactId>
+                <version>${version.javax.jsp}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${version.slf4j}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
+                <version>${version.slf4j}</version>
+            </dependency>
+             <!-- Spring -->
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>${version.spring}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-webmvc</artifactId>
+                <version>${version.spring}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-test</artifactId>
+                <version>${version.spring}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aop</artifactId>
+                <version>${version.spring}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-beans</artifactId>
+                <version>${version.spring}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-jdbc</artifactId>
+                <version>${version.spring}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-orm</artifactId>
+                <version>${version.spring}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${version.spring}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context-support</artifactId>
+                <version>${version.spring}</version>
+            </dependency>
+
+            <!-- Spring batch -->
+            <dependency>
+                <groupId>org.springframework.batch</groupId>
+                <artifactId>spring-batch-core</artifactId>
+                <version>${version.springbatch}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.batch</groupId>
+                <artifactId>spring-batch-infrastructure</artifactId>
+                <version>${version.springbatch}</version>
+            </dependency>
+
+            <!-- Spring oxm -->
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-oxm</artifactId>
+                <version>${version.spring.oxm}</version>
+            </dependency>
+
+            <!-- Spring aspects -->
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aspects</artifactId>
+                <version>${version.spring.aspects}</version>
+            </dependency>
+
+            <!-- Spring Security -->
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-core</artifactId>
+                <version>${version.springsecurity}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-web</artifactId>
+                <version>${version.springsecurity}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-config</artifactId>
+                <version>${version.springsecurity}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-core-tiger</artifactId>
+                <version>${version.springsecurity}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-taglibs</artifactId>
+                <version>${version.springsecurity}</version>
+            </dependency>
+
+            <!-- Guava -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${version.guava}</version>
+            </dependency>
+
+            <!-- Weblogic -->
+            <dependency>
+                <groupId>com.oracle</groupId>
+                <artifactId>wls-api</artifactId>
+                <version>${version.wls.api}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>weblogic</groupId>
+                <artifactId>com.bea.core.utils.full</artifactId>
+                <version>${version.wls.core.utils.full}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>weblogic</groupId>
+                <artifactId>javax.xml.rpc</artifactId>
+                <version>${version.wls.xml.rpc}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>weblogic</groupId>
+                <artifactId>wseeclient</artifactId>
+                <version>${version.wls.wseeclient}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.ws</groupId>
+                <artifactId>jaxws-rt</artifactId>
+                <version>${version.javax.jax-ws}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>weblogic</groupId>
+                <artifactId>glassfish.stax.ex</artifactId>
+                <version>${version.wls.glassfish.stax.ex}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>weblogic</groupId>
+                <artifactId>javax.jws</artifactId>
+                <version>${version.wls.jws}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjweaver</artifactId>
+                <version>${version.aspectj}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.mail</groupId>
+                <artifactId>mail</artifactId>
+                <version>${version.javax.mail}</version>
+                <type>jar</type>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.quartz-scheduler</groupId>
+                <artifactId>quartz</artifactId>
+                <version>${version.quartz}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <version>${version.qos.logback}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${version.qos.logback}</version>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${version.junit}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${version.mockito}</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- OGNL - Object Graph Navigation Library - http://commons.apache.org/proper/commons-ognl/-->
+            <dependency>
+                <groupId>ognl</groupId>
+                <artifactId>ognl</artifactId>
+                <version>${version.ognl}</version>
+            </dependency>
+
+            <!-- Hibernate -->
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-core</artifactId>
+                <version>${version.hibernate.core}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.hibernate.javax.persistence</groupId>
+                <artifactId>hibernate-jpa-2.1-api</artifactId>
+                <version>${version.hibernate.jpa-api}</version>
+            </dependency>
+
+            <!-- SAS -->
+            <dependency>
+                <groupId>com.sas</groupId>
+                <artifactId>sasCore</artifactId>
+                <version>${version.sas}</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>com.sas</groupId>
+                <artifactId>sasSecurity</artifactId>
+                <version>${version.sas}</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>com.sas</groupId>
+                <artifactId>sasConnection</artifactId>
+                <version>${version.sas}</version>
+                <type>jar</type>
+            </dependency>
+
+            <!-- POI -->
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>${version.poi}</version>
+                <type>jar</type>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${version.poi}</version>
+                <type>jar</type>
+                <scope>compile</scope>
+            </dependency>
+
+
+            <!-- JCraft -->
+            <dependency>
+                <groupId>com.jcraft</groupId>
+                <artifactId>jsch</artifactId>
+                <version>${version.jcraft}</version>
+            </dependency>
+
+            <!-- guessencoding -->
+            <dependency>
+                <groupId>org.codehaus.guessencoding</groupId>
+                <artifactId>guessencoding</artifactId>
+                <version>${version.guessencoding}</version>
+                <type>jar</type>
+                <scope>compile</scope>
+            </dependency>
+
+            <!-- lombok -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${version.lombok}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- xml beans -->
+            <dependency>
+                <groupId>org.apache.xmlbeans</groupId>
+                <artifactId>xmlbeans</artifactId>
+                <version>${version.xmlbeans}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- Appache Commons -->
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>${version.commons.logging}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-fileupload</groupId>
+                <artifactId>commons-fileupload</artifactId>
+                <version>${version.commons.fileupload}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${version.commons.io}</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${version.commons.lang}</version>
+            </dependency>
+
+            <!-- Javassist -->
+            <dependency>
+                <groupId>org.javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>${version.javassist}</version>
+            </dependency>
+
+            <!-- cglib -->
+            <dependency>
+                <groupId>cglib</groupId>
+                <artifactId>cglib</artifactId>
+                <version>${version.cglib}</version>
+            </dependency>
+
+            <!-- jstl -->
+            <dependency>
+                <groupId>jstl</groupId>
+                <artifactId>jstl</artifactId>
+                <version>${version.jstl}</version>
+            </dependency>
+
+            <!-- taglibs -->
+            <dependency>
+                <groupId>taglibs</groupId>
+                <artifactId>standard</artifactId>
+                <version>${version.taglibs}</version>
+            </dependency>
+
+            <!-- xstream -->
+            <dependency>
+                <groupId>com.thoughtworks.xstream</groupId>
+                <artifactId>xstream</artifactId>
+                <version>${version.xstream}</version>
+            </dependency>
+
+            <!-- xml-apis -->
+            <dependency>
+                <groupId>xml-apis</groupId>
+                <artifactId>xml-apis</artifactId>
+                <version>${version.xml-apis}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- dozer -->
+            <dependency>
+                <groupId>net.sf.dozer</groupId>
+                <artifactId>dozer</artifactId>
+                <version>${version.dozer}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-junit4</artifactId>
+                <version>${version.powermock}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-api-mockito2</artifactId>
+                <version>${version.powermock}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.hsqldb</groupId>
+                <artifactId>hsqldb</artifactId>
+                <version>${version.hsqldb}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dbunit</groupId>
+                <artifactId>dbunit</artifactId>
+                <version>${version.dbunit}</version>
+                <type>jar</type>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.springtestdbunit</groupId>
+                <artifactId>spring-test-dbunit</artifactId>
+                <version>${version.springtestdbunit}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.5.1</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-plugin-plugin</artifactId>
+                    <version>2.3</version>
+                    <configuration>
+                        <goalPrefix>wls</goalPrefix>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.oracle.weblogic</groupId>
+                    <artifactId>wls-maven-plugin</artifactId>
+                    <version>12.2.1.0</version>
+                    <configuration>
+                        <middlewareHome>C:\wls12210</middlewareHome>
+                        <weblogicHome>C:\wls12210\wlserver\</weblogicHome>
+                        <user>weblogic</user>
+                        <password>weblog1c</password>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>com.coderplus.maven.plugins</groupId>
+                    <artifactId>copy-rename-maven-plugin</artifactId>
+                    <version>1.0.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>jaxws-maven-plugin</artifactId>
+                    <version>${version.jaxws.plugin}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+     <repositories>
+        <repository>
+          <id>ofsdependencies</id>
+          <url>https://pkgs.dev.azure.com/SWG-SES-OFSPROJECT/OFS/_packaging/ofsdependencies/maven/v1</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+    </repositories>
+
+
+</project>

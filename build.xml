@@ -1,0 +1,759 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="main">
+
+	<property file="mebweb/resources/version.properties" prefix="meb" />
+
+	<property file="sbgweb/resources/version.properties" prefix="sbg" />
+
+	<property file="sdlweb/resources/version.properties" prefix="sdl" />
+
+	<property file="sspweb/resources/version.properties" prefix="ssp" />
+
+	<property file="sbaweb/resources/version.properties" prefix="sba" />
+
+	<property file="build.properties" />
+
+	<tstamp />
+
+	<available file="documentation/ReleaseNotes/README.meb.${meb.version}.txt" property="readmeFileIsAvailable" />
+	<fail unless="readmeFileIsAvailable" message="README.meb.${meb.version}.txt does not exist. Please create it and re-try build." />
+
+	<target name="main" depends="database,meb,sbg,sdl,ssp,sba,wsdl,ear,pack">
+		<echo>Building delivery packages.</echo>
+	</target>
+
+	<target name="database">
+		<echo>
+			Creating database delivery...
+		</echo>
+		<delete dir="${database.delivery.version.dir}" />
+		<mkdir dir="${database.delivery.version.dir}" />
+		<mkdir dir="${mebdb.flyway.delivery.scripts.dir}" />
+		<copy todir="${mebdb.flyway.delivery.conf.dir}">
+			<fileset dir="${mebdb.flyway.conf.dir}" >
+				<include name="flyway.conf" />
+			</fileset>
+		</copy>
+		<copy todir="${mebdb.flyway.delivery.scripts.dir}">
+			<fileset dir="${mebdb.flyway.scripts.dir}">
+				<include name="**/*.sql" />
+			</fileset>
+		</copy>
+
+		<echo>
+			Creating database delivery zip...
+		</echo>
+		<zip destfile="${database.delivery.root.dir}/MEB_DB_V${meb.version}.zip">
+			<fileset dir="${database.delivery.version.dir}">
+				<include name="**" />
+			</fileset>
+		</zip>
+
+	</target>
+
+	<target name="meb">
+		<echo>
+			Creating MEB target directories...
+		</echo>
+		<delete dir="${meb.delivery.version.dir}" />
+		<mkdir dir="${meb.delivery.version.dir}" />
+
+		<echo>
+			Copying MEB EARs...
+		</echo>
+		<copy todir="${meb.delivery.version.dir}">
+			<fileset dir="${meb.serverEAR.target.dir}">
+				<include name="*.ear" />
+			</fileset>
+			<fileset dir="${meb.webEAR.target.dir}">
+				<include name="*.ear" />
+			</fileset>
+<!--			<globmapper from="*-0.0.1-SNAPSHOT.ear" to="*-${meb.version}.ear" />-->
+		</copy>
+
+		<echo>
+			Copying MEB README.txt...
+		</echo>
+		<copy todir="${meb.delivery.version.dir}">
+			<fileset dir="${meb.web.root.dir}">
+				<include name="README.txt" />
+			</fileset>
+		</copy>
+
+		<echo>
+			Copying MEB wsdls...
+		</echo>
+		<mkdir dir="${meb.delivery.version.dir}/wsdl" />
+		<copy todir="${meb.delivery.version.dir}/wsdl">
+			<fileset dir="${meb.wsdl.root.dir}">
+				<include name="*.wsdl" />
+			</fileset>
+			<fileset dir="${meb.wsdl.root.dir}">
+				<include name="*.xsd" />
+			</fileset>
+		</copy>
+
+		<echo>
+			Packing MEB application delivery archive...
+		</echo>
+		<mkdir dir="${delivery.application.dir}" />
+		<zip destfile="${delivery.application.dir}/MEB_APP_V${meb.version}.zip">
+			<fileset dir="${meb.delivery.version.dir}">
+				<include name="**" />
+			</fileset>
+		</zip>
+	</target>
+
+	<target name="sbg">
+		<echo>
+			Creating SBG target directories...
+		</echo>
+		<delete dir="${sbg.delivery.version.dir}" />
+		<mkdir dir="${sbg.delivery.version.dir}" />
+
+		<echo>
+			Copying SBG EARs...
+		</echo>
+		<copy todir="${sbg.delivery.version.dir}">
+			<fileset dir="${sbg.serverEAR.target.dir}">
+				<include name="*.ear" />
+			</fileset>
+			<fileset dir="${sbg.webEAR.target.dir}">
+				<include name="*.ear" />
+			</fileset>
+<!--			<globmapper from="*-0.0.1-SNAPSHOT.ear" to="*-${sbg.version}.ear" />-->
+		</copy>
+
+		<echo>
+			Copying SBG README.txt...
+		</echo>
+		<copy todir="${sbg.delivery.version.dir}">
+			<fileset dir="${sbg.web.root.dir}">
+				<include name="README.txt" />
+			</fileset>
+		</copy>
+
+		<echo>
+			Copying SBG wsdls...
+		</echo>
+		<mkdir dir="${sbg.delivery.version.dir}/wsdl" />
+		<copy todir="${sbg.delivery.version.dir}/wsdl">
+			<fileset dir="${meb.wsdl.root.dir}">
+				<include name="CodeGroupWebService.wsdl" />
+			</fileset>
+			<fileset dir="${sbg.wsdl.target.root.dir}">
+				<include name="*.wsdl" />
+			</fileset>
+		</copy>
+
+		<echo>
+			Packing SBG application delivery archive...
+		</echo>
+		<mkdir dir="${delivery.application.dir}" />
+		<zip destfile="${delivery.application.dir}/SBG_APP_V${sbg.version}.zip">
+			<fileset dir="${sbg.delivery.version.dir}">
+				<include name="**" />
+			</fileset>
+		</zip>
+	</target>
+
+	<target name="sdl">
+		<echo>
+			Creating SDL target directories...
+		</echo>
+		<delete dir="${sdl.delivery.version.dir}" />
+		<mkdir dir="${sdl.delivery.version.dir}" />
+
+		<echo>
+			Copying SDL EARs...
+		</echo>
+		<copy todir="${sdl.delivery.version.dir}">
+			<fileset dir="${sdl.serverEAR.target.dir}">
+				<include name="*.ear" />
+			</fileset>
+			<fileset dir="${sdl.webEAR.target.dir}">
+				<include name="*.ear" />
+			</fileset>
+<!--			<globmapper from="*-0.0.1-SNAPSHOT.ear" to="*-${sdl.version}.ear" />-->
+		</copy>
+
+		<echo>
+			Copying SDL README.txt...
+		</echo>
+		<copy todir="${sdl.delivery.version.dir}">
+			<fileset dir="${sdl.web.root.dir}">
+				<include name="README.txt" />
+			</fileset>
+		</copy>
+
+		<echo>
+			Copying SDL wsdls...
+		</echo>
+		<mkdir dir="${sdl.delivery.version.dir}/wsdl" />
+		<copy todir="${sdl.delivery.version.dir}/wsdl">
+			<fileset dir="${meb.wsdl.root.dir}">
+				<include name="CodeGroupWebService.wsdl" />
+			</fileset>
+			<fileset dir="${sdl.wsdl.target.root.dir}">
+				<include name="*.wsdl" />
+			</fileset>
+		</copy>
+
+		<echo>
+			Packing SDL application delivery archive...
+		</echo>
+		<mkdir dir="${delivery.application.dir}" />
+		<zip destfile="${delivery.application.dir}/SDL_APP_V${sdl.version}.zip">
+			<fileset dir="${sdl.delivery.version.dir}">
+				<include name="**" />
+			</fileset>
+		</zip>
+	</target>
+
+	<target name="ssp">
+		<echo>
+			Creating SSP target directories...
+		</echo>
+		<delete dir="${ssp.delivery.version.dir}" />
+		<mkdir dir="${ssp.delivery.version.dir}" />
+
+		<echo>
+			Copying SSP EARs...
+		</echo>
+		<copy todir="${ssp.delivery.version.dir}">
+			<fileset dir="${ssp.serverEAR.target.dir}">
+				<include name="*.ear" />
+			</fileset>
+			<fileset dir="${ssp.webEAR.target.dir}">
+				<include name="*.ear" />
+			</fileset>
+<!--			<globmapper from="*-0.0.1-SNAPSHOT.ear" to="*-${ssp.version}.ear" />-->
+		</copy>
+
+		<echo>
+			Copying SSP README.txt...
+		</echo>
+		<copy todir="${ssp.delivery.version.dir}">
+			<fileset dir="${ssp.web.root.dir}">
+				<include name="README.txt" />
+			</fileset>
+		</copy>
+
+		<echo>
+			Copying SSP wsdls...
+		</echo>
+		<mkdir dir="${ssp.delivery.version.dir}/wsdl" />
+		<copy todir="${ssp.delivery.version.dir}/wsdl">
+			<fileset dir="${meb.wsdl.root.dir}">
+				<include name="CodeGroupWebService.wsdl" />
+			</fileset>
+			<fileset dir="${ssp.wsdl.target.root.dir}">
+				<include name="*.wsdl" />
+			</fileset>
+		</copy>
+
+		<echo>
+			Packing SSP application delivery archive...
+		</echo>
+		<mkdir dir="${delivery.application.dir}" />
+		<zip destfile="${delivery.application.dir}/SSP_APP_V${ssp.version}.zip">
+			<fileset dir="${ssp.delivery.version.dir}">
+				<include name="**" />
+			</fileset>
+		</zip>
+	</target>
+
+	<target name="sba">
+		<echo>
+			Creating SBA target directories...
+		</echo>
+		<delete dir="${sba.delivery.version.dir}" />
+		<mkdir dir="${sba.delivery.version.dir}" />
+
+		<echo>
+			Copying SBA EARs...
+		</echo>
+		<copy todir="${sba.delivery.version.dir}">
+			<fileset dir="${sba.serverEAR.target.dir}">
+				<include name="*.ear" />
+			</fileset>
+			<fileset dir="${sba.webEAR.target.dir}">
+				<include name="*.ear" />
+			</fileset>
+<!--			<globmapper from="*-0.0.1-SNAPSHOT.ear" to="*-${sba.version}.ear" />-->
+		</copy>
+
+		<echo>
+			Copying SBA README.txt...
+		</echo>
+		<copy todir="${sba.delivery.version.dir}">
+			<fileset dir="${sba.web.root.dir}">
+				<include name="README.txt" />
+			</fileset>
+		</copy>
+
+		<echo>
+			Copying SBA wsdls...
+		</echo>
+		<mkdir dir="${sba.delivery.version.dir}/wsdl" />
+		<copy todir="${sba.delivery.version.dir}/wsdl">
+			<fileset dir="${meb.wsdl.root.dir}">
+				<include name="CodeGroupWebService.wsdl" />
+			</fileset>
+			<fileset dir="${sba.wsdl.target.root.dir}">
+				<include name="*.wsdl" />
+			</fileset>
+		</copy>
+
+		<echo>
+			Packing SBA application delivery archive...
+		</echo>
+		<mkdir dir="${delivery.application.dir}" />
+		<zip destfile="${delivery.application.dir}/SBA_APP_V${sba.version}.zip">
+			<fileset dir="${sba.delivery.version.dir}">
+				<include name="**" />
+			</fileset>
+		</zip>
+	</target>
+
+	<!-- list apps on local wls -->
+	<target name="list-apps">
+		<echo>
+			list apps
+		</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="wls:list-apps" />
+		</exec>
+	</target>
+
+	<!-- deploy meb on local wls -->
+	<target name="deploy-meb">
+		<echo>
+			Deploy meb Server and Web
+		</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f mebserverEAR\pom.xml wls:deploy" />
+		</exec>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f mebwebEAR\pom.xml wls:deploy" />
+		</exec>
+	</target>
+
+	<!-- redeploy meb on local wls -->
+	<target name="redeploy-meb">
+		<echo>
+				Redeploy meb Server and Web
+			</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f mebserverEAR\pom.xml wls:redeploy -Dname=mebserverEAR-0.0.1-SNAPSHOT" />
+		</exec>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f mebwebEAR\pom.xml wls:redeploy -Dname=mebwebEAR-0.0.1-SNAPSHOT" />
+		</exec>
+	</target>
+
+	<!-- undeploy meb on local wls -->
+	<target name="undeploy-meb">
+		<echo>
+			Undeploy meb Web and Server
+		</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="wls:undeploy -Dname=mebserverEAR-0.0.1-SNAPSHOT    " />
+		</exec>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="wls:undeploy -Dname=mebwebEAR-0.0.1-SNAPSHOT" />
+		</exec>
+	</target>
+
+	<!-- deploy sba on local wls -->
+	<target name="deploy-sba">
+		<echo>
+			Deploy sba Server and Web
+		</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sbaserverEAR\pom.xml wls:deploy" />
+		</exec>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sbawebEAR\pom.xml wls:deploy" />
+		</exec>
+	</target>
+
+	<!-- redeploy sba on local wls -->
+	<target name="redeploy-sba">
+		<echo>
+			Redeploy sba Server and Web
+		</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sbaserverEAR\pom.xml wls:redeploy -Dname=sbaserverEAR-0.0.1-SNAPSHOT" />
+		</exec>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sbawebEAR\pom.xml wls:redeploy -Dname=sbawebEAR-0.0.1-SNAPSHOT" />
+		</exec>
+	</target>
+
+	<!-- undeploy sba on local wls -->
+	<target name="undeploy-sba">
+		<echo>
+			Undeploy sba Web and Server
+		</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="wls:undeploy -Dname=sbaserverEAR-0.0.1-SNAPSHOT    " />
+		</exec>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="wls:undeploy -Dname=sbawebEAR-0.0.1-SNAPSHOT" />
+		</exec>
+	</target>
+
+	<!-- deploy sbg on local wls -->
+	<target name="deploy-sbg">
+		<echo>
+			Deploy sbg Server and Web
+		</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sbgserverEAR\pom.xml wls:deploy" />
+		</exec>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sbgwebEAR\pom.xml wls:deploy" />
+		</exec>
+	</target>
+
+	<!-- undeploy sbg on local wls -->
+	<target name="undeploy-sbg">
+		<echo>
+			Undeploy sbg Web and Server
+		</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="wls:undeploy -Dname=sbgserverEAR-0.0.1-SNAPSHOT    " />
+		</exec>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="wls:undeploy -Dname=sbgwebEAR-0.0.1-SNAPSHOT" />
+		</exec>
+	</target>
+
+	<!-- redeploy sbg on local wls -->
+	<target name="redeploy-sbg">
+		<echo>
+			Redeploy sbg Server and Web
+		</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sbgserverEAR\pom.xml wls:redeploy -Dname=sbgserverEAR-0.0.1-SNAPSHOT" />
+		</exec>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sbgwebEAR\pom.xml wls:redeploy -Dname=sbgwebEAR-0.0.1-SNAPSHOT" />
+		</exec>
+	</target>
+
+
+	<!-- deploy sdl on local wls -->
+	<target name="deploy-sdl">
+		<echo>
+			Deploy sdl Server and Web
+		</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sdlserverEAR\pom.xml wls:deploy" />
+		</exec>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sdlwebEAR\pom.xml wls:deploy" />
+		</exec>
+	</target>
+
+	<!-- redeploy sdl on local wls -->
+	<target name="redeploy-sdl">
+		<echo>
+				Redeploy sdl Server and Web
+			</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sdlserverEAR\pom.xml wls:redeploy -Dname=sdlserverEAR-0.0.1-SNAPSHOT" />
+		</exec>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sdlwebEAR\pom.xml wls:redeploy -Dname=sdlwebEAR-0.0.1-SNAPSHOT" />
+		</exec>
+	</target>
+
+	<!-- undeploy sdl on local wls -->
+	<target name="undeploy-sdl">
+		<echo>
+			Undeploy sdl Web and Server
+		</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="wls:undeploy -Dname=sdlserverEAR-0.0.1-SNAPSHOT    " />
+		</exec>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="wls:undeploy -Dname=sdlwebEAR-0.0.1-SNAPSHOT" />
+		</exec>
+	</target>
+
+	<!-- deploy ssp on local wls -->
+	<target name="deploy-ssp">
+		<echo>
+			Deploy ssp Server and Web
+		</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sspserverEAR\pom.xml wls:deploy" />
+		</exec>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sspwebEAR\pom.xml wls:deploy" />
+		</exec>
+	</target>
+
+	<!-- redeploy ssp on local wls -->
+	<target name="redeploy-ssp">
+		<echo>
+					Redeploy ssp Server and Web
+				</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sspserverEAR\pom.xml wls:redeploy -Dname=sspserverEAR-0.0.1-SNAPSHOT" />
+		</exec>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="-f sspwebEAR\pom.xml wls:redeploy -Dname=sspwebEAR-0.0.1-SNAPSHOT" />
+		</exec>
+	</target>
+
+	<!-- undeploy ssp on local wls -->
+	<target name="undeploy-ssp">
+		<echo>
+			Undeploy ssp Web and Server
+		</echo>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="wls:undeploy -Dname=sspserverEAR-0.0.1-SNAPSHOT    " />
+		</exec>
+		<exec dir="." executable="cmd">
+			<arg value="/C" />
+			<arg value="mvn" />
+			<arg line="wls:undeploy -Dname=sspwebEAR-0.0.1-SNAPSHOT" />
+		</exec>
+	</target>
+
+	<target name="wsdl">
+		<delete dir="${delivery.application.wsdl.version.dir}" />
+		<delete dir="${delivery.application.wsdl.version.dir}/MEB_APP_wsdl" />
+		<delete dir="${delivery.application.wsdl.version.dir}/SBA_APP_wsdl" />
+		<delete dir="${delivery.application.wsdl.version.dir}/SBG_APP_wsdl" />
+		<delete dir="${delivery.application.wsdl.version.dir}/SDL_APP_wsdl" />
+		<delete dir="${delivery.application.wsdl.version.dir}/SSP_APP_wsdl" />
+
+		<mkdir dir="${delivery.application.wsdl.version.dir}"/>
+		<mkdir dir="${delivery.application.wsdl.version.dir}/MEB_APP_wsdl"/>
+		<mkdir dir="${delivery.application.wsdl.version.dir}/SBA_APP_wsdl"/>
+		<mkdir dir="${delivery.application.wsdl.version.dir}/SBG_APP_wsdl"/>
+		<mkdir dir="${delivery.application.wsdl.version.dir}/SDL_APP_wsdl" />
+		<mkdir dir="${delivery.application.wsdl.version.dir}/SSP_APP_wsdl" />
+
+  	<echo>
+  		Copying MEB wsdls...
+  	</echo>
+  	<copy todir="${delivery.application.wsdl.version.dir}/MEB_APP_wsdl">
+  		<fileset dir="${meb.wsdl.root.dir}">
+  			<include name="*.wsdl" />
+  		</fileset>
+  		<fileset dir="${meb.wsdl.root.dir}">
+  			<include name="*.xsd" />
+  		</fileset>
+  		<fileset dir="${meb.web.root.dir}">
+  			<include name="README.txt" />
+  		</fileset>
+  	</copy>
+
+  	<echo>
+  		Copying SBA wsdls...
+  	</echo>
+  	<copy todir="${delivery.application.wsdl.version.dir}/SBA_APP_wsdl">
+  		<fileset dir="${meb.wsdl.root.dir}">
+  			<include name="CodeGroupWebService.wsdl" />
+  		</fileset>
+  		<fileset dir="${sba.wsdl.target.root.dir}">
+  			<include name="*.wsdl" />
+  		</fileset>
+  		<fileset dir="${sba.web.root.dir}">
+  			<include name="README.txt" />
+  		</fileset>
+  	</copy>
+  	<echo>
+      Copying SBG wsdls...
+    </echo>
+    <copy todir="${delivery.application.wsdl.version.dir}/SBG_APP_wsdl">
+      <fileset dir="${meb.wsdl.root.dir}">
+        <include name="CodeGroupWebService.wsdl" />
+      </fileset>
+      <fileset dir="${sbg.wsdl.target.root.dir}">
+        <include name="*.wsdl" />
+      </fileset>
+      <fileset dir="${sbg.web.root.dir}">
+        <include name="README.txt" />
+      </fileset>
+    </copy>
+
+    <echo>
+      Copying SDL wsdls...
+    </echo>
+    <copy todir="${delivery.application.wsdl.version.dir}/SDL_APP_wsdl">
+      <fileset dir="${meb.wsdl.root.dir}">
+        <include name="CodeGroupWebService.wsdl" />
+      </fileset>
+      <fileset dir="${sdl.wsdl.target.root.dir}">
+        <include name="*.wsdl" />
+      </fileset>
+      <fileset dir="${sdl.web.root.dir}">
+        <include name="README.txt" />
+      </fileset>
+    </copy>
+
+    <echo>
+      Copying SSP wsdls...
+    </echo>
+    <copy todir="${delivery.application.wsdl.version.dir}/SSP_APP_wsdl">
+		<fileset dir="${meb.wsdl.root.dir}">
+			<include name="CodeGroupWebService.wsdl" />
+		</fileset>
+		<fileset dir="${ssp.wsdl.target.root.dir}">
+			<include name="*.wsdl" />
+		</fileset>
+		<fileset dir="${ssp.web.root.dir}">
+			<include name="README.txt" />
+		</fileset>
+    </copy>
+  </target>
+
+  <target name="ear">
+		<delete dir="${delivery.application.ear.version.dir}" />
+    <mkdir dir="${delivery.application.ear.version.dir}" />
+    <echo>
+      Copying MEB EARs...
+    </echo>
+    <copy todir="${delivery.application.ear.version.dir}">
+      <fileset dir="${meb.serverEAR.target.dir}">
+        <include name="*.ear" />
+      </fileset>
+      <fileset dir="${meb.webEAR.target.dir}">
+        <include name="*.ear" />
+      </fileset>
+<!--      <globmapper from="*-0.0.1-SNAPSHOT.ear" to="*-${meb.version}.ear" />-->
+    </copy>
+
+    <echo>
+      Copying SBA EARs...
+    </echo>
+    <copy todir="${delivery.application.ear.version.dir}">
+      <fileset dir="${sba.serverEAR.target.dir}">
+        <include name="*.ear" />
+      </fileset>
+      <fileset dir="${sba.webEAR.target.dir}">
+        <include name="*.ear" />
+      </fileset>
+<!--      <globmapper from="*-0.0.1-SNAPSHOT.ear" to="*-${sba.version}.ear" />-->
+    </copy>
+
+    <echo>
+      Copying SBG EARs...
+    </echo>
+    <copy todir="${delivery.application.ear.version.dir}">
+      <fileset dir="${sbg.serverEAR.target.dir}">
+        <include name="*.ear" />
+      </fileset>
+      <fileset dir="${sbg.webEAR.target.dir}">
+        <include name="*.ear" />
+      </fileset>
+<!--      <globmapper from="*-0.0.1-SNAPSHOT.ear" to="*-${sbg.version}.ear" />-->
+    </copy>
+
+    <echo>
+      Copying SDL EARs...
+    </echo>
+    <copy todir="${delivery.application.ear.version.dir}">
+      <fileset dir="${sdl.serverEAR.target.dir}">
+        <include name="*.ear" />
+      </fileset>
+      <fileset dir="${sdl.webEAR.target.dir}">
+        <include name="*.ear" />
+      </fileset>
+<!--      <globmapper from="*-0.0.1-SNAPSHOT.ear" to="*-${sdl.version}.ear" />-->
+    </copy>
+
+    <echo>
+      Copying SSP EARs...
+    </echo>
+    <copy todir="${delivery.application.ear.version.dir}">
+      <fileset dir="${ssp.serverEAR.target.dir}">
+        <include name="*.ear" />
+      </fileset>
+      <fileset dir="${ssp.webEAR.target.dir}">
+        <include name="*.ear" />
+      </fileset>
+<!--      <globmapper from="*-0.0.1-SNAPSHOT.ear" to="*-${ssp.version}.ear" />-->
+    </copy>
+  </target>
+
+	<target name="pack">
+    <echo>
+      Creating package with all applications
+    </echo>
+    <mkdir dir="${delivery.application.package.dir}" />
+    <zip destfile="${delivery.application.package.dir}/MEB_${DSTAMP}.zip">
+			<zipfileset dir="${database.delivery.version.dir}/" prefix="bfs-meb-db/${meb.version}" />
+			<zipfileset dir="${delivery.application.wsdl.version.parent.dir}/" prefix="bfs-meb-deploy/${meb.version}" />
+			<zipfileset dir="${meb.documentation.root.dir}/ReleaseNotes/" includes="35_MEB_*.docx" prefix="bfs-meb-deploy/${meb.version}" />
+			<zipfileset dir="${meb.documentation.root.dir}/ReleaseNotes/" includes="README.meb.${meb.version}.txt" prefix="bfs-meb-deploy/${meb.version}" />
+			<zipfileset dir="${delivery.application.ear.version.dir}/" prefix="bfs-meb-deploy/${meb.version}" />
+    </zip>
+  </target>
+</project>

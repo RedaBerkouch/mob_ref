@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!ELEMENT rows (#PCDATA | head | row | userdata )*>
+
+<!ELEMENT userdata (#PCDATA)>
+<!ATTLIST userdata
+	name CDATA #REQUIRED
+>
+
+<!ELEMENT row (#PCDATA | cell | userdata)*>
+<!ATTLIST row
+	id CDATA  #REQUIRED
+	style CDATA #IMPLIED
+	locked (1) #IMPLIED
+	call (1) #IMPLIED	
+	selected (1) #IMPLIED
+>
+
+<!ELEMENT head (#PCDATA | column | settings)*>
+<!ELEMENT column (#PCDATA | option)*>
+<!ATTLIST column
+	type CDATA #REQUIRED
+	width CDATA #IMPLIED
+	align (left | right | center) #IMPLIED
+	cache (false | true) #IMPLIED
+	auto (false | true) #IMPLIED
+	sort (int | str | date | na) #IMPLIED
+	source CDATA #IMPLIED
+	color CDATA #IMPLIED
+>
+<!ELEMENT option (#PCDATA)*>
+<!ATTLIST option
+	value CDATA #IMPLIED
+>
+
+
+<!ELEMENT settings (#PCDATA | colwidth)*>
+<!ELEMENT colwidth (#PCDATA)*>
+
+
+<!ELEMENT cell (#PCDATA)*>

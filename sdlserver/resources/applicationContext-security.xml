@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:sec="http://www.springframework.org/schema/security" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/security
+		http://www.springframework.org/schema/security/spring-security.xsd">
+
+	<import resource="classpath:applicationContext-jmx.xml"/>
+
+	<!-- **************************************** -->
+	<!-- * Support for security annotations     * -->
+	<!-- **************************************** -->
+
+	<sec:global-method-security
+		secured-annotations="enabled" />
+
+	<!-- **************************************** -->
+	<!-- * Filter chain proxy                   * -->
+	<!-- **************************************** -->
+
+	<bean id="filterChainProxy" class="org.springframework.security.web.FilterChainProxy">
+		<sec:filter-chain-map request-matcher="ant">
+			<sec:filter-chain pattern="/**"
+				filters="sif, mebTokenProcessingFilter, etf, fsi" />
+		</sec:filter-chain-map>
+	</bean>
+
+	<!-- **************************************** -->
+	<!-- * Session context integration filter   * -->
+	<!-- **************************************** -->
+    <bean id="securityContextRepository" class="org.springframework.security.web.context.HttpSessionSecurityContextRepository">
+        <!-- Keine sessions für webservices -->
+        <property name="allowSessionCreation" value="false" />
+    </bean>
+
+	<bean id="sif"
+		class="org.springframework.security.web.context.SecurityContextPersistenceFilter">
+        <constructor-arg ref="securityContextRepository"/>
+	</bean>
+
+	<!-- **************************************** -->
+	<!-- * Expression Handler                   * -->
+	<!-- **************************************** -->
+    <bean id="webexpressionHandler" class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler" />
+
+	<!-- **************************************** -->
+	<!-- * Authentication manager               * -->
+	<!-- **************************************** -->
+
+	<sec:authentication-manager alias="authenticationManager">
+		<sec:authentication-provider ref="preAuthenticatedAuthenticationProvider" />
+	</sec:authentication-manager>
+
+	<!-- **************************************** -->
+	<!-- * Authentication filter                * -->
+	<!-- **************************************** -->
+
+	<bean id="mebTokenProcessingFilter" class="ch.bfs.meb.security.MebTokenProcessingFilter">
+		<property name="authenticationManager" ref="authenticationManager" />
+		<property name="authenticationDetailsSource" ref="authenticationDetailsSource" />
+	</bean>
+
+	<bean id="preAuthenticatedProcessingFilterEntryPoint"
+		class="org.springframework.security.web.authentication.Http403ForbiddenEntryPoint" />
+
+	<!-- **************************************** -->
+	<!-- * Authentication provider              * -->
+	<!-- **************************************** -->
+
+	<bean id="preAuthenticatedAuthenticationProvider"
+		class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider">
+		<property name="preAuthenticatedUserDetailsService" ref="mebPreAuthUserDetailsService" />
+	</bean>
+
+	<bean id="mebPreAuthUserDetailsService" class="ch.bfs.meb.security.MebPreAuthUserDetailsService">
+		<property name="idmUserService" ref="${configuration.idm.implementation}"/>
+	</bean>
+
+	<bean id="idmUserService" class="ch.bfs.meb.security.idm.NevisIdmUserService" lazy-init="true">
+		<property name="configuration" ref="configuration"/>
+		<property name="nevisIdmUserServiceProvider" ref="idmServiceProvider"/>
+	</bean>
+	
+	<bean id="idmUserServiceMock" class="ch.bfs.meb.security.idm.MockUserService" lazy-init="true">
+	</bean>
+	
+	<bean id="idmServiceProvider" class="ch.bfs.meb.security.idm.NevisIdmUserServiceProvider"/>
+
+	<!-- **************************************** -->
+	<!-- * Cache Manager                        * -->
+	<!-- **************************************** -->
+	<bean id="cacheManager" class="org.springframework.cache.caffeine.CaffeineCacheManager">
+		<property name="cacheSpecification" value="maximumSize=1000,expireAfterWrite=5m" />
+	</bean>
+		
+	<!-- **************************************** -->
+	<!-- * Role mapping                         * -->
+	<!-- **************************************** -->
+
+	<bean id="authenticationDetailsSource"
+		class="ch.bfs.meb.security.MebAuthenticationDetailsSource">
+	</bean>
+
+	<!-- **************************************** -->
+	<!-- * Exception translation filter         * -->
+	<!-- **************************************** -->
+
+	<bean id="etf"
+		class="org.springframework.security.web.access.ExceptionTranslationFilter">
+		<constructor-arg ref="preAuthenticatedProcessingFilterEntryPoint" />
+	</bean>
+
+	<!-- **************************************** -->
+	<!-- * Security interceptor for URLs        * -->
+	<!-- **************************************** -->
+
+	<bean id="fsi"
+		class="org.springframework.security.web.access.intercept.FilterSecurityInterceptor">
+		<property name="authenticationManager" ref="authenticationManager" />
+		<property name="accessDecisionManager" ref="httpRequestAccessDecisionManager" />
+		<property name="securityMetadataSource">
+			<sec:filter-security-metadata-source use-expressions="false">
+				<sec:intercept-url pattern="/**" access="BFS-MEB.SDL_RO" />
+			</sec:filter-security-metadata-source>
+		</property>
+	</bean>
+
+	<bean id="httpRequestAccessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">
+		<property name="allowIfAllAbstainDecisions" value="false" />
+		<constructor-arg name="decisionVoters">
+			<list>
+				<ref bean="roleVoter" />
+			</list>
+		</constructor-arg>
+	</bean>
+
+	<bean id="roleVoter" class="org.springframework.security.access.vote.RoleVoter" >
+		<property name="rolePrefix" value="BFS-MEB."/>
+	</bean>
+
+
+	<!-- **************************************** -->
+	<!-- * Request filter                       * -->
+	<!-- **************************************** -->
+
+	<bean id="securityContextHolderAwareRequestFilter"
+		class="org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter">
+	</bean>
+
+</beans>

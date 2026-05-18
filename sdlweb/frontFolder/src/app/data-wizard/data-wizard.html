@@ -1,0 +1,378 @@
+<div class="wizard">
+
+	<!-- ================= HEADER ================= -->
+
+	<div class="wizard-header">
+
+		<div class="header-left">
+			<b>{{ 'wizard.delivery.choosedluser.text' | translate }}</b>
+
+			@if (headerLoading()) {
+				<mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
+			} @else {
+
+				@if (context()?.availableDlUsers?.length) {
+					<mat-form-field appearance="outline">
+						<mat-select
+							[value]="selectedDlUser()"
+							(selectionChange)="onDlUserChange($event.value)">
+							@for (u of context()?.availableDlUsers; track u) {
+								<mat-option [value]="u">{{ u }}</mat-option>
+							}
+						</mat-select>
+					</mat-form-field>
+				} @else {
+					<span>{{ context()?.dlUser }}</span>
+				}
+			}
+		</div>
+
+		<div class="year">
+			<b>{{ 'wizard.delivery.version.text' | translate }}</b>
+			@if (headerLoading()) {
+				<mat-progress-spinner diameter="16"></mat-progress-spinner>
+			} @else {
+				{{ context()?.version }}
+			}
+		</div>
+
+
+	</div>
+
+	<!-- ================= STEP 1 ================= -->
+
+	<fieldset class="wizard-step">
+		<div class="step-header">
+			<span class="step-index">1</span>
+			<span class="step-title">
+      {{ 'wizard.delivery.upload.title' | translate }}
+    </span>
+		</div>
+
+		<div class="step-actions">
+			<div class="left-actions">
+
+				<div class="upload-zone-wrapper">
+
+					<div
+						class="ob-upload-wrapper"
+						[class.disabled]="context()?.deliveriesValidated">
+
+						<div #fileUploadContainer>
+							<ob-file-upload
+								[singleRequest]="true"
+								[accept]="['.xml', '.csv', '.zip']"
+								[multiple]="false"
+								[maxFileSize]="50"
+								[maxFileAmount]="1"
+								(uploadEvent)="onObFileUploadEvent($event)">
+							</ob-file-upload>
+						</div>
+
+					</div>
+
+
+					@if (selectedFile()) {
+						<div class="selected-file-info">
+							<div class="file-details">
+								<mat-icon>insert_drive_file</mat-icon>
+								<div class="file-text">
+									<span class="file-name">{{ selectedFile()?.name }}</span>
+									<span class="file-size">
+            {{ formatFileSize(selectedFile()!.size) }}
+          </span>
+								</div>
+							</div>
+
+							<button
+								mat-icon-button
+								color="warn"
+								(click)="removeSelectedFile()"
+								[disabled]="context()?.deliveriesValidated">
+								<mat-icon>delete</mat-icon>
+							</button>
+						</div>
+					}
+
+					<button
+						mat-raised-button
+						color="primary"
+						(click)="upload()"
+						[disabled]="!selectedFile() || context()?.deliveriesValidated">
+						{{ 'wizard.delivery.loadfile.text' | translate }}
+					</button>
+
+				</div>
+
+			</div>
+
+			<button
+				mat-raised-button
+				color="warn"
+				(click)="deleteAll()"
+				[disabled]="context()?.deliveriesValidated">
+				{{ 'wizard.delivery.deletefile.text' | translate }}
+			</button>
+		</div>
+
+
+		<!-- TABLE WITH SCROLL -->
+		<div class="schools-table">
+
+			<table mat-table [dataSource]="schools()">
+
+				<ng-container matColumnDef="school">
+					<th mat-header-cell *matHeaderCellDef>
+						{{ 'wizard.table.header_first_column' | translate }}
+					</th>
+					<td mat-cell *matCellDef="let s">
+						<div class="cell-content">
+							<mat-icon
+								class="status-icon error"
+								*ngIf="s.nrOfPersons === 0">
+								close
+							</mat-icon>
+
+							<mat-icon
+								class="status-icon success"
+								*ngIf="s.nrOfPersons > 0">
+								check_circle
+							</mat-icon>
+
+							<span>{{ s.schoolName }}</span>
+						</div>
+					</td>
+				</ng-container>
+
+				<ng-container matColumnDef="qualifications">
+					<th mat-header-cell *matHeaderCellDef>
+						<div class="header-with-counter">
+      <span>
+        {{ 'wizard.table.header_second_column' | translate }}
+      </span>
+
+							<span class="person-counter">
+        👤 {{ context()?.totalPersons }}
+      </span>
+						</div>
+					</th>
+
+					<td mat-cell *matCellDef="let s">
+						{{'wizard.table.nrOfPersons' | translate}} : {{ s.nrOfPersons }}
+					</td>
+				</ng-container>
+
+
+				<tr mat-header-row *matHeaderRowDef="['school','qualifications']"></tr>
+				<tr mat-row *matRowDef="let row; columns: ['school','qualifications'];"></tr>
+
+			</table>
+
+
+
+		</div>
+
+	</fieldset>
+
+	<!-- ================= STEP 2 ================= -->
+
+	<fieldset class="wizard-step">
+		<div class="step-header">
+			<span class="step-index">2</span>
+			<span class="step-title">{{ 'wizard.delivery.error.title' | translate }}</span>
+		</div>
+
+		@if (hasNonConfirmableErrors()) {
+			<p>
+				<mat-icon color="warn">error</mat-icon>
+				{{ 'wizard.delivery.error.text' | translate }}
+				{{ context()?.nrOfNonConfirmableErrors }}
+
+				<button mat-stroked-button (click)="downloadPlausireport()">
+					{{ 'deliver.titlebar.icon.showplausi.name' | translate }}
+				</button>
+			</p>
+		}
+
+		@if (hasEverConfirmableErrors()) {
+			<p>
+				<mat-icon color="warn" *ngIf="context()?.nrOfConfirmableErrors !== 0">error</mat-icon>
+				<mat-icon color="accent" *ngIf="context()?.nrOfConfirmableErrors === 0">check_circle</mat-icon>
+				{{ 'wizard.delivery.error.text' | translate }}
+				{{ context()?.nrOfNonConfirmableErrors }}
+
+				<button mat-stroked-button (click)="downloadPlausireport()" mat-raised-button
+						color="primary">
+					{{ 'deliver.titlebar.icon.showplausi.name' | translate }}
+				</button>
+			</p>
+			<p>
+				<mat-icon color="accent" *ngIf="context()?.nrOfConfirmableErrors !== 0">warning</mat-icon>
+				<mat-icon color="accent" *ngIf="context()?.nrOfConfirmableErrors === 0">check_circle</mat-icon>
+
+				{{ 'wizard.delivery.confirmableerror.text' | translate }}
+				{{ context()?.nrOfConfirmableErrors }}
+
+				<button
+					mat-raised-button
+					color="primary"
+					(click)="openConfirmableView()">
+					{{ 'wizard.delivery.showconfirmableerror.text' | translate }}
+				</button>
+				<span *ngIf="context()?.nrOfConfirmableErrors !== 0">{{'wizard.delivery.showconfirmableerror.message' | translate}}</span>
+			</p>
+		}
+
+		@if (!hasNonConfirmableErrors() && !hasEverConfirmableErrors()) {
+
+			<div class="delivery-stats">
+			<p>
+
+				<mat-icon color="accent">check_circle</mat-icon>
+				{{ 'wizard.delivery.error.text' | translate }}
+				{{ context()?.nrOfNonConfirmableErrors }}
+			</p>
+			<p>
+				<mat-icon color="accent">check_circle</mat-icon>
+
+				{{ 'wizard.delivery.confirmableerror.text' | translate }}
+				{{ context()?.nrOfConfirmableErrors }}
+
+			</p>
+			</div>
+		}
+
+	</fieldset>
+
+
+	<!-- ================= STEP 3 ================= -->
+
+	<fieldset class="wizard-step">
+		<div class="step-header">
+			<span class="step-index">3</span>
+			<span class="step-title">{{ 'wizard.delivery.validate.title' | translate }}</span>
+		</div>
+
+		<div class="validation-row">
+			<button
+				mat-raised-button
+				color="primary"
+				(click)="validate()"
+				[disabled]="!canValidate()">
+				{{ 'wizard.delivery.validate.text' | translate }}
+			</button>
+
+			@if (validationBlocked()) {
+				<div class="validation-hint">
+					@if (validationBlockReason() === 'SCHOOLS') {
+						{{ 'wizard.delivery.validate.message' | translate }}
+					}
+					@if (validationBlockReason() === 'NON_CONFIRMABLE') {
+						{{ 'upload.deliveryWithErrors.message' | translate }}
+					}
+					@if (validationBlockReason() === 'CONFIRMABLE') {
+						{{ 'wizard.delivery.showconfirmableerror.message' | translate }}
+					}
+				</div>
+			}
+		</div>
+
+		@if (context()?.deliveriesValidated) {
+			<p class="validation-success">
+				<mat-icon>check_circle</mat-icon>
+				{{ 'wizard.delivery.finished.message' | translate }}
+			</p>
+		}
+	</fieldset>
+
+
+</div>
+<ng-template #confirmableDialog>
+
+	<h2 mat-dialog-title>
+		{{ 'wizard.delivery.confirm.title' | translate }}
+	</h2>
+
+	<mat-dialog-content>
+
+		<div class="dialog-context">
+			<b>{{ 'wizard.delivery.dluser.text' | translate }}</b>
+			{{ context()?.dlUser }}
+			&nbsp;|&nbsp;
+			<b>{{ 'wizard.delivery.version.text' | translate }}</b>
+			{{ context()?.version }}
+		</div>
+
+		<table
+			mat-table
+			[dataSource]="confirmableErrors()"
+			class="mat-elevation-z1 full-width">
+
+			<!-- Accepter -->
+			<ng-container matColumnDef="accept">
+				<th mat-header-cell *matHeaderCellDef>
+					{{ 'wizard.table.accepter' | translate }}
+				</th>
+				<td mat-cell *matCellDef="let e">
+					<mat-checkbox [(ngModel)]="e.isConfirmed"></mat-checkbox>
+				</td>
+			</ng-container>
+
+			<!-- Personne -->
+			<ng-container matColumnDef="person">
+				<th mat-header-cell *matHeaderCellDef>
+					{{ 'wizard.table.idpersonne' | translate }}
+				</th>
+				<td mat-cell *matCellDef="let e">
+					{{ e.personLabel }}
+				</td>
+			</ng-container>
+
+			<!-- Examen -->
+			<ng-container matColumnDef="exam">
+				<th mat-header-cell *matHeaderCellDef>
+					{{ 'wizard.table.numexam' | translate }}
+				</th>
+				<td mat-cell *matCellDef="let e">
+					{{ e.qualificationLabel }}
+				</td>
+			</ng-container>
+
+			<!-- Description -->
+			<ng-container matColumnDef="description">
+				<th mat-header-cell *matHeaderCellDef>
+					{{ 'wizard.table.erreur' | translate }}
+				</th>
+				<td mat-cell *matCellDef="let e" class="error-msg">
+					{{ getErrorMessage(e) }}
+				</td>
+			</ng-container>
+
+			<!-- Règle -->
+			<ng-container matColumnDef="rule">
+				<th mat-header-cell *matHeaderCellDef>
+					{{ 'wizard.table.regle' | translate }}
+				</th>
+				<td mat-cell *matCellDef="let e">
+					{{ getPlausiname(e) }}
+				</td>
+			</ng-container>
+
+			<tr mat-header-row *matHeaderRowDef="confirmableColumns"></tr>
+			<tr mat-row *matRowDef="let row; columns: confirmableColumns"></tr>
+
+		</table>
+
+	</mat-dialog-content>
+
+	<mat-dialog-actions align="end">
+		<button mat-stroked-button (click)="closeConfirmableDialog()">
+			{{ 'shared.utils.button.reinit' | translate }}
+		</button>
+
+		<button mat-raised-button color="primary" (click)="saveAndCloseConfirmable()">
+			{{ 'wizard.delivery.saveandclose.text' | translate }}
+		</button>
+	</mat-dialog-actions>
+
+</ng-template>

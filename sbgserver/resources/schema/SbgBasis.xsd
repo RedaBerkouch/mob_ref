@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<!-- Version 4 du Schema XML pour SdL sans les nomenclatures. 
+	 Cette version  corrige cantonId à la place de canton et 
+     permet les valeurs vides pour preCtSchArt et preCtSchYear -->
+<!-- edited with XMLSpy v2007 sp2 (http://www.altova.com) by Martin Stingelin (Stingelin Informatik GmbH) -->
+<!-- edited with XMLSPY v2004 rel. 3 U (http://www.xmlspy.com) by BITUSER (Bundesamt fÃ¼r Informatik und Telekommunikation) -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified" attributeFormDefault="unqualified"
+           version="1.0">
+
+    <xs:complexType name="NoBurGroup">
+        <xs:sequence>
+            <xs:element name="kntLbCode" type="xs:string" minOccurs="0"/>
+            <xs:element name="untname" type="xs:string" minOccurs="0"/>
+            <xs:element name="str" type="xs:string" minOccurs="0"/>
+            <xs:element name="strnr" type="xs:string" minOccurs="0"/>
+            <xs:element name="plz" type="xs:string" minOccurs="0"/>
+            <xs:element name="gem" type="xs:string" minOccurs="0"/>
+            <xs:element name="flaglbv" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="Contract">
+        <xs:sequence>
+            <xs:element name="vertnr" type="xs:string" minOccurs="0"/>
+            <xs:element name="profid" type="xs:string" minOccurs="0"/>
+            <xs:element name="schwerpunkt" type="xs:string" minOccurs="0"/>
+            <xs:element name="ausbjahr" type="xs:string" minOccurs="0"/>
+            <xs:element name="sbficode" type="xs:string" minOccurs="0"/>
+            <xs:element name="lehrtyp" type="xs:string" minOccurs="0"/>
+            <xs:element name="vertdat" type="xs:string" minOccurs="0"/>
+            <xs:element name="unt" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="burnr" type="xs:string"
+                                    minOccurs="0"/>
+                        <xs:element name="nobur" minOccurs="0"
+                                    type="NoBurGroup"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="com" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="OngoingEducation">
+        <xs:sequence>
+            <xs:element name="vertnr" type="xs:string" minOccurs="0"/>
+            <xs:element name="profid" type="xs:string" minOccurs="0"/>
+            <xs:element name="schwerpunkt" type="xs:string" minOccurs="0"/>
+            <xs:element name="ausbjahr" type="xs:string" minOccurs="0"/>
+            <xs:element name="sbficode" type="xs:string" minOccurs="0"/>
+            <xs:element name="lehrtyp" type="xs:string" minOccurs="0"/>
+            <xs:element name="com" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="Exam">
+        <xs:sequence>
+            <xs:element name="vertnr" type="xs:string" minOccurs="0"/>
+            <xs:element name="profid" type="xs:string" minOccurs="0"/>
+            <xs:element name="schwerpunkt" type="xs:string" minOccurs="0"/>
+            <xs:element name="ausbjahr" type="xs:string" minOccurs="0"/>
+            <xs:element name="sbficode" type="xs:string" minOccurs="0"/>
+            <xs:element name="lehrtyp" type="xs:string" minOccurs="0"/>
+            <xs:element name="extyp" type="xs:string" minOccurs="0"/>
+            <xs:element name="exnr" type="xs:string" minOccurs="0"/>
+            <xs:element name="rep" type="xs:string" minOccurs="0"/>
+            <xs:element name="res" type="xs:string" minOccurs="0"/>
+            <xs:element name="com" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="Cancellation">
+        <xs:sequence>
+            <xs:element name="vertnr" type="xs:string" minOccurs="0"/>
+            <xs:element name="profid" type="xs:string" minOccurs="0"/>
+            <xs:element name="schwerpunkt" type="xs:string" minOccurs="0"/>
+            <xs:element name="ausbjahr" type="xs:string" minOccurs="0"/>
+            <xs:element name="sbficode" type="xs:string" minOccurs="0"/>
+            <xs:element name="lehrtyp" type="xs:string" minOccurs="0"/>
+            <xs:element name="abdat" type="xs:string" minOccurs="0"/>
+            <xs:element name="abtyp" type="xs:string" minOccurs="0"/>
+            <xs:element name="com" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:group name="Event">
+        <xs:choice>
+            <xs:element name="vert" minOccurs="0" maxOccurs="5"
+                        type="Contract"/>
+            <xs:element name="lauf" minOccurs="0" maxOccurs="5"
+                        type="OngoingEducation"/>
+            <xs:element name="exam" minOccurs="0" maxOccurs="10"
+                        type="Exam"/>
+            <xs:element name="ab" minOccurs="0" maxOccurs="5"
+                        type="Cancellation"/>
+        </xs:choice>
+    </xs:group>
+
+    <xs:element name="table">
+        <xs:complexType>
+            <xs:sequence>
+
+                <xs:element name="head" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="vid">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:integer">
+                                        <xs:totalDigits value="4"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element name="ktid">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:integer">
+                                        <xs:minInclusive value="01"/>
+                                        <xs:maxInclusive value="26"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element name="lidat" type="xs:string"
+                                        minOccurs="0"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+
+                <xs:element name="pers" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="id" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="idnr"
+                                                    type="xs:string" minOccurs="0"/>
+                                        <xs:element name="idtyp"
+                                                    type="xs:string" minOccurs="0"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="sex" type="xs:string"
+                                        minOccurs="0"/>
+                            <xs:choice minOccurs="0">
+                                <xs:element name="dateofbirth"
+                                            type="xs:string"/>
+                                <xs:element name="ndateofbirth"
+                                            type="xs:string"/>
+                            </xs:choice>
+                            <xs:element name="com" type="xs:string"
+                                        minOccurs="0"/>
+
+                            <xs:group ref="Event" minOccurs="0" maxOccurs="25"/>
+
+                        </xs:sequence>
+                    </xs:complexType>
+
+                </xs:element>
+
+            </xs:sequence>
+        </xs:complexType>
+
+    </xs:element>
+</xs:schema>

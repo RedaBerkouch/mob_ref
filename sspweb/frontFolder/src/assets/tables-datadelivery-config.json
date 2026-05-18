@@ -1,0 +1,93 @@
+{
+  "livraisons": {
+    "title": "deliver.titlebar.deliveries.name",
+    "selection": {
+      "mode": "single"
+    },
+    "columns": [
+      {"key": "deliveryId", "label": "Id Ref", "width": "250px", "type": "text", "editable": false, "visible": false, "filterableOnContext": false},
+      {"key": "plausiErrors", "label": "plausiErrors", "editable": false, "visible": false, "filterableOnContext": false, "nonSelectable": true},
+      {"key": "deliveryCode", "label": "deliveryTable.column.deliveryid.name", "width": "250px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "canton", "label": "deliveryTable.column.canton.name", "width": "150px", "type": "select", "editable": false, "optionsSource": "cantonOptions", "filterableOnContext": true},
+      {"key": "deliveryStatus", "label": "deliveryTable.column.status.name", "width": "200px", "type": "select", "editable": false, "optionsSource": "deliveryStatusOptions", "filterableOnContext": true},
+      {"key": "version", "label": "deliveryTable.column.version.name", "width": "150px", "type": "text", "editable": false, "filterableOnContext": true},
+      {
+        "key": "plausiStatus",
+        "label": "deliveryTable.column.plausistatus.name",
+        "width": "200px",
+        "type": "plausi-error",
+        "editable": false,
+        "visible": true,
+        "optionsSource": "plausiStatusOptions",
+        "filterableOnContext": true,
+        "plausiConfig": {
+          "errorArrayKey": "plausiErrors",
+          "statusKey": "plausiStatus",
+          "editableStatusValue": [1]
+        }
+      },
+      {"key": "creationDate", "label": "deliveryTable.column.deliverydate.name", "width": "150px", "type": "date", "editable": false, "filterableOnContext": true},
+      {"key": "creationUser", "label": "deliveryTable.column.deliveryuser.name", "width": "250px", "type": "text", "editable": false, "filterableOnContext": true},
+      {"key": "nrPlausiPerson", "label": "deliveryTable.column.plausiperson.name", "width": "200px", "type": "text", "editable": false, "filterableOnContext": false},
+      {"key": "nrPlausiActivity", "label": "deliveryTable.column.plausiqualification.name", "width": "250px", "type": "text", "editable": false, "filterableOnContext": false},
+      {"key": "classCondition", "label": "condition", "width": "250px", "type": "text", "editable": false, "visible": false, "filterableOnContext": false, "nonSelectable": true}
+    ],
+    "actions": [
+      { "icon": "file_download", "tooltip": "Exporter CSV", "label": "Exporter CSV", "disabled": false },
+      { "icon": "note_add", "tooltip": "Compléter la livraison précédente", "label": "Compléter la livraison précédente", "disabled": false },
+      { "icon": "autorenew", "tooltip": "Remplacer la livraison précédente", "label": "Remplacer la livraison précédente", "disabled": false },
+      { "icon": "check", "tooltip": "Confirmer la livraison", "label": "Confirmer la livraison", "disabled": false },
+      { "icon": "reply", "tooltip": "Renoncer à la livraison", "label": "Renoncer à la livraison", "disabled": false },
+      { "icon": "done_all", "tooltip": "(pré)valider", "label": "(pré)valider", "disabled": false },
+      { "icon": "remove_done", "tooltip": "Dé(pré)valider", "label": "dé(pré)valider", "disabled": false },
+      { "icon": "load_plausireport", "src": "assets/icons/load_plausireport.png", "tooltip": "Constituer et montrer un rapport de plausibilisation", "label": "Constituer et montrer un rapport de plausibilisation", "disabled": false },
+      { "icon": "create_plausireport", "src": "assets/icons/create_plausireport.png", "tooltip": "Montrer le rapport de plausibilisation", "label": "Montrer le rapport de plausibilisation", "disabled": false },
+      { "icon": "save", "tooltip": "Enregistrer les modifications", "label": "Enregistrer les modifications", "disabled": false },
+      { "icon": "delete_forever", "tooltip": "Effacer la livraison", "label": "Effacer la livraison", "disabled": true }
+    ]
+  },
+  "histories": {
+    "title": "intervention.titlebar.interventions.name",
+    "minViewHeader": true,
+    "selection": {
+      "mode": "single"
+    },
+    "columns": [
+      {"key": "deliveryId", "label": "Id Ref", "width": "20px", "type": "text", "editable": false, "visible": false, "nonSelectable": true},
+      {"key": "canton", "label": "interventionTable.column.canton.name", "width": "150px", "type": "select", "editable": false, "optionsSource": "cantonOptions"},
+      {"key": "version", "label": "interventionTable.column.version.name", "width": "150px", "type": "text", "editable": false},
+      {"key": "interventionUser", "label": "interventionTable.column.interventionuser.name", "width": "200px", "type": "text", "editable": false},
+      {"key": "interventionDate", "label": "interventionTable.column.interventiondate.name", "width": "200px", "type": "date", "editable": false},
+      {"key": "type", "label": "interventionTable.column.type.name", "width": "250px", "type": "select",
+        "editable": false, "optionsSource": "interventionStatusOptions", "default": 15
+      },
+      {"key": "report", "label": "interventionTable.column.text.name", "width": "500px", "type": "text", "editable": false}
+    ],
+    "actions": [
+      { "icon": "file_download", "tooltip": "Exporter CSV", "label": "Exporter CSV", "disabled": false },
+      { "icon": "create_plausireport", "src": "assets/icons/create_plausireport.png", "tooltip": "Montrer le rapport de plausibilisation", "label": "Montrer le rapport de plausibilisation", "disabled": false },
+      { "icon": "load_deliveryfile", "src": "assets/icons/load_deliveryfile.png", "tooltip": "Montrer le fichier de livraison", "label": "Montrer le fichier de livraison", "disabled": false },
+      { "icon": "save", "tooltip": "Enregistrer les modifications", "label": "Enregistrer les modifications", "disabled": true },
+      { "icon": "block", "tooltip": "Renoncer aux modifications", "label": "Renoncer aux modifications", "disabled": true },
+      { "icon": "add", "tooltip": "Ajouter", "label": "Insérer un enregistrement", "disabled": false },
+      { "icon": "delete", "tooltip": "Supprimer", "label": "Effacer l'enregistrement", "disabled": true }
+    ]
+  },
+  "exportations": {
+    "title": "deliver.titlebar.export.name",
+    "minViewHeader": true,
+    "selection": {
+      "mode": "single"
+    },
+    "columns": [
+      {"key": "exportId", "label": "Id", "width": "20px", "type": "text", "editable": false, "visible": false},
+      {"key": "name", "label": "exportTable.column.name.name", "width": "500px", "type": "text", "editable": false},
+      {"key": "description", "label": "exportTable.column.description.name", "width": "500px", "type": "text", "editable": false},
+      {"key": "parameter", "label": "exportTable.column.parameter.name", "width": "500px", "type": "parametre", "editable": true}
+    ],
+    "actions": [
+      { "icon": "file_download", "tooltip": "Exporter CSV", "label": "Exporter CSV", "disabled": false },
+      { "icon": "open_in_new", "tooltip": "lancer une exploitation", "label": "lancer une exploitation", "disabled": false }
+    ]
+  }
+}

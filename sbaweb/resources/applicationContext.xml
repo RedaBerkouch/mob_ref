@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- **************************************** -->
+	<!-- * Spring annotations                   * -->
+	<!-- **************************************** -->
+
+	<context:annotation-config />
+
+	<!-- **************************************** -->
+	<!-- * Spring placeholder replacement       * -->
+	<!-- * ${TOKEN}                             * -->
+	<!-- **************************************** -->
+
+	<context:property-placeholder location="${SBAWEB_PROPERTIES_LOCATION}"/>
+
+	<!-- **************************************** -->
+	<!-- * Application context provider         * -->
+	<!-- **************************************** -->
+
+	<bean id="applicationContextProvider" class="ch.bfs.meb.util.ApplicationContextProvider" />
+
+	<!-- **************************************** -->
+	<!-- * Webservices                          * -->
+	<!-- **************************************** -->
+
+	<bean id="webServiceClientFactory"
+		class="ch.bfs.meb.sba.web.service.client.WebServiceClientFactory">
+		<property name="configuration">
+			<ref bean="configuration" />
+		</property>
+	</bean>
+	
+	<!-- **************************************** -->
+	<!-- * Dhtmlx globals                       * -->
+	<!-- **************************************** -->
+
+	<bean id="maintainglobals" class="ch.bfs.meb.web.commons.dhtmlx.javascript.MaintainGlobals" scope="session"/>
+	
+	<!-- **************************************** -->
+	<!-- * Advices                              * -->
+	<!-- **************************************** -->
+
+	<!-- moved to sbaweb-servlet.xml -->
+	
+	<!-- **************************************** -->
+	<!-- * Quartz                               * -->
+	<!-- **************************************** -->
+
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<bean id="cronLoadCodegroupsTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+				<property name="jobDetail" ref="doLoadCodegroups" />
+				<property name="cronExpression" value="0/30 * * * * ?" />
+			</bean>
+		</property>
+	</bean>
+	
+	<!-- Optimization for codegroup cache loading -->
+	<bean id="doLoadCodegroups" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="codegroupLoader" />
+		<property name="targetMethod" value="loadCodegroups" />
+		<property name="concurrent" value="false" />
+	</bean>
+	
+	<bean id="codegroupLoader" class="ch.bfs.meb.web.commons.i18n.CodegroupLoader">
+		<property name="dummyAuthenticationUsername" value="sba-codegroup-reload" />
+	</bean>
+	
+	<bean id="codeGroupService" class="ch.bfs.meb.web.commons.i18n.CodeGroupService">
+		<property name="codeGroupServiceProvider" ref="codeGroupServiceProvider"/>
+		<property name="hourlyRefreshedCodegroups" value="" />
+		<property name="dailyRefreshedCodegroups" value="MEB_DELIVERYSTATUS,MEB_DATASTATUS,MEB_CANTONSTATUS,MEB_SYNCHSTATUS,MEB_PLAUSISTATUS,MEB_EXPORTTYPE,MEB_PLAUSITYPE,MEB_INTERVENTIONTYPE,SBA_CANTONINTTYPE,MEB_BUR_ACTIVITY_STATUS,MEB_ROLE,MEB_APPLICATION,SBA_OBJECTTYPE,CANTON,SEX,MUNICIPALITY,MUNICIPALITY_HIST,COUNTRY,EXAM_EDUCATION_TYPE,EXAM_TYPE,EXAM_RESULT,SBA_MATURITY_LANGUAGES" />
+		<property name="delayMinutes" value="5" />
+	</bean>
+
+	<bean id="codeGroupServiceProvider" class="ch.bfs.meb.sba.web.service.CodeGroupServiceProvider"/>
+	
+</beans>

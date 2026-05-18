@@ -1,0 +1,102 @@
+# Maven
+# Build your Java project and run tests with Apache Maven.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/java
+
+trigger:
+- impossiblebranchname
+
+pr:
+  - impossiblebranchname
+
+pool:
+  vmImage: ubuntu-latest
+
+name: release$(Date:yyyyMMdd)$(Rev:.r)
+
+variables:
+  MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
+  MAVEN_OPTS: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
+  CURRENT_DATE: $[format('{0:yyyyMMdd}', pipeline.startTime)]
+
+steps:
+- checkout: self
+  persistCredentials: true
+- task: Cache@2
+  inputs:
+    key: 'maven | "$(Agent.OS)" | pom.xml'
+    restoreKeys: |
+      maven | "$(Agent.OS)"
+      maven
+    path: $(MAVEN_CACHE_FOLDER)
+  displayName: Cache Maven local repo
+- task: MavenAuthenticate@0
+  displayName: 'Maven Authenticate'
+  inputs:
+    artifactsFeeds: ofsdependencies
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    mavenOptions: '-Xmx3072m $(MAVEN_OPTS)'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    options: '-DnewVersion=$(RELEASE_VERSION_MAJOR).$(RELEASE_VERSION_MINOR)'
+    goals: 'versions:set'
+  displayName: 'Maven set release version'
+
+- task: Bash@3
+  inputs:
+    filePath: './versionSetter.sh'
+    arguments: '$(RELEASE_VERSION_MAJOR) $(RELEASE_VERSION_MINOR)'
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    mavenOptions: '-Xmx3072m $(MAVEN_OPTS)'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    options: '-P bit'
+    goals: 'clean package'
+  displayName: 'Maven Clean Package'
+- task: Ant@1
+  inputs:
+    buildFile: 'build.xml'
+    publishJUnitResults: false
+    javaHomeOption: 'JDKVersion'
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    mavenOptions: '-Xmx3072m $(MAVEN_OPTS)'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    options: '-Dfile="RELEASES/PACKAGES/MEB_$(CURRENT_DATE).zip" -DgroupId="ch.bfs.meb" -DartifactId="portal" -Dversion="$(RELEASE_VERSION_MAJOR).$(RELEASE_VERSION_MINOR)" -Dpackaging=zip -Durl=https://pkgs.dev.azure.com/SWG-SES-OFSPROJECT/OFS/_packaging/ofsdependencies/maven/v1 -DrepositoryId=ofsdependencies'
+    goals: 'deploy:deploy-file'
+  displayName: 'Maven deploy'
+- script: |
+    git config --global user.email "azure@sword-group.com"
+    git config --global user.name "Continuous integration (CI)"
+  displayName: 'git config username (CI)'
+- script: |
+    git commit -a -m "set release version V$(RELEASE_VERSION_MAJOR).$(RELEASE_VERSION_MINOR)"
+    git push origin HEAD:$(Build.SourceBranch)
+  displayName: 'commit and push new release version'
+- script: |
+    git tag "$(RELEASE_VERSION_MAJOR).$(RELEASE_VERSION_MINOR)"
+    git push origin "$(RELEASE_VERSION_MAJOR).$(RELEASE_VERSION_MINOR)"
+  displayName: 'create and push tag'
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    mavenOptions: '-Xmx3072m $(MAVEN_OPTS)'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    options: '-DnewVersion=$(NEXT_VERSION_MAJOR).$(NEXT_VERSION_MINOR)-SNAPSHOT'
+    goals: 'versions:set'
+  displayName: 'set new snapshot version'
+- script: |
+    git commit -a -m "set snapshot version $(NEXT_VERSION_MAJOR).$(NEXT_VERSION_MINOR)"
+    git push origin HEAD:$(Build.SourceBranch)
+  displayName: 'commit and push snapshot version'
