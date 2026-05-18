@@ -13,6 +13,13 @@ import {LastFilters, WebFilter} from "../../core/utils/filters.util";
 import {PlausiError} from "../../shared/plausi-error-editor/plausi-error.model";
 import {DialogService} from "../dialog";
 
+export interface InitVersionResponse {
+	status: number;
+	message: string | null;
+	data: boolean;
+	success: boolean;
+}
+
 @Injectable({
 	providedIn: 'root'
 })
@@ -116,26 +123,39 @@ export class CantonService {
 	/* ************* *\
 	/*    ACTIONS    *
 	/* ************* */
-	initVersion(version: number, canton: number, syncSchool: boolean) {
+	initVersion(version: number, canton: number, syncSchool: boolean): Observable<InitVersionResponse> {
 		const body = {
 			version: version,
 			canton: canton,
 			noSync: !syncSchool
 		}
 
-		this.http.post<Blob>(`${this.cantonsUrl}/init_version`, body, {
-			responseType: 'blob' as 'json',
-			observe: 'response'
-		}).pipe(
-			finalize(() => console.log('Export completed'))
-		).subscribe({
-			next: (response: HttpResponse<Blob>) => {
-				openCsvFile(response, 'Cantons.csv');
-			},
-			error: (error) => {
-				console.error('Erreur lors de l\'export CSV', error);
-			}
-		});
+		this.isOpRunning.set(true);
+		this.opError.set(null);
+		this.opWarning.set(null);
+
+		return this.http.post<InitVersionResponse>(`${this.cantonsUrl}/init_version`, body).pipe(
+			tap((response) => {
+				if (response?.message) {
+					if (response.success) {
+						this.opWarning.set(response.message);
+					} else {
+						this.opError.set(response.message);
+					}
+				}
+			}),
+			catchError((error) => {
+				const message = error?.error || 'Erreur lors de l’initialisation';
+				this.opError.set(message);
+				return of({
+					status: 500,
+					message,
+					data: false,
+					success: false
+				});
+			}),
+			finalize(() => this.isOpRunning.set(false))
+		);
 	}
 
 	exportCSV() {

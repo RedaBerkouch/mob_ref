@@ -8,7 +8,7 @@ import {
 	inject,
 	signal,
 } from '@angular/core';
-import { CantonService } from '../services/initialisation/canton';
+import { CantonService, InitVersionResponse } from '../services/initialisation/canton';
 import { CantonInterventionService } from '../services/initialisation/cantonIntervention';
 import { ConfigDeliveryService } from '../services/initialisation/configDelivery';
 import { SchoolService } from '../services/initialisation/school';
@@ -610,10 +610,14 @@ export class Initialisation implements OnInit {
 
 	initialiseYear(filters: VersionCantonFilterType): void {
 		this.currentFilters.set(filters);
-
-		this.cantonService.initVersion(filters.versionFilter, filters.cantonFilter, filters.syncSchool);
-
-		this.filterChange(filters);
+		this.cantonService
+			.initVersion(filters.versionFilter, filters.cantonFilter, filters.syncSchool)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe((response: InitVersionResponse) => {
+				const withSync = !!response?.data;
+				this.schoolService.setWithSync(withSync);
+				this.filterChange({ ...filters, syncSchool: withSync });
+			});
 	}
 
 	filterChange(filters: VersionCantonFilterType): void {
@@ -635,6 +639,12 @@ export class Initialisation implements OnInit {
 		}
 
 		if (this.configDeliveryService.isMaster()) {
+			this.configDeliveryService.selectConfigDelivery([]);
+			this.clearConfigDeliverySelection.set(Date.now());
+			this.schoolService.selectSchool([]);
+			this.clearSchoolSelection.set(Date.now());
+			this.schoolService.emptyData();
+
 			this.configDeliveryService.loadConfigDeliveries(
 				filters.versionFilter,
 				filters.cantonFilter,
@@ -642,6 +652,9 @@ export class Initialisation implements OnInit {
 				filters.contextFilters,
 			);
 		} else {
+			this.clearSchoolSelection.set(Date.now());
+			this.schoolService.emptyData();
+
 			this.schoolService.loadSchools(
 				filters.versionFilter,
 				filters.cantonFilter,

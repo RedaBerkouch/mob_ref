@@ -4,6 +4,7 @@ import ch.bfs.meb.integration.dto.ResultBase;
 import ch.bfs.meb.sba.web.frontend.dto.CommonSearchRequest;
 import ch.bfs.meb.sba.web.frontend.dto.InitVersionRequest;
 import ch.bfs.meb.sba.web.frontend.dto.LastFilters;
+import ch.bfs.meb.sba.web.frontend.dto.TunnelApiResponse;
 import ch.bfs.meb.sba.web.service.CantonExportService;
 import ch.bfs.meb.sba.web.service.ICantonService;
 import ch.bfs.meb.sba.web.utils.CsvUtils;
@@ -209,34 +210,39 @@ public class CantonRestController {
      * Hidden action *
      * ************* */
     @PostMapping("init_version")
-    public ResponseEntity<String> initVersion(@RequestBody InitVersionRequest initVersionRequest) {
+    public ResponseEntity<TunnelApiResponse<Boolean>> initVersion(@RequestBody InitVersionRequest initVersionRequest) {
         // vérifier qu'un init n'est pas déjà en train de tourner
         CantonListResult initResult =
                 cantonService.initVersion(initVersionRequest.getVersion(), initVersionRequest.getCanton(), initVersionRequest.isNoSync());
-        //boolean sync_bur = false;
+        boolean syncBur = false;
 
         try {
             if (initResult.getState() == ResultBase.OK) {
                 if (!initVersionRequest.isNoSync()) {
-                    //sync_bur = true;
+                    syncBur = true;
                 }
             } else {
                 List<String> possibleErrorMessages = Arrays.asList(INIT_BUR_NOT_SYNCHRON_MESSAGE, INIT_ALREADY_DONE_1_MESSAGE, INIT_ALREADY_DONE_2_MESSAGE);
                 if (!initVersionRequest.isNoSync() && possibleErrorMessages.contains(initResult.getMessage())) {
-                    //sync_bur = true;
+                    syncBur = true;
                 }
             }
 
-            // TODO retourner paramètre sync_bur en plus
-            return ResponseEntity.ok(localizationManager.getMessage(initResult.getMessage()));
+            String localizedMessage = localizeMessage(initResult.getMessage());
+            boolean success = initResult.getState() == ResultBase.OK;
+            return ResponseEntity.ok(new TunnelApiResponse<>(200, localizedMessage, syncBur, success));
         }
         catch (RuntimeException e) {
             log.error("Error while initializing version", e);
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error while initializing version");
+                    .body(TunnelApiResponse.error(500, "Error while initializing version"));
         }
 
+    }
+
+    private String localizeMessage(String messageKey) {
+        return (messageKey != null && !messageKey.isEmpty()) ? localizationManager.getMessage(messageKey) : null;
     }
 
     /* ******* *

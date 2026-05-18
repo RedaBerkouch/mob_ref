@@ -88,7 +88,7 @@ export class VersionCantonFilter implements OnInit, OnChanges {
 			versionFilter: [''],
 			cantonFilter: [''],
 			initYear: false,
-			syncSchool: false,
+			syncSchool: true,
 		});
 		// Émet la valeur du canton sélectionné pour la transmission de fichier (sans appliquer le filtre)
 		this.filterForm
@@ -185,23 +185,7 @@ export class VersionCantonFilter implements OnInit, OnChanges {
 	private emitCombinedFilters(): void {
 		if (this.isPatching) return;
 
-		const formValue = this.filterForm.getRawValue();
-
-		const contextFiltersNotEmpty = (this.contextFilters() ?? []).filter(
-			(f) =>
-				!!f &&
-				typeof f.attribute === 'string' &&
-				f.attribute.trim().length > 0 &&
-				f.value !== undefined &&
-				f.value !== null &&
-				String(f.value).trim().length > 0,
-		);
-
-		const combinedFilters: VersionCantonFilterType = {
-			...formValue,
-			contextFilters: contextFiltersNotEmpty,
-			selectedPredefinedFilters: this.selectedPredefinedFilters() ?? [],
-		};
+		const combinedFilters = this.getCombinedFilters();
 
 		// hash stable -> si identique au dernier emit, on n’émet pas
 		const hash = this.hashFilters(combinedFilters);
@@ -242,16 +226,37 @@ export class VersionCantonFilter implements OnInit, OnChanges {
 	 * - emission 1 seule fois
 	 */
 	initVersion(): void {
+		this.saveToSessionStorage();
+
 		this.isPatching = true;
 		this.filterForm.patchValue({ initYear: true }, { emitEvent: false });
 		this.isPatching = false;
 
-		this.applyFilter();
+		this.initialiseVersion.emit(this.getCombinedFilters());
 
 		this.isPatching = true;
-		this.filterForm.patchValue({ syncSchool: true }, { emitEvent: false });
 		this.filterForm.patchValue({ initYear: false }, { emitEvent: false });
 		this.isPatching = false;
+	}
+
+	private getCombinedFilters(): VersionCantonFilterType {
+		const formValue = this.filterForm.getRawValue();
+
+		const contextFiltersNotEmpty = (this.contextFilters() ?? []).filter(
+			(f) =>
+				!!f &&
+				typeof f.attribute === 'string' &&
+				f.attribute.trim().length > 0 &&
+				f.value !== undefined &&
+				f.value !== null &&
+				String(f.value).trim().length > 0,
+		);
+
+		return {
+			...formValue,
+			contextFilters: contextFiltersNotEmpty,
+			selectedPredefinedFilters: this.selectedPredefinedFilters() ?? [],
+		};
 	}
 
 	// -------------------- Session Storage Helpers --------------------
