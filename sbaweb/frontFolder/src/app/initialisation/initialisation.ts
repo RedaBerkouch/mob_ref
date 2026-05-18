@@ -639,6 +639,12 @@ export class Initialisation implements OnInit {
 		}
 
 		if (this.configDeliveryService.isMaster()) {
+			this.configDeliveryService.selectConfigDelivery([]);
+			this.clearConfigDeliverySelection.set(Date.now());
+			this.schoolService.selectSchool([]);
+			this.clearSchoolSelection.set(Date.now());
+			this.schoolService.emptyData();
+
 			this.configDeliveryService.loadConfigDeliveries(
 				filters.versionFilter,
 				filters.cantonFilter,
