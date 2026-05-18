@@ -8,7 +8,7 @@ import {
 	inject,
 	signal,
 } from '@angular/core';
-import { CantonService } from '../services/initialisation/canton';
+import { CantonService, InitVersionResponse } from '../services/initialisation/canton';
 import { CantonInterventionService } from '../services/initialisation/cantonIntervention';
 import { ConfigDeliveryService } from '../services/initialisation/configDelivery';
 import { SchoolService } from '../services/initialisation/school';
@@ -610,10 +610,14 @@ export class Initialisation implements OnInit {
 
 	initialiseYear(filters: VersionCantonFilterType): void {
 		this.currentFilters.set(filters);
-
-		this.cantonService.initVersion(filters.versionFilter, filters.cantonFilter, filters.syncSchool);
-
-		this.filterChange(filters);
+		this.cantonService
+			.initVersion(filters.versionFilter, filters.cantonFilter, filters.syncSchool)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe((response: InitVersionResponse) => {
+				const withSync = !!response?.data;
+				this.schoolService.setWithSync(withSync);
+				this.filterChange({ ...filters, syncSchool: withSync });
+			});
 	}
 
 	filterChange(filters: VersionCantonFilterType): void {
