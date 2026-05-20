@@ -47,7 +47,7 @@ export type DatahandlerColumn = {
 	label: string;
 	width: string;
 	default?: string;
-	type: 'text' | 'checkbox' | 'select' | 'date' | 'parametre' | 'plausi-error';
+	type: 'text' | 'checkbox' | 'select' | 'date' | 'datetime' | 'parametre' | 'plausi-error';
 	editable: boolean;
 	editableOnCondition?: (row: any, rowIndex: number) => boolean;
 	visible?: boolean;

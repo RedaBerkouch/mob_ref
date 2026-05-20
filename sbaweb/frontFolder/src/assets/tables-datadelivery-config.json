@@ -40,8 +40,8 @@
       { "icon": "reply", "tooltip": "Renoncer à la livraison", "label": "Renoncer à la livraison", "disabled": false },
       { "icon": "done_all", "tooltip": "(pré)valider", "label": "(pré)valider", "disabled": false },
       { "icon": "remove_done", "tooltip": "Dé(pré)valider", "label": "dé(pré)valider", "disabled": false },
-      { "icon": "load_plausireport", "src": "assets/icons/load_plausireport.png", "tooltip": "Constituer et montrer un rapport de plausibilisation", "label": "Constituer et montrer un rapport de plausibilisation", "disabled": false },
-      { "icon": "create_plausireport", "src": "assets/icons/create_plausireport.png", "tooltip": "Montrer le rapport de plausibilisation", "label": "Montrer le rapport de plausibilisation", "disabled": false },
+      { "icon": "create_plausireport", "src": "assets/icons/create_plausireport.png", "tooltip": "Constituer et montrer un rapport de plausibilisation", "label": "Constituer et montrer un rapport de plausibilisation", "disabled": false },
+      { "icon": "load_plausireport", "src": "assets/icons/load_plausireport.png", "tooltip": "Montrer le rapport de plausibilisation", "label": "Montrer le rapport de plausibilisation", "disabled": false },
       { "icon": "save", "tooltip": "Enregistrer les modifications", "label": "Enregistrer les modifications", "disabled": false },
       { "icon": "delete_forever", "tooltip": "Effacer la livraison", "label": "Effacer la livraison", "disabled": true }
     ]
@@ -57,7 +57,7 @@
       {"key": "canton", "label": "interventionTable.column.canton.name", "width": "150px", "type": "select", "editable": false, "optionsSource": "cantonOptions"},
       {"key": "version", "label": "interventionTable.column.version.name", "width": "150px", "type": "text", "editable": false},
       {"key": "interventionUser", "label": "interventionTable.column.interventionuser.name", "width": "200px", "type": "text", "editable": false},
-      {"key": "interventionDate", "label": "interventionTable.column.interventiondate.name", "width": "200px", "type": "date", "editable": false},
+      {"key": "interventionDate", "label": "interventionTable.column.interventiondate.name", "width": "200px", "type": "datetime", "editable": false},
       {"key": "type", "label": "interventionTable.column.type.name", "width": "250px", "type": "select",
         "editable": false, "optionsSource": "interventionStatusOptions", "default": 15
       },
@@ -65,7 +65,7 @@
     ],
     "actions": [
       { "icon": "file_download", "tooltip": "Exporter CSV", "label": "Exporter CSV", "disabled": false },
-      { "icon": "create_plausireport", "src": "assets/icons/create_plausireport.png", "tooltip": "Montrer le rapport de plausibilisation", "label": "Montrer le rapport de plausibilisation", "disabled": false },
+      { "icon": "load_plausireport", "src": "assets/icons/load_plausireport.png", "tooltip": "Montrer le rapport de plausibilisation", "label": "Montrer le rapport de plausibilisation", "disabled": false },
       { "icon": "load_deliveryfile", "src": "assets/icons/load_deliveryfile.png", "tooltip": "Montrer le fichier de livraison", "label": "Montrer le fichier de livraison", "disabled": false },
       { "icon": "save", "tooltip": "Enregistrer les modifications", "label": "Enregistrer les modifications", "disabled": true },
       { "icon": "block", "tooltip": "Renoncer aux modifications", "label": "Renoncer aux modifications", "disabled": true },

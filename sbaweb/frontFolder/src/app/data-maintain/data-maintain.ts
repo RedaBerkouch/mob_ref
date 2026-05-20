@@ -82,6 +82,7 @@ export class DataMaintain implements OnInit {
 	private readonly deliveryStatusOptions = this.codeGroupStore.optionsFor('MEB_DELIVERYSTATUS');
 	private readonly countriesOptions = this.codeGroupStore.optionsFor('COUNTRY', (item) => `${item.value} (${item.key})`);
 	private readonly municipalityOptions = this.codeGroupStore.optionsFor('MUNICIPALITY', (item) => `${item.value} (${item.key})`);
+	private readonly municipalityHistOptions = this.codeGroupStore.optionsFor('MUNICIPALITY_HIST', (item) => `${item.value} (${item.key})`);
 	private readonly plausiStatusOptions = this.codeGroupStore.optionsFor('MEB_PLAUSISTATUS');
 	private readonly maturityLanguagesOptions = this.codeGroupStore.optionsFor('SBA_MATURITY_LANGUAGES');
 	private readonly examResultOptions = this.codeGroupStore.optionsFor('EXAM_RESULT', (item) => `${item.value} (${item.key})`);
@@ -131,6 +132,7 @@ export class DataMaintain implements OnInit {
 		plausiStatusOptions: this.plausiStatusOptions,
 		countriesOptions: this.countriesOptions,
 		municipalityOptions: this.municipalityOptions,
+		municipalityHistOptions: this.municipalityHistOptions,
 		genreOptions: this.genreOptions,
 		maturityLanguagesOptions: this.maturityLanguagesOptions,
 		examResultOptions: this.examResultOptions,
@@ -167,7 +169,7 @@ export class DataMaintain implements OnInit {
 		// ✅ FORCE non-editable pour version + canton (quoi qu’il arrive)
 		const locked = editable.map((c) =>
 			c.key === 'version' || c.key === 'canton'
-				? { ...c, editable: false, editableOnCondition: undefined }
+				? { ...c, editable: false, editableOnCondition: (row: Person, rowIndex: number) => (row as any).isNew === true }
 				: c,
 		);
 
@@ -326,12 +328,14 @@ export class DataMaintain implements OnInit {
 			this.languageService.currentLanguage();
 			this.loadAllCodeGroups();
 			this.codeGroupStore.loadValues('MUNICIPALITY', undefined, undefined, true)
+			this.codeGroupStore.loadValues('MUNICIPALITY_HIST', undefined, undefined, true)
 		});
 	}
 
 	ngOnInit(): void {
 		this.loadAllCodeGroups();
 		this.codeGroupStore.loadValues('MUNICIPALITY', undefined, undefined, true)
+		this.codeGroupStore.loadValues('MUNICIPALITY_HIST', undefined, undefined, true)
 	}
 
 	/** Charge tous les code groups nécessaires pour les filtres et options */
@@ -449,7 +453,8 @@ export class DataMaintain implements OnInit {
 	): void {
 		const { itemsToUpdate = [], itemsToCreate = [], itemsToDelete = [] } = event;
 
-		// Early return si aucune donnée
+		// Early return si aucune donnée ou en erreur
+		if (event.action === 'validation-error') return;
 		if (!itemsToUpdate.length) containsUpdated.set(false);
 		if (!itemsToCreate.length) containsNew.set(false);
 		if (!itemsToDelete.length) containsDeleted.set(false);

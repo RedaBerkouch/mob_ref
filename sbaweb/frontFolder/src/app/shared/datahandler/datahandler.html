@@ -245,6 +245,12 @@
 											</span>
 										}
 
+										@case ('datetime') {
+											<span class="cell-date-wrapper">
+												{{ formGroup.controls[col.key].value | date:'dd.MM.yyyy HH:mm:ss' }}
+									  		</span>
+										}
+
 										@case ('parametre') {
 											<div class="parametre-cell">
 												<div

@@ -70,15 +70,15 @@ export class DataDelivery implements OnInit {
 		reply: 'cancel',
 		done_all: 'prevalidate',
 		remove_done: 'undo_validate',
-		load_plausireport: 'create_plausi_report',
-		create_plausireport: 'show_plausi_report',
+		create_plausireport: 'create_plausi_report',
+		load_plausireport: 'show_plausi_report',
 		save: 'save',
 		delete_forever: 'delete',
 	} as const;
 
 	private actionByIconForIntervention: Record<string, ActionTypeForLivraisons> = {
 		file_download: 'export',
-		create_plausireport: 'show_plausi_report',
+		load_plausireport: 'show_plausi_report',
 		load_deliveryfile: 'show_delivery',
 		save: 'save',
 		block: 'block',

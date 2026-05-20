@@ -70,6 +70,7 @@ export class SchoolService {
 	// Signaux pour les paramètres et les schools
 	private readonly schoolParams = signal<SchoolParams | null>(null);
 	private readonly schoolsMap = signal<Map<number, School>>(new Map());
+	private readonly withSync = signal<boolean>(false);
 
 	// Signal pour le school sélectionné
 	readonly currentSchools = signal<School[]>([]);
@@ -137,13 +138,14 @@ export class SchoolService {
 	}
 
 	loadSchoolsAsSlave(selectedConfigDeliveryIds: number[]) {
+		const withSync = this.schoolParams()?.withSync ?? this.withSync();
 		this.selectedConfigDeliveryIds.set(selectedConfigDeliveryIds);
 
 		// Pour éviter un effet de bord
 		selectedConfigDeliveryIds =
 			selectedConfigDeliveryIds.length > 0 ? selectedConfigDeliveryIds : [-1];
 
-		this.schoolParams.set({ selectedConfigDeliveryIds });
+		this.schoolParams.set({ selectedConfigDeliveryIds, withSync });
 		this.schoolParams.update((params) => ({
 			...params,
 			selectedIds: selectedConfigDeliveryIds,
@@ -162,7 +164,8 @@ export class SchoolService {
 		webFilters?: WebFilter[],
 		whereFilters?: WhereFilter[],
 	) {
-		this.schoolParams.set({ version, canton });
+		const withSync = this.schoolParams()?.withSync ?? this.withSync();
+		this.schoolParams.set({ version, canton, withSync });
 		this.schoolParams.update((params) => ({
 			...params,
 			version,
@@ -176,6 +179,12 @@ export class SchoolService {
 		if (schoolParams) {
 			this.doLoadSchools(schoolParams);
 		}
+	}
+
+	setWithSync(withSync: boolean): void {
+		this.withSync.set(withSync);
+		this.issync_bur.set(withSync);
+		this.schoolParams.update((params) => (params ? { ...params, withSync } : params));
 	}
 
 	selectSchool(schools: School[] = []): void {
@@ -282,6 +291,7 @@ export class SchoolService {
 			.subscribe((response) => {
 				if (response) {
 					this.issync_bur.set(response.success);
+					this.withSync.set(response.success);
 					this.handleBurActionMessage(response);
 					const params = this.schoolParams();
 					this.schoolParams.update((p) => (p ? { ...p, withSync: response.success } : p));
