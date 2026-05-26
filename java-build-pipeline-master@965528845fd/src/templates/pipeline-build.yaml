@@ -1,0 +1,991 @@
+{{- range $app := .Values.applications }}
+  {{- $incomingImageRegistry := printf "%s-incoming.%s" ($.Values.global).nexusImageRegistryBaseName (($.Values.global).imageRegistryDomain | default $.Values.defaultImageRegistryDomain) }}
+  {{- $imageRegistry := printf "%s.%s" ($.Values.global).nexusImageRegistryBaseName (($.Values.global).imageRegistryDomain | default $.Values.defaultImageRegistryDomain) }}
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: {{ .appName }}-{{ include "java-pipeline.pipelinePrefix" . }}-build
+  labels:
+    {{- include "java-pipeline.labels" (dict "appName" .appName "Chart" $.Chart) | nindent 4 }}
+  annotations:
+    {{- include "java-pipeline.annotations" . | nindent 4 }}
+spec:
+  params:
+    - name: GIT_REPO
+      description: SSH-URL of the git repo
+      type: string
+    - name: GIT_REPO_NAME
+      description: Git repository name
+      type: string
+    - name: GIT_BRANCH
+      default: none
+      description: Revision/Branch of git repo
+      type: string
+    - name: GIT_PUSHER_DISPLAYNAME
+      default: OpenShift UI
+      description: 'Displayname of account, who pushed the Git repository'
+      type: string
+    - name: GIT_PUSHER_NAME
+      default: OpenShift UI
+      description: 'Name of account, who pushed the Git repository'
+      type: string
+    - name: GIT_PUSHER_EMAIL
+      default: OpenShift UI
+      description: 'Email of account, who pushed the Git repository'
+      type: string
+    - name: GIT_COMMIT
+      default: OpenShift UI
+      description: 'Commit, who pushed the Git repository'
+      type: string
+    - name: CREDENTIAL_SCAN_SKIP_FAILURE
+      default: 'true'
+      type: string
+    - name: SONAR_SECRET_NAME
+      default: cop-sonar-token
+      description: name of key/value secret containing sonar host/token
+      type: string
+    - name: VERBOSE
+      default: 'false'
+      description: debug mode
+      type: string
+  tasks:
+    ###
+    # Git Clone
+    ###
+    - name: git-clone
+      params:
+        - name: url
+          value: $(params.GIT_REPO)
+        - name: revision
+          value: $(params.GIT_COMMIT)
+        - name: sslVerify
+          value: 'false'
+        - name: subdirectory
+          value: $(context.pipelineRun.uid)/source
+        - name: depth
+          value: '0'
+        - name: verbose
+          value: $(params.VERBOSE)
+      taskRef:
+        kind: Task
+        resolver: git
+        params:
+          - name: url
+            value: https://bitbucket.bit.admin.ch/scm/cnt/bit-git-clone.git
+          - name: revision
+            value: "refs/tags/2"
+          - name: pathInRepo
+            value: bit-git-clone.yaml
+      workspaces:
+        - name: output
+          workspace: ws
+        - name: ssh-directory
+          workspace: ssh
+
+    - name: checkout-branch
+      params:
+        - name: git_commit
+          value: $(params.GIT_COMMIT)
+        - name: git_branch
+          value: $(params.GIT_BRANCH)
+        - name: image
+          value: {{ .toolboxImage | default $.Values.defaultToolboxImage | quote }}
+        - name: build_directory
+          value: $(context.pipelineRun.uid)/source
+        - name: userHome
+          value: $(workspaces.ws.path)/.home
+      runAfter:
+        - git-clone
+      taskRef:
+        kind: Task
+        name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-checkout-branch
+      workspaces:
+        - name: ws
+          workspace: ws
+        - name: ssh-directory
+          workspace: ssh
+
+    ###
+    # Setup
+    ###
+    - name: setup
+      params:
+        - name: git_url
+          value: $(params.GIT_REPO)
+        - name: git_branch
+          value: $(params.GIT_BRANCH)
+        - name: triggered_by
+          value: $(params.GIT_PUSHER_DISPLAYNAME)
+        - name: commit_id
+          value: $(params.GIT_COMMIT)
+        - name: pipeline_run_name
+          value: $(context.pipelineRun.name)
+        - name: pipeline_name
+          value: $(context.pipeline.name)
+        - name: pipeline_run_namespace
+          value: $(context.pipelineRun.namespace)
+        - name: pipeline_run_uid
+          value: $(context.pipelineRun.uid)
+        - name: default_branch_configuration
+          value: |
+          {{ toRawJson $.Values.defaultBranchConfiguration | indent 4 }}
+        - name: app_branch_configuration
+          value: |
+          {{ toRawJson .branchConfig | indent 4 }}
+        - name: application_type
+          value: {{ .appType | default "application" }}
+        - name: version_template
+          value: {{ .buildVersionTemplate | default "<POM_VERSION>" }}
+        - name: version_template_date_pattern
+          value: {{ .buildVersionDatePattern | default "" | quote }}
+        - name: source_directory
+          value: $(context.pipelineRun.uid)/source
+        - name: maven_release_repo
+          value: {{ .mavenReleaseRepo | default $.Values.defaultMavenReleaseRepo | quote }}
+        - name: maven_snapshot_repo
+          value: {{ .mavenSnapshotRepo | default $.Values.defaultMavenSnapshotRepo | quote }}
+        - name: nexus_npm_repository-url
+          value: {{ .npmRepo | default $.Values.defaultNpmRepo | quote }}
+        - name: build_tool
+          value: {{ .buildTool | default "maven" }}
+        - name: verbose_log
+          value: $(params.VERBOSE)
+        - name: app_name
+          value: {{ .appName }}
+      runAfter:
+        - checkout-branch
+      taskRef:
+        kind: Task
+        name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-build-setup
+      workspaces:
+        - name: ws
+          workspace: ws
+        - name: nexus
+          workspace: nexus
+
+    ###
+    # Execute After Setup Script
+    ###
+    - name: execute-after-setup-script
+      when:
+        - input: "{{ ((.hookScripts).afterSetup).path | default "None" }}"
+          operator: notin
+          values: [ "None" ]
+      params:
+        - name: image_name
+          value: {{ ((.hookScripts).afterSetup).image | default $.Values.defaultToolboxImage | quote }}
+        - name: script_path
+          value: {{ ((.hookScripts).afterSetup).path | default "" | quote }}
+        - name: build_directory
+          value: $(context.pipelineRun.uid)/source
+        - name: maven_home_directory
+          value: $(context.pipelineRun.uid)/maven-home
+      runAfter:
+        - setup
+      taskRef:
+        kind: Task
+        name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-exec-hook-script
+      workspaces:
+        - name: ws
+          workspace: ws
+        - name: nexus
+          workspace: nexus
+
+
+    ###
+    # Notify Bitbucket that build is in-progress
+    ###
+    - name: notify-bitbucket-inprogress
+      params:
+        - name: commit-id
+          value: $(tasks.git-clone.results.commit)
+        - name: pipeline-status
+          value: 'InProgress'
+        - name: pipeline-run-name
+          value: $(context.pipelineRun.name)
+        - name: pipeline-name
+          value: $(context.pipeline.name)
+        - name: pipeline-run-namespace
+          value: $(context.pipelineRun.namespace)
+        - name: pipeline-run-uid
+          value: $(context.pipelineRun.uid)
+        - name: git-repo
+          value: $(params.GIT_REPO)
+        - name: bitbucket-secret-authtoken
+          value: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-bitbucket-accesstoken
+        - name: toolbox-image
+          value: {{ .toolboxImage | default $.Values.defaultToolboxImage | quote }}
+      runAfter:
+        - setup
+      taskRef:
+        kind: Task
+        resolver: git
+        params:
+          - name: url
+            value: https://bitbucket.bit.admin.ch/scm/cnt/bit-notify-bitbucket.git
+          - name: revision
+            value: "refs/tags/3"
+          - name: pathInRepo
+            value: bit-notify-bitbucket.yaml
+
+    ####################
+    # Credentials-Scan #
+    ####################
+    - name: credential-scan
+      params:
+        - name: CONTEXT_DIR
+          value: $(context.pipelineRun.uid)/source
+        - name: GIT_COMMIT
+          value: $(tasks.git-clone.results.commit)
+        - name: SKIP_FAILURE
+          value: $(params.CREDENTIAL_SCAN_SKIP_FAILURE)
+        - name: EXCLUDE_REG
+          value:
+            - '.*\.cmd'
+            - '.mvn/jvm.config'
+            - 'docker/*'
+            - '(.*/)test/(.*/)?'
+        - name: TRUFFLEHOG_IMAGE
+          value: {{ .trufflehogImage | default $.Values.defaultTrufflehogImage | quote }}
+        - name: TOOLBOX_IMAGE
+          value: {{ .toolboxImage | default $.Values.defaultToolboxImage | quote }}
+        - name: MAX_DEPTH
+          value: {{ .trufflehogScanDepth | default $.Values.defaultTrufflehogScanDepth | quote }}
+      runAfter:
+        - execute-after-setup-script
+      taskRef:
+        kind: Task
+        resolver: git
+        params:
+          - name: url
+            value: https://bitbucket.bit.admin.ch/scm/cnt/bit-trufflehog-scan.git
+          - name: revision
+            value: "refs/tags/3"
+          - name: pathInRepo
+            value: bit-trufflehog-scan-3gi.yaml
+      workspaces:
+        - name: source
+          workspace: ws
+        - name: exclude-settings
+          workspace: ws
+          subPath: $(context.pipelineRun.uid)/source
+
+    ###
+    # Maven Build & Test
+    ###
+    - name: maven-build
+      when:
+        - input: "$(tasks.setup.results.build_tool)"
+          operator: in
+          values: [ "maven" ]
+      params:
+        - name: java_image
+          value: {{ .mavenBuildJavaImage | default $.Values.defaultMavenBuildJavaImage | quote }}
+        - name: toolbox_image
+          value: {{ .toolboxImage | default $.Values.defaultToolboxImage | quote }}
+        - name: build_directory
+          value: $(context.pipelineRun.uid)/source
+        - name: maven_home_directory
+          value: $(context.pipelineRun.uid)/maven-home
+        - name: goals
+          value:
+            - {{ .mavenBuildGoal | default $.Values.defaultMavenBuildGoal | quote }}
+        - name: maven_submodule_args
+          value: '{{ if .mavenSubModule }}{{ "-pl " }}{{ .mavenSubModule }} {{- end }}{{ if .includeMavenSubModules }}{{- range .includeMavenSubModules }},{{ . }}{{- end }}{{- end }}'
+        - name: maven_args
+          value:
+            - '-e'
+        - name: published_version
+          value: $(tasks.setup.results.push_tag)
+        - name: version
+          value: $(tasks.setup.results.version)
+        - name: sonar_secret_name
+          value: $(params.SONAR_SECRET_NAME)
+        - name: update_mvn_version
+          value: "true"
+        - name: verbose
+          value: $(params.VERBOSE)
+        {{- if .messageContractCompatibilityCheckEnvironments }}
+        - name: message_contract_api_url
+          value: "{{ ($.Values.global).messageContractApiUrl }}"
+        - name: message_contract_user
+          value: "{{ ($.Values.global).messageContractUser }}"
+        {{- end }}
+        - name: message_contract_secret_name
+          value: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-message-contract-service-secret
+        - name: http_proxy
+          value: {{ .httpProxy | default $.Values.defaultHttpProxy | quote }}
+      runAfter:
+        - credential-scan
+      taskRef:
+        kind: Task
+        {{- if .testcontainers | default false }}
+        name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-maven-ksc
+        {{- else }}
+        name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-maven
+        {{- end }}
+      workspaces:
+        - name: ws
+          workspace: ws
+        - name: nexus
+          workspace: nexus
+        - name: kubedock-pod-template
+          workspace: kubedock-pod-template
+
+    ###
+    # Execute After Build Script
+    ###
+    - name: execute-after-build-script
+      when:
+        - input: "{{ ((.hookScripts).afterBuild).path | default "None" }}"
+          operator: notin
+          values: [ "None" ]
+      params:
+        - name: image_name
+          value: {{ ((.hookScripts).afterBuild).image | default $.Values.defaultToolboxImage | quote }}
+        - name: script_path
+          value: {{ ((.hookScripts).afterBuild).path | default "" | quote }}
+        - name: build_directory
+          value: $(context.pipelineRun.uid)/source
+        - name: maven_home_directory
+          value: $(context.pipelineRun.uid)/maven-home
+      runAfter:
+        - maven-build
+      taskRef:
+        kind: Task
+        name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-exec-hook-script
+      workspaces:
+        - name: ws
+          workspace: ws
+        - name: nexus
+          workspace: nexus
+
+    ###
+    # Quality check
+    ###
+    - name: quality-check
+      when:
+        - input: "$(tasks.setup.results.quality_check)"
+          operator: in
+          values: [ "true" ]
+      params:
+        - name: java_image
+          value: {{ .mavenBuildJavaImage | default $.Values.defaultMavenBuildJavaImage | quote }}
+        - name: build_directory
+          value: $(context.pipelineRun.uid)/source
+        - name: maven_home_directory
+          value: $(context.pipelineRun.uid)/maven-home
+        - name: maven_submodule_args
+          value: '{{ if .excludedMavenSubModulesFromSonarScan }}{{ "-pl " }}{{- range .excludedMavenSubModulesFromSonarScan }}!{{ . }},{{- end }}{{- end }}'
+        - name: maven_args
+          value:
+            - '-e'
+            - '-Dsonar.coverage.jacoco.xmlReportPaths=**/target/site/jacoco*/jacoco.xml'
+            - '-Dsonar.branch.name=$(params.GIT_BRANCH)'
+        - name: goals
+          value:
+            - 'jacoco:report'
+            - 'jacoco:report-integration'
+            - 'sonar:sonar'
+        - name: sonar_secret_name
+          value: $(params.SONAR_SECRET_NAME)
+      runAfter:
+        - execute-after-build-script
+      taskRef:
+        kind: Task
+        name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-maven
+      workspaces:
+        - name: ws
+          workspace: ws
+        - name: nexus
+          workspace: nexus
+        - name: kubedock-pod-template
+          workspace: kubedock-pod-template
+
+    ###
+    # Execute After Quality Check Script
+    ###
+    - name: execute-after-quality-check-script
+      when:
+        - input: "{{ ((.hookScripts).afterQualityCheck).path | default "None" }}"
+          operator: notin
+          values: [ "None" ]
+      params:
+        - name: image_name
+          value: {{ ((.hookScripts).afterQualityCheck).image | default $.Values.defaultToolboxImage | quote }}
+        - name: script_path
+          value: {{ ((.hookScripts).afterQualityCheck).path | default "" | quote }}
+        - name: build_directory
+          value: $(context.pipelineRun.uid)/source
+        - name: maven_home_directory
+          value: $(context.pipelineRun.uid)/maven-home
+      runAfter:
+        - quality-check
+      taskRef:
+        kind: Task
+        name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-exec-hook-script
+      workspaces:
+        - name: ws
+          workspace: ws
+        - name: nexus
+          workspace: nexus
+
+    ###
+    # Validate Quality Gate
+    ###
+    - name: validate-quality-gate
+      when:
+        - input: "$(tasks.setup.results.quality_gate)"
+          operator: in
+          values: [ "true" ]
+      params:
+        - name: sonar_report_path
+          value: /workspace/ws/$(context.pipelineRun.uid)/source/target/sonar/report-task.txt
+      runAfter:
+        - execute-after-quality-check-script
+      taskRef:
+        kind: Task
+        name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-validate-quality-gate
+      workspaces:
+        - name: ws
+          workspace: ws
+
+    ###
+    # Maven Deploy
+    ###
+    - name: maven-deploy
+      when:
+        - input: "$(tasks.setup.results.maven_deploy)"
+          operator: in
+          values: [ "true" ]
+      params:
+        - name: java_image
+          value: {{ .mavenBuildJavaImage | default $.Values.defaultMavenBuildJavaImage | quote }}
+        - name: build_directory
+          value: $(context.pipelineRun.uid)/source
+        - name: maven_home_directory
+          value: $(context.pipelineRun.uid)/maven-home
+        - name: goals
+          value:
+            - {{ .jarMavenDeployGoal | default $.Values.defaultJarMavenDeployGoal | quote }}
+        - name: maven_args
+          value:
+            - '-e'
+        - name: published_version
+          value: $(tasks.setup.results.push_tag)
+        - name: version
+          value: $(tasks.setup.results.version)
+        - name: sonar_secret_name
+          value: $(params.SONAR_SECRET_NAME)
+      runAfter:
+        - validate-quality-gate
+      taskRef:
+        kind: Task
+        name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-maven
+      workspaces:
+        - name: ws
+          workspace: ws
+        - name: nexus
+          workspace: nexus
+        - name: kubedock-pod-template
+          workspace: kubedock-pod-template
+
+    ###
+    # Push Git Tag
+    ###
+    - name: git-push-tag
+      when:
+        - input: "$(tasks.setup.results.push_tag)"
+          operator: in
+          values: [ "true" ]
+      params:
+        - name: TAG
+          value: $(tasks.setup.results.version)
+        - name: REPOSITORY_PATH
+          value: $(context.pipelineRun.uid)/source
+        - name: TOOLBOX_IMAGE
+          value: {{ .toolboxImage | default $.Values.defaultToolboxImage | quote }}
+      runAfter:
+        - maven-deploy
+      taskRef:
+        kind: Task
+        resolver: git
+        params:
+          - name: url
+            value: https://bitbucket.bit.admin.ch/scm/cnt/bit-git-push-tag.git
+          - name: revision
+            value: "refs/tags/3"
+          - name: pathInRepo
+            value: bit-git-push-tag.yaml
+      workspaces:
+        - name: output
+          workspace: ws
+        - name: ssh-directory
+          workspace: ssh
+
+    ###
+    # Execute After Push Tag Script
+    ###
+    - name: execute-after-push-tag-script
+      when:
+        - input: "{{ ((.hookScripts).afterPushTag).path | default "None" }}"
+          operator: notin
+          values: [ "None" ]
+      params:
+        - name: image_name
+          value: {{ ((.hookScripts).afterPushTag).image | default $.Values.defaultToolboxImage | quote }}
+        - name: script_path
+          value: {{ ((.hookScripts).afterPushTag).path | default "" | quote }}
+        - name: build_directory
+          value: $(context.pipelineRun.uid)/source
+        - name: maven_home_directory
+          value: $(context.pipelineRun.uid)/maven-home
+      runAfter:
+        - git-push-tag
+      taskRef:
+        kind: Task
+        name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-exec-hook-script
+      workspaces:
+        - name: ws
+          workspace: ws
+        - name: nexus
+          workspace: nexus
+
+    ###
+    # UrbanCodeDeploy Push
+    ###
+    - name: udeploy-push
+      when:
+        - input: "$(tasks.setup.results.ucd_deploy)"
+          operator: in
+          values: [ "true" ]
+      params:
+        - name: artifact_version
+          value: $(tasks.setup.results.snapshot_version)
+        - name: ucd_component
+          value: {{ .appName }}
+        - name: artifact_path
+          value: {{ .ucdArtifactPath | default '.' | quote }}
+        - name: build_directory
+          value: $(context.pipelineRun.uid)/source
+      runAfter:
+        - git-push-tag
+      taskRef:
+        kind: Task
+        name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-udeploy-push
+      workspaces:
+        - name: ws
+          workspace: ws
+        - name: udeploy
+          workspace: udeploy
+
+    ###
+    # Container Image Build
+    ###
+    - name: build-image
+      when:
+        - input: "$(tasks.setup.results.build_image)"
+          operator: in
+          values: [ "true" ]
+      params:
+        - name: WORKSPACE_DIRECTORY
+          value: "$(context.pipelineRun.uid)/source{{ if .mavenSubModule }}/{{ .mavenSubModule }}{{- end }}"
+        - name: IMAGE
+          value: "{{ $incomingImageRegistry }}/$(tasks.setup.results.image_with_version)"
+        - name: BUILDER_IMAGE
+          value: {{ .buildahImage | default $.Values.defaultBuildahImage | quote }}
+        - name: TLSVERIFY
+          # this uses the RH buildah image which does not have the correct certs for BIT repo
+          value: "false"
+        - name: LOGGING_FILE_PATH
+          value: "$(context.pipelineRun.uid)/.logging"
+        - name: HTTP_PROXY
+          value: {{ .httpProxy | default $.Values.defaultHttpProxy | quote }}
+        - name: FORMAT
+          value: {{ .buildImageFormat | default $.Values.defaultBuildImageFormat | quote }}
+      runAfter:
+        - git-push-tag
+      taskRef:
+        kind: Task
+        resolver: git
+        params:
+          - name: url
+            value: https://bitbucket.bit.admin.ch/scm/cnt/bit-buildah.git
+          - name: revision
+            value: "refs/tags/3"
+          - name: pathInRepo
+            value: bit-buildah.yaml
+      workspaces:
+        - name: source
+          workspace: ws
+        - name: dockerconfig
+          workspace: dockerconfig
+
+    ###
+    # Container Image Scan (locally)
+    ###
+    - name: trivy-image-scan
+      when:
+        - input: "$(tasks.setup.results.trivy_image_scan)"
+          operator: in
+          values: [ "true" ]
+      params:
+        - name: TRIVY_INPUT
+          value: "{{ $incomingImageRegistry }}/{{ .appName }}@$(tasks.build-image.results.IMAGE_DIGEST)"
+        - name: TRIVY_CACHE
+          value: /var/lib/trivy
+        - name: VERBOSE
+          value: $(params.VERBOSE)
+        - name: TRIVY_IGNORE_PATH
+          value: "$(context.pipelineRun.uid)/source/.trivyignore"
+        - name: TRIVY_IGNORE_UNFIXED
+          value: {{ default ($.Values.defaultTrivyIgnoreUnfixed | quote) (.trivyIgnoreUnfixed | quote) }}
+      runAfter:
+        - build-image
+      taskRef:
+        kind: Task
+        resolver: git
+        params:
+          - name: url
+            value: https://bitbucket.bit.admin.ch/scm/cnt/bit-trivy-scan.git
+          - name: revision
+            value: "refs/tags/4"
+          - name: pathInRepo
+            value: bit-trivy-scan.yaml
+      workspaces:
+        - name: source
+          workspace: ws
+        - name: dockerconfig
+          workspace: dockerconfig
+
+    ###
+    # Scan Container Image with ACS
+    ###
+    - name: acs-image-scan
+      when:
+        - input: "$(tasks.setup.results.acs_image_scan)"
+          operator: in
+          values: [ "true" ]
+        - input: "$(tasks.setup.results.deploy_stage)"
+          operator: notin
+          values: [ "none" ]
+      params:
+        - name: IMAGE
+          value: '{{ $incomingImageRegistry }}/{{ .appName }}@$(tasks.build-image.results.IMAGE_DIGEST)'
+      runAfter:
+        - build-image
+      taskRef:
+        kind: Task
+        resolver: git
+        params:
+          - name: url
+            value: https://bitbucket.bit.admin.ch/scm/cnt/bit-acs-scan.git
+          - name: revision
+            value: "refs/tags/3"
+          - name: pathInRepo
+            value: bit-acs-scan.yaml
+      workspaces:
+        - name: custom-config
+          workspace: acs-token
+        - name: roxctl
+          workspace: acs-ws
+
+
+    ###
+    # Promote Container Image to external Registry
+    ###
+    - name: promote-image
+      params:
+        - name: SKOPEO_SRCIMAGEURL
+          value: 'docker://{{ $incomingImageRegistry }}/{{ .appName }}@$(tasks.build-image.results.IMAGE_DIGEST)'
+        - name: SKOPEO_DESTIMAGEREGISTRY
+          value: {{ $imageRegistry }}
+        - name: SKOPEO_ADDITIONAL_DESTIMAGEREGISTRIES
+          value: {{ include "java-pipeline.additionalImageRegistries" (dict "domains" (.additionalImageRegistryDomains | default $.Values.global.additionalImageRegistryDomains) "baseName" ($.Values.global).nexusImageRegistryBaseName) | quote }}
+        - name: SKOPEO_DESTIMAGENAME
+          value: {{ .appName }}
+        - name: SKOPEO_DESTTAG
+          value: $(tasks.setup.results.version)
+        - name: SKOPEO_ADDITIONAL_DESTTAGS
+          value: $(tasks.build-image.results.IMAGE_DIGEST) $(tasks.setup.results.version)
+        - name: SKOPEO_DEST_DIGEST
+          value: $(tasks.build-image.results.IMAGE_DIGEST)
+        - name: SKOPEO_USE_DEST_TAG
+          value: {{ .publishVersionTag | default "" | quote }}
+        - name: SKOPEO_IMAGE
+          value: {{ .toolboxImage | default $.Values.defaultToolboxImage | quote }}
+      runAfter:
+        - trivy-image-scan
+        - acs-image-scan
+      taskRef:
+        kind: Task
+        resolver: git
+        params:
+          - name: url
+            value: https://bitbucket.bit.admin.ch/scm/cnt/bit-skopeo-copy.git
+          - name: revision
+            value: "refs/tags/4"
+          - name: pathInRepo
+            value: bit-skopeo-copy.yaml
+      workspaces:
+        - name: source
+          workspace: ws
+        - name: dockerconfig-src
+          workspace: dockerconfig
+        - name: dockerconfig-dest
+          workspace: dockerconfig
+
+    {{- $deployList := .deployApps | default (list .appName) -}}
+    {{- range $idx, $deploy := $deployList }}
+    ###
+    # Trigger Deployment Pipeline when image tag is not tagged with version.
+    ###
+    - name: {{ printf "trigger-cdp-with-digest-%d-%s" $idx $deploy | trunc 63 }}
+      when:
+        - input: $(tasks.setup.results.deploy_stage)
+          operator: notin
+          values: [ "none" ]
+        - input: "$(tasks.setup.results.push_image_tag)"
+          operator: notin
+          values: [ "true" ]
+      params:
+        - name: app_name
+          value: "{{ $deploy }}"
+        - name: git_repo
+          value: $(params.GIT_REPO)
+        - name: git_commit
+          value: $(tasks.git-clone.results.commit)
+        - name: deploy_stage
+          value: $(tasks.setup.results.deploy_stage)
+        - name: version
+          value: $(tasks.setup.results.snapshot_version)
+        - name: image_digest
+          value: $(tasks.build-image.results.IMAGE_DIGEST)
+        - name: maven_published
+          value: $(tasks.setup.results.maven_deploy)
+        - name: pipeline_run_name
+          value: $(context.pipelineRun.name)
+        - name: verify_deployment
+          value: $(tasks.setup.results.verify_deployment)
+        - name: toolbox_image
+          value: {{ $app.toolboxImage | default $.Values.defaultToolboxImage | quote }}
+        - name: resource_base_name
+          value: {{ ($.Values.global).overrideCdpReleaseName | default "" | quote }}
+        - name: pipeline_prefix
+          value: "cdp"
+        - name: access_token_secret_name
+          value: {{ ($.Values.global).overrideJbpReleaseName | default "" }}-jbp-webhook-deployment-accesstoken
+      taskRef:
+        kind: Task
+        resolver: git
+        params:
+          - name: url
+            value: https://bitbucket.bit.admin.ch/scm/cnt/bit-trigger-deployment-pipeline.git
+          - name: revision
+            value: "master"
+          - name: pathInRepo
+            value: bit-trigger-deployment.yaml
+      runAfter:
+        - promote-image
+
+    ###
+    # Trigger Deployment Pipeline when image is tagged with version
+    ###
+    - name: {{ printf "trigger-cdp-with-version-%d-%s" $idx $deploy | trunc 63 }}
+      when:
+        - input: $(tasks.setup.results.deploy_stage)
+          operator: notin
+          values: [ "none" ]
+        - input: "$(tasks.setup.results.push_image_tag)"
+          operator: in
+          values: [ "true" ]
+      params:
+        - name: app_name
+          value: "{{ $deploy }}"
+        - name: git_repo
+          value: $(params.GIT_REPO)
+        - name: git_commit
+          value: $(tasks.git-clone.results.commit)
+        - name: deploy_stage
+          value: $(tasks.setup.results.deploy_stage)
+        - name: version
+          value: $(tasks.setup.results.snapshot_version)
+        - name: image_digest
+          value: ""
+        - name: maven_published
+          value: $(tasks.setup.results.maven_deploy)
+        - name: pipeline_run_name
+          value: $(context.pipelineRun.name)
+        - name: verify_deployment
+          value: $(tasks.setup.results.verify_deployment)
+        - name: toolbox_image
+          value: {{ $app.toolboxImage | default $.Values.defaultToolboxImage | quote }}
+        - name: resource_base_name
+          value: {{ ($.Values.global).overrideCdpReleaseName | default "" }}
+        - name: pipeline_prefix
+          value: "cdp"
+        - name: access_token_secret_name
+          value: {{ ($.Values.global).overrideJbpReleaseName | default "" }}-jbp-webhook-deployment-accesstoken
+      taskRef:
+        kind: Task
+        resolver: git
+        params:
+          - name: url
+            value: https://bitbucket.bit.admin.ch/scm/cnt/bit-trigger-deployment-pipeline.git
+          - name: revision
+            value: "master"
+          - name: pathInRepo
+            value: bit-trigger-deployment.yaml
+      runAfter:
+        - promote-image
+    {{- end }}
+
+
+  finally:
+    - name: logging
+      params:
+        - name: logging-file-path
+          value: {{ $.Values.defaultLoggingFile }}
+        - name: pipeline-run-name
+          value: $(context.pipelineRun.name)
+        - name: tasks-status
+          value: $(tasks.status)
+        - name: reference-pipeline-name
+          value: {{ $.Chart.Name }}
+        - name: reference-pipeline-version
+          value: {{ $.Chart.Version }}
+        - name: git-url
+          value: $(params.GIT_REPO)
+        - name: gitops-repository
+          value: "{{ ($.Values.global).gitOpsRepo }}"
+        - name: git-branch
+          value: $(params.GIT_BRANCH)
+        - name: commit-id
+          value: $(tasks.git-clone.results.commit)
+        - name: pipeline-run-namespace
+          value: $(context.pipelineRun.namespace)
+        - name: pipeline-run-uid
+          value: $(context.pipelineRun.uid)
+      taskRef:
+        kind: Task
+        resolver: git
+        params:
+          - name: url
+            value: https://bitbucket.bit.admin.ch/scm/cnt/bit-aggregate-logs.git
+          - name: revision
+            value: "refs/tags/3"
+          - name: pathInRepo
+            value: bit-aggregate-logs.yaml
+      workspaces:
+        - name: ws
+          workspace: ws
+    - name: cleanup
+      taskRef:
+        kind: Task
+        resolver: git
+        params:
+          - name: url
+            value: https://bitbucket.bit.admin.ch/scm/cnt/bit-cleanup-workspace.git
+          - name: revision
+            value: "refs/tags/3"
+          - name: pathInRepo
+            value: bit-cleanup-workspace.yaml
+      params:
+        - name: directory
+          value: $(context.pipelineRun.uid)
+        - name: minimal-image
+          value: {{ .toolboxImage | default $.Values.defaultToolboxImage | quote }}
+      workspaces:
+        - name: output
+          workspace: ws
+    ###
+    # Notify Bitbucket of the build result
+    ###
+    - name: notify-bitbucket
+      params:
+        - name: commit-id
+          value: $(tasks.git-clone.results.commit)
+        - name: pipeline-status
+          value: $(tasks.status)
+        - name: pipeline-run-name
+          value: $(context.pipelineRun.name)
+        - name: pipeline-name
+          value: $(context.pipeline.name)
+        - name: pipeline-run-namespace
+          value: $(context.pipelineRun.namespace)
+        - name: pipeline-run-uid
+          value: $(context.pipelineRun.uid)
+        - name: git-repo
+          value: $(params.GIT_REPO)
+        - name: bitbucket-secret-authtoken
+          value: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-bitbucket-accesstoken
+        - name: toolbox-image
+          value: {{ .toolboxImage | default $.Values.defaultToolboxImage | quote }}
+      taskRef:
+        kind: Task
+        resolver: git
+        params:
+          - name: url
+            value: https://bitbucket.bit.admin.ch/scm/cnt/bit-notify-bitbucket.git
+          - name: revision
+            value: "refs/tags/3"
+          - name: pathInRepo
+            value: bit-notify-bitbucket.yaml
+
+    ###
+    # mail failure
+    ###
+    - name: mail-failure
+      when:
+        - input: {{ ($.Values.global).sendNotification | default false | quote }}
+          operator: in
+          values: [ "true" ]
+      params:
+        - name: git_pusher_recipient
+          value: "$(params.GIT_PUSHER_EMAIL)"
+        - name: recipients
+          value: {{ .notificationRecipients
+                                | default $.Values.notificationRecipients
+                                | default $.Values.global.notificationRecipients
+                                | default ""
+                                | quote }}
+        - name: sender
+          value: {{ ($.Values.global).notificationSender | default $.Values.defaultNotificationSender | quote }}
+        - name: server_host
+          value: {{ ($.Values.global).notificationServerHost | default $.Values.defaultNotificationServerHost | quote }}
+        - name: server_port
+          value: {{ ($.Values.global).notificationServerPort | default $.Values.defaultNotificationServerPort | quote }}
+        - name: pipeline_run_namespace
+          value: $(context.pipelineRun.namespace)
+        - name: pipeline_run_name
+          value: $(context.pipelineRun.name)
+      taskRef:
+        name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-mail-failure
+        kind: Task
+  workspaces:
+    - name: ws
+      description: This workspace will receive the cloned git repo.
+    - name: ssh
+      optional: true
+    - name: nexus
+      description: This workspace will receive the Nexus username/password credentials.
+    - name: sonar
+      description: This workspace will receive the Sonar token.
+    - name: dockerconfig
+    - name: acs-token
+      description: Workspace for ACS, holding token
+    - name: acs-ws
+      description: Workspace for ACS
+    - name: udeploy
+      description: UCD access token
+      optional: true
+    - name: webhook-deployment
+      description: 'deployment webhook credentials to access the deployment pipeline endpoint'
+    - name: kubedock-pod-template
+      description: Contains the kubedock-pod-template.
+  results:
+    - description: The common vulnerabilities and exposures (CVE) result
+      name: SCAN_OUTPUT
+      value: $(tasks.acs-image-scan.results.SCAN_OUTPUT)
+{{ end }}

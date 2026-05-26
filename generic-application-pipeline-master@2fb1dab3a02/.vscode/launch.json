@@ -1,0 +1,32 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: process_monorepo_event.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/process_monorepo_event.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--git_rev", "7bab0741b75d7479d6520923259ff9a4f1dd756c",
+                "--git_from_hash", "0000000000000000000000000000000000000000",
+                "--git_host_url", "https://bitbucket.bit.admin.ch",
+                "--git_project_name", "STIRHOS",
+                "--git_repo_slug", "sti-gap-example",
+                "--git_pusher", "u80844897",
+                "--git_pusher_displayname", "Molon Patrick BIT",
+                "--git_pusher_email", "patrick.molon@bit.admin.ch",
+                "--resource_prefix", "sti-1973-gp",
+                "--run_namespace", "bit-amber-pipelines-d",
+                "--log_level", "INFO",
+                "--pipeline_runs_file", "monorepo-pipeline-runs.yaml",
+                "--all_applications_as_json", "[{\"appName\":\"app1-with-context-paths\",\"buildImageContextPath\":\"app1/\",\"containerFilePath\":\"Containerfile\",\"imageName\":\"bit/app1\",\"imageRegistry\":\"bit-sti-docker-hosted.nexus.bit.admin.ch\",\"imageRegistryStaging\":\"bit-sti-docker-hosted-incoming.nexus.bit.admin.ch\",\"repoType\":\"bitbucket\",\"srcRepo\":\"ssh://git@bitbucket.bit.admin.ch/stirhos/sti-gap-example.git\",\"taskComputeResources\":{},\"taskRunSpecs\":{\"taskRunSpecs\":[]}},{\"appName\":\"app2-with-context-paths\",\"buildImageContextPath\":\"app2/\",\"containerFilePath\":\"Dockerfile\",\"imageName\":\"bit/app2\",\"imageRegistry\":\"bit-sti-docker-hosted.nexus.bit.admin.ch\",\"imageRegistryStaging\":\"bit-sti-docker-hosted-incoming.nexus.bit.admin.ch\",\"repoType\":\"bitbucket\",\"srcRepo\":\"ssh://git@bitbucket.bit.admin.ch/stirhos/sti-gap-example.git\",\"taskComputeResources\":{},\"taskRunSpecs\":{\"taskRunSpecs\":[]}},{\"appName\":\"app3-with-context-paths\",\"buildImageContextPath\":\"app3/\",\"imageName\":\"bit/app3\",\"imageRegistry\":\"bit-sti-docker-hosted.nexus.bit.admin.ch\",\"imageRegistryStaging\":\"bit-sti-docker-hosted-incoming.nexus.bit.admin.ch\",\"repoType\":\"bitbucket\",\"srcRepo\":\"ssh://git@bitbucket.bit.admin.ch/stirhos/app3.git\",\"taskComputeResources\":{},\"taskRunSpecs\":{\"taskRunSpecs\":[]}},{\"appName\":\"app4-with-context-paths\",\"buildImageContextPath\":\"app4/\",\"containerFilePath\":\"Dockerfile\",\"imageName\":\"bit/app4\",\"imageRegistry\":\"bit-sti-docker-hosted.nexus.bit.admin.ch\",\"imageRegistryStaging\":\"bit-sti-docker-hosted-incoming.nexus.bit.admin.ch\",\"repoType\":\"bitbucket\",\"srcRepo\":\"ssh://git@bitbucket.bit.admin.ch/stirhos/sti-gap-example.git\",\"taskComputeResources\":{},\"taskRunSpecs\":{\"taskRunSpecs\":[]}}]"
+
+            ],
+            "envFile": "${workspaceFolder}/scripts/.env"
+        }
+    ]
+}

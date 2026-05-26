@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <servers>
+        <server>
+            <id>bit-maven-releases</id>
+            <username>@USERNAME@</username>
+            <password>@PASSWORD@</password>
+        </server>
+        <server>
+            <id>bit-maven-snapshots</id>
+            <username>@USERNAME@</username>
+            <password>@PASSWORD@</password>
+        </server>
+        <server>
+            <id>bit-maven-mirror</id>
+            <username>@USERNAME@</username>
+            <password>@PASSWORD@</password>
+        </server>
+    </servers>
+
+    <mirrors>
+        <mirror>
+            <id>bit-maven-mirror</id>
+            <url>https://nexus.bit.admin.ch/repository/maven-group/</url>
+            <mirrorOf>*</mirrorOf>
+        </mirror>
+    </mirrors>
+
+    <profiles>
+        <profile>
+            <id>bit-maven-profile</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <releaseRepositoryId>bit-maven-releases</releaseRepositoryId>
+                <releaseRepositoryName>BIT Maven Release Repository</releaseRepositoryName>
+                <releaseRepositoryUrl>@RELEASEREPO@</releaseRepositoryUrl>
+                <snapshotRepositoryId>bit-maven-snapshots</snapshotRepositoryId>
+                <snapshotRepositoryName>BIT Maven Snapshot Repository</snapshotRepositoryName>
+                <snapshotRepositoryUrl>@SNAPSHOTREPO@</snapshotRepositoryUrl>
+                <nexusUsername>@USERNAME@</nexusUsername>
+                <nexusPassword>@PASSWORD@</nexusPassword>
+            </properties>
+            <repositories>
+                <repository>
+                    <id>central</id>
+                    <name>Nexus Managed Repository</name>
+                    <url>https://nexus.bit.admin.ch/repository/maven-group/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>central</id>
+                    <name>Nexus Managed Plugin Repository</name>
+                    <url>https://nexus.bit.admin.ch</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+</settings>

@@ -1,0 +1,52 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    {{- include "java-pipeline.labels" . | nindent 4 }}
+  annotations:
+    {{- include "java-pipeline.annotations" . | nindent 4 }}
+  name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-exec-hook-script
+spec:
+  description: This Task can be used to execute custom hook scripts
+  params:
+    - name: script_path
+      description: path inside mapped workspace of script to execute
+      type: string
+    - name: image_name
+      description: Container image to use for executing the script
+      type: string
+    - name: build_directory
+      description: Subdirectory in the workspace to run the build in
+      type: string
+      default: "."
+    - name: maven_home_directory
+      description: Subdirectory in the workspace to store settings.xml in
+      type: string
+      default: "."
+    - name: maven_m2_directory
+      type: string
+      description: name of the directory used for .m2 cache inside the workspace
+      default: "local-maven-repo/.m2/repository"
+  steps:
+    - name: run-script
+      image: $(params.image_name)
+      env:
+        - name: MAVEN_ARGS
+          value: >-
+            -s $(workspaces.ws.path)/$(params.maven_home_directory)/settings.xml
+            -Dmaven.repo.local=$(workspaces.ws.path)/$(params.maven_m2_directory)
+      script: |
+        #!/usr/bin/env sh
+        $(params.script_path)
+      workingDir: $(workspaces.ws.path)/$(params.build_directory)
+      timeout: 1h0m0s
+      securityContext:
+        runAsNonRoot: true
+        runAsGroup: 65532
+        runAsUser: 65532
+      resources: {{- include "pipeline.stepResources" (dict "name" "run-script" "nameSuffix" "exec-hook-script" "Values" .Values "defaultProfile" "small") | nindent 8 }}
+  workspaces:
+    - description: The workspace containing the maven project
+      name: ws
+    - description: nexus username and password for authenticated maven access
+      name: nexus

@@ -1,0 +1,16 @@
+apiVersion: v2
+name: java-build-pipeline
+description: A Helm chart library for Tekton Java build pipeline
+home: https://bitbucket.bit.admin.ch/projects/CNP/repos/java-build-pipeline/browse/README.md
+sources:
+  - https://bitbucket.bit.admin.ch/projects/CNP/repos/java-build-pipeline/browse
+maintainers:
+  - name: jEAP
+    email: none@bit.admin.ch
+    url: https://teams.microsoft.com/l/channel/19%3A7202fca9d70c429fb2d145fd8f315877%40thread.tacv2/Ask_jEAP?groupId=4da9e6ac-20fc-493e-90e5-9fad7750406d&tenantId=6ae27add-8276-4a38-88c1-3a9c1f973767
+annotations:
+  support: community
+  user_base: public
+
+type: application
+version: 3.7.0

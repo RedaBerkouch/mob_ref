@@ -1,0 +1,771 @@
+{{- range .Values.applications }}
+{{ $dummy := fromJson (include "generic-application-pipeline.applyApplicationDefaults" (list . $)) }}
+{{- $pipelineTasksConfig := default dict .pipelineTasksConfig }}
+{{- $downloadFilesFileName := default ($.Values.defaultPipelineTasksConfig.downloadFilesFileName | quote) ($pipelineTasksConfig.downloadFilesFileName | quote) }}
+{{- $downloadFilesExecuteCustomScript := default ($.Values.defaultPipelineTasksConfig.downloadFilesExecuteCustomScript | quote) ($pipelineTasksConfig.downloadFilesExecuteCustomScript | quote) }}
+{{- $dependencyTrackApiUrl := default ($.Values.defaultPipelineTasksConfig.dependencyTrackApiUrl | quote) ($pipelineTasksConfig.dependencyTrackApiUrl | quote) }}
+{{- $credentialScanAllowsSkipOnFailureBool := hasKey . "credentialScanAllowsSkipOnFailure" | ternary .credentialScanAllowsSkipOnFailure $.Values.defaultCredentialScanAllowsSkipOnFailure }}
+{{- $malwareScanAllowsSkipOnFailureBool := hasKey . "malwareScanAllowsSkipOnFailure" | ternary .malwareScanAllowsSkipOnFailure $.Values.defaultMalwareScanAllowsSkipOnFailure }}
+
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: {{ .appName }}-{{ include "generic-application-pipeline.pipelineSuffix" . }}-build-pipeline
+  labels:
+    {{- include "generic-application-pipeline.metadata.template-labels" ((dict "appName" .appName "Chart" $.Chart "Values" $.Values)) | nindent 4 }}
+  annotations:
+    {{- include "generic-application-pipeline.metadata.template-annotations" . | nindent 4 }}
+spec:
+  params:
+    - name: GIT_REPO
+      description: SSH URL of the source code git repository
+      type: string
+      default: {{ .srcRepo }}
+    - name: GIT_REV
+      description: Revision/Branch of source code git repo
+      default: develop
+      type: string
+    - name: GIT_COMMITTER_EMAIL
+      description: email to use in git commits
+      type: string
+      default: {{ .gitCommitterEmail | default $.Values.defaultGitCommitterEmail | quote }}
+    - name: GIT_COMMITTER_NAME
+      description: name to use in git commits
+      type: string
+      default: {{ .gitCommitterName | default $.Values.defaultGitCommitterName | quote }}
+    - name: PATH_TO_DOCKERFILE
+      description: Path to Dockerfile in GIT_REPO
+      type: string
+      default: {{ .containerFilePath | default $.Values.defaultContainerFilePath | quote }}
+    - name: IMAGE_REPO
+      description: "Image repository for produced image, examples: repo.bit.admin.ch:8445, registry.access.redhat.com"
+      type: string
+      default: {{ .imageRegistry }}
+    - name: ADDITIONAL_IMAGE_REPOS
+      description: "Space separated list of additional image registries for produced image, example: additional-repo.nexus-campus.bit.admin.ch registry.access.redhat.com"
+      type: string
+      default: {{ .additionalImageRegistries | default $.Values.defaultAdditionalImageRegistries | quote }}
+    - name: IMAGE_REPO_STAGING
+      description: "Image repository for temporarily staging the image to perform security tests against"
+      type: string
+      default: {{ .imageRegistryStaging }}
+    - name: IMAGE_NAME
+      description: Name for produced image
+      type: string
+      default: {{ .imageName }}
+    - name: ADDITIONAL_TAGS
+      description: Space separated list of additional tags
+      type: string
+      default: {{ .buildVersionAdditionalTags | default $.Values.defaultBuildVersionAdditionalTags | quote }}
+    - name: BUILD_ID
+      description: The id of the Azure DevOps build, only relevant when concerned application `repoType` is `azure`
+      type: string
+      default: "no-build"
+  tasks:
+
+    ###
+    # Clone src code repository
+    ###
+    - name: git-clone
+      params:
+        - name: url
+          value: $(params.GIT_REPO)
+        - name: revision
+          value: $(params.GIT_REV)
+        - name: sslVerify
+          value: 'false'
+        - name: verbose
+          value: 'false'
+        - name: subdirectory
+          value: $(context.pipelineRun.uid)
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch/scm/cnt/bit-git-clone.git") }}
+          - name: revision
+            value: 'refs/tags/2'
+          - name: pathInRepo
+            value: bit-git-clone.yaml
+      workspaces:
+        - name: output
+          workspace: ws
+        - name: ssh-directory
+          workspace: ssh-key
+
+    {{- if eq .repoType "azure" }}
+    {{- if not $.Values.enableMonorepo }}
+    ###
+    # Notify Azure Devops that build is in-progress
+    ###
+    - name: notify-azure-inprogress
+      when:
+        - input: "$(tasks.setup.results.BUILD_NOTIFICATIONS)"
+          operator: in
+          values: [ "true" ]
+      runAfter:
+        - git-clone
+      params:
+        - name: gitRepoUrl
+          value: $(params.GIT_REPO)
+        - name: azureDevopsTokenSecretName
+          value: {{ include "generic-application-pipeline.releaseName" $ }}-azure-http-access-token
+        - name: repoName
+          value: $(params.GIT_REPO)
+        - name: buildId
+          value: $(params.BUILD_ID)
+        - name: toolboxImageName
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851") }}
+        - name: pipelineStatus
+          value: InProgress
+        - name: logJson
+          value: "true"
+        - name: failsafeRepeats
+          value: "3"
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch/scm/cnt/bit-notify-azure-devops.git") }}
+          - name: revision
+            value: 'refs/tags/3'
+          - name: pathInRepo
+            value: bit-notify-azure-devops.yaml
+    {{- end }}
+    {{- else }}
+
+    ###
+    # notify bitbucket about build in progress
+    ###
+    - name: notify-bitbucket-inprogress
+      when:
+        - input: "$(tasks.setup.results.BUILD_NOTIFICATIONS)"
+          operator: in
+          values: [ "true" ]
+      runAfter:
+        - git-clone
+      params:
+        - name: commit-id
+          value: $(tasks.git-clone.results.commit)
+        - name: pipeline-status
+          value: InProgress
+        - name: pipeline-run-name
+          value: $(context.pipelineRun.name)
+        - name: pipeline-run-namespace
+          value: $(context.pipelineRun.namespace)
+        - name: pipeline-run-uid
+          value: $(context.pipelineRun.uid)
+        - name: pipeline-name
+          value: {{ .appName }}-{{ include "generic-application-pipeline.pipelineSuffix" . }}-build-pipeline
+        - name: bitbucket-secret-authtoken
+          value: {{ include "generic-application-pipeline.releaseName" $ }}-bitbucket-http-access-token
+        - name: git-repo
+          value: $(params.GIT_REPO)
+        - name: toolbox-image
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851") }}
+        - name: bitbucket-host
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bitbucket.bit.admin.ch") }}
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch/scm/cnt/bit-notify-bitbucket.git") }}
+          - name: revision
+            value: 'refs/tags/3'
+          - name: pathInRepo
+            value: bit-notify-bitbucket.yaml
+    {{- end }}
+
+    ###
+    # Setup
+    ###
+    - name: setup
+      runAfter:
+        - git-clone
+      params:
+        - name: GIT_REPO
+          value: $(params.GIT_REPO)
+        - name: PATH_TO_DOCKERFILE
+          value: $(params.PATH_TO_DOCKERFILE)
+        - name: CONTEXT
+          value: {{ .buildImageContextPath | default $.Values.defaultBuildImageContextPath | quote }}
+        - name: IMAGE_REPO
+          value: $(params.IMAGE_REPO)
+        - name: IMAGE_NAME
+          value: $(params.IMAGE_NAME)
+        - name: PIPELINE_RUN_NAME
+          value: $(context.pipelineRun.name)
+        - name: PIPELINE_RUN_NS
+          value: $(context.pipelineRun.namespace)
+        - name: SUBDIRECTORY
+          value: $(context.pipelineRun.uid)
+        - name: GIT_REV
+          value: $(params.GIT_REV)
+        - name: VERSION_TEMPLATE
+          value: {{ .buildVersionTemplate | default $.Values.defaultBuildVersionTemplate | quote }}
+        - name: VERSION_FILE_PATH
+          value: {{ .buildVersionFilePath | default $.Values.defaultBuildVersionFilePath }}
+        - name: VERSION_DATE_PATTERN
+          value: {{ .buildVersionDatePattern | default $.Values.defaultBuildVersionDatePattern | quote }}
+        - name: ADD_FOITT_LABELS_TO_IMAGE
+          value: {{ default ($.Values.defaultBuildAddLabels | quote) (.buildAddLabels | quote) }}
+        - name: TOOLBOX_IMAGE
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851") }}
+        - name: VERSION_REPLACEMENT_STRING
+          value: {{ .buildVersionReplacementString | default $.Values.defaultBuildVersionReplacementString | quote }}
+        - name: DEFAULT_BRANCH_TASK_CONFIGURATION
+          value: |
+            {{ toRawJson $.Values.defaultBranchTaskConfiguration | indent 4 }}
+        - name: APP_BRANCH_TASK_CONFIGURATION
+          value: |
+            {{ toRawJson (.branchTaskConfiguration | default dict) | indent 4 }}
+
+      taskRef:
+        kind: Task
+        name: {{ include "generic-application-pipeline.resourceName" (list $ . "setup") }}
+      workspaces:
+        - name: source
+          workspace: ws
+        - name: dockerconfig
+          workspace: dockerconfig
+
+    ###
+    # Download files for image build process
+    ###
+    - name: download-files
+      when:
+        - input: "$(tasks.setup.results.DOWNLOAD_FILES)"
+          operator: in
+          values: [ "true" ]
+      runAfter:
+        - git-clone
+      params:
+        - name: CONTEXT
+          value: $(context.pipelineRun.uid)
+        - name: DOWNLOADFILE_NAME
+          value: {{ $downloadFilesFileName }}
+        - name: EXECUTE_CUSTOM_SCRIPT
+          value: {{ $downloadFilesExecuteCustomScript }}
+        - name: TOOLBOX_IMAGE
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851") }}
+      taskRef:
+        kind: Task
+        name: {{ include "generic-application-pipeline.resourceName" (list $ . "download-files") }}
+      workspaces:
+        - name: source
+          workspace: ws
+        - name: netrc
+          workspace: netrc
+
+    ###
+    # build the image
+    ###
+    - name: build-image
+      runAfter:
+        - download-files
+        - setup
+      params:
+        - name: DOCKERFILE
+          value: $(params.PATH_TO_DOCKERFILE)
+        - name: IMAGE
+          value: "$(params.IMAGE_REPO_STAGING)/$(params.IMAGE_NAME):$(tasks.setup.results.IMAGE_TAG)"
+        - name: WORKSPACE_DIRECTORY
+          value: "$(context.pipelineRun.uid)"
+        - name: BUILD_EXTRA_ARGS
+          value: "$(tasks.setup.results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS)"
+        - name: TLSVERIFY # TODO change to true
+          value: "false"
+        - name: LOGGIN_FILE_PATH
+          value: "$(context.pipelineRun.uid).logging"
+        - name: HTTP_PROXY
+          value: {{ .httpProxy | default $.Values.defaultHttpProxy | quote }}
+        - name: FORMAT
+          value: {{ .buildImageFormat | default $.Values.defaultBuildImageFormat | quote }}
+        - name: LOGGING_IMAGE
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851") }}
+        - name: CONTEXT
+          value: {{ .buildImageContextPath | default $.Values.defaultBuildImageContextPath | default "." | quote }}
+        - name: USE_PIPELINE_PVC_FOR_BUILD
+          value: {{ .usePipelinePvcForBuild | default $.Values.defaultUsePipelinePvcForBuild | quote }}
+      taskRef:
+         resolver: git
+         params:
+           - name: url
+             value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch/scm/cnt/bit-buildah.git") }}
+           - name: revision
+             value: 'refs/tags/3'
+           - name: pathInRepo
+             value: bit-buildah.yaml
+      workspaces:
+        - name: source
+          workspace: ws
+        - name: dockerconfig
+          workspace: dockerconfig
+
+    ###
+    # scan for credentials
+    ###
+    - name: credential-scan
+      runAfter:
+        - build-image
+      params:
+        - name: CONTEXT_DIR
+          value: $(context.pipelineRun.uid)
+        - name: GIT_COMMIT
+          value: $(tasks.git-clone.results.commit)
+        - name: SKIP_FAILURE
+          value: {{ $credentialScanAllowsSkipOnFailureBool | quote }}
+        - name: EXCLUDE_REG
+          value: [ ]
+        - name: TOOLBOX_IMAGE
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851") }}
+        - name: TRUFFLEHOG_IMAGE
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9/trufflehog:0.0.6") }}
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch/scm/cnt/bit-trufflehog-scan.git") }}
+          - name: revision
+            value: 'refs/tags/3'
+          - name: pathInRepo
+            value: bit-trufflehog-scan.yaml
+      workspaces:
+        - name: source
+          workspace: ws
+        - name: exclude-settings
+          workspace: ws
+          subPath: $(context.pipelineRun.uid)
+
+    ###
+    # Container Image Scan
+    ###
+    - name: trivy-image-scan
+      runAfter:
+        - build-image
+      params:
+        - name: TRIVY_POLICY_CHECK
+          value: 'true'
+        - name: TRIVY_INPUT
+          value: $(params.IMAGE_REPO_STAGING)/$(params.IMAGE_NAME)@$(tasks.build-image.results.IMAGE_DIGEST)
+        - name: TRIVY_CACHE
+          value: /var/lib/trivy
+        - name: TRIVY_IGNORE_PATH
+          value: "$(context.pipelineRun.uid)/{{ .trivyIgnorePath | default $.Values.defaultTrivyIgnorePath }}"
+        - name: TRIVY_IGNORE_UNFIXED
+          value: {{ default ($.Values.defaultTrivyIgnoreUnfixed | quote) (.trivyIgnoreUnfixed | quote) }}
+        - name: TRIVY_IMAGE
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9/trivy-standalone:latest") }}
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch/scm/cnt/bit-trivy-scan.git") }}
+          - name: revision
+            value: 'refs/tags/4'
+          - name: pathInRepo
+            value: bit-trivy-scan.yaml
+      workspaces:
+        - name: source
+          workspace: ws
+        - name: dockerconfig
+          workspace: dockerconfig
+
+    ###
+    # SBOM - SCA
+    ###
+    - name: sca-check
+      when:
+        - input: "$(tasks.setup.results.RUN_SCA_CHECK)"
+          operator: in
+          values: [ "true" ]
+      runAfter:
+        - build-image
+      params:
+        - name: BUILD_DIRECTORY
+          value: $(context.pipelineRun.uid)
+        - name: HOME
+          value: $(workspaces.ws.path)
+        - name: TRIVY_INPUT
+          value: $(params.IMAGE_REPO_STAGING)/$(params.IMAGE_NAME)@$(tasks.build-image.results.IMAGE_DIGEST)
+        - name: TRIVY_COMMAND
+          value: image
+        - name: TRIVY_CACHE
+          value: /var/lib/trivy
+        - name: TRIVY_IMAGE
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9/trivy-standalone:latest") }}
+        - name: NAME_OVERRIDE
+          value: $(params.IMAGE_NAME)
+        - name: VERSION_OVERRIDE
+          value: 'latest'
+        - name: PARENT_NAME
+          value: {{ .dependencyTrackParentName | default $.Values.defaultDependencyTrackParentName | quote }}
+        - name: PARENT_VERSION
+          value: {{ .dependencyTrackParentVersion | default $.Values.defaultDependencyTrackParentVersion | quote }}
+        - name: DT_API_KEY_SECRET_NAME
+          value: {{ include "generic-application-pipeline.releaseName" $ }}-dependency-track-test-api-key
+        - name: DT_API_URL
+          value: {{ $dependencyTrackApiUrl }}
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch/scm/cnt/bit-dependency-scan.git") }}
+          - name: revision
+            value: 'refs/tags/4'
+          - name: pathInRepo
+            value: bit-dependency-scan.yaml
+      workspaces:
+        - name: ws
+          workspace: ws
+        - name: dockerconfig
+          workspace: dockerconfig
+
+    ###
+    # Scan image with ACS
+    ###
+    - name: acs-image-scan
+      runAfter:
+        - build-image
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE_REPO_STAGING)/$(params.IMAGE_NAME)@$(tasks.build-image.results.IMAGE_DIGEST)
+        - name: ROX_CENTRAL_ENDPOINT
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://central-stackrox.apps.p-svz-ros-mgmt-prd-01.cloud.admin.ch:443") }}
+        - name: TOOLBOX_IMAGE
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851") }}
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch/scm/cnt/bit-acs-scan.git") }}
+          - name: revision
+            value: 'refs/tags/4'
+          - name: pathInRepo
+            value: bit-acs-scan.yaml
+      workspaces:
+        - name: custom-config
+          workspace: acs-api-token
+        - name: roxctl
+          workspace: acs-ws
+        - name: results
+          workspace: acs-results
+
+    ###
+    # Malware scan based on the antivirus service from the Service Portal
+    ###
+    - name: malware-scan
+      when:
+        - input: "$(tasks.setup.results.RUN_MALWARE_SCAN)"
+          operator: in
+          values: [ "true" ]
+      runAfter:
+        - build-image
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE_REPO_STAGING)/$(params.IMAGE_NAME)@$(tasks.build-image.results.IMAGE_DIGEST)
+        - name: VAULT_SECRET_PATH
+          value: {{ quote (.malwareScanVaultSecretPath | default "") }}
+        - name: SKIP_FAILURE
+          value: {{ $malwareScanAllowsSkipOnFailureBool | quote }}
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch/scm/cnt/bit-malware-scan.git") }}
+          - name: revision
+            value: 'refs/tags/1'
+          - name: pathInRepo
+            value: bit-malware-scan.yaml
+      workspaces:
+        - name: dockerconfig
+          workspace: dockerconfig
+    ###
+    # Push image to target repository
+    ###
+    - name: promote-image
+      when:
+        - input: "$(tasks.setup.results.PROMOTE_IMAGE)"
+          operator: in
+          values: [ "true" ]
+      runAfter:
+        - acs-image-scan
+        - credential-scan
+        - trivy-image-scan
+        - malware-scan
+      params:
+        - name: SKOPEO_SRCIMAGEURL
+          value: docker://$(params.IMAGE_REPO_STAGING)/$(params.IMAGE_NAME)@$(tasks.build-image.results.IMAGE_DIGEST)
+        - name: SKOPEO_DESTIMAGEPROTOCOL
+          value: docker://
+        - name: SKOPEO_DESTIMAGEREGISTRY
+          value: $(params.IMAGE_REPO)
+        - name: SKOPEO_DESTIMAGENAME
+          value: $(params.IMAGE_NAME)
+        - name: SKOPEO_ADDITIONAL_DESTIMAGEREGISTRIES
+          value: $(params.ADDITIONAL_IMAGE_REPOS)
+        - name: SKOPEO_DESTTAG
+          value: $(tasks.setup.results.IMAGE_TAG)
+        - name: SKOPEO_ADDITIONAL_DESTTAGS
+          value: $(params.ADDITIONAL_TAGS)
+        - name: SKOPEO_SRCTLSVERIFY # TODO change to true
+          value: 'false'
+        - name: SKOPEO_DESTTLSVERIFY # TODO change to true
+          value: 'false'
+        - name: SKOPEO_USE_DEST_TAG
+          value: 'true'
+        - name: SKOPEO_IMAGE
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851") }}
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch/scm/cnt/bit-skopeo-copy.git") }}
+          - name: revision
+            value: 'refs/tags/4'
+          - name: pathInRepo
+            value: bit-skopeo-copy.yaml
+      workspaces:
+        - name: source
+          workspace: ws
+        - name: dockerconfig-src
+          workspace: dockerconfig
+        - name: dockerconfig-dest
+          workspace: dockerconfig
+
+    ###
+    # Trigger Deployment Pipeline
+    ###
+    - name: trigger-deployment-pipeline
+      when:
+        - input: $(tasks.setup.results.DEPLOY_STAGE)
+          operator: notin
+          values: [ "none" ]
+      params:
+        - name: app_name
+          value: {{ .appName }}
+        - name: git_repo
+          value: $(params.GIT_REPO)
+        - name: git_commit
+          value: $(tasks.git-clone.results.commit)
+        - name: deploy_stage
+          value: $(tasks.setup.results.DEPLOY_STAGE)
+        - name: version
+          value: $(tasks.setup.results.IMAGE_TAG)
+        - name: image_digest
+          value: $(tasks.build-image.results.IMAGE_DIGEST)
+        - name: image_digest_variable_name
+          value: "imageDigest"
+        - name: maven_published
+          value: "false"
+        - name: pipeline_run_name
+          value: $(context.pipelineRun.name)
+        - name: verify_deployment
+          value: $(tasks.setup.results.VERIFY_DEPLOYMENT)
+        - name: toolbox_image
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851") }}
+        - name: resource_base_name
+          value: {{ ($.Values.global).overrideCdpReleaseName | default "cd-ppl-chart" }}
+        - name: pipeline_prefix
+          value: "cdp"
+        - name: access_token_secret_name
+          value: {{ ($.Values.global).overrideCdpReleaseName | default "cd-ppl-chart" }}-cdp-webhook-deployment-accesstoken
+      taskRef:
+        kind: Task
+        resolver: git
+        params:
+          - name: url
+            value: https://bitbucket.bit.admin.ch/scm/cnt/bit-trigger-deployment-pipeline.git
+          - name: revision
+            value: 'refs/tags/2.2'
+          - name: pathInRepo
+            value: bit-trigger-deployment.yaml
+      runAfter:
+        - promote-image
+
+  finally:
+    ###
+    #  cleanup pvc
+    ###
+    - name: cleanup
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch/scm/cnt/bit-cleanup-workspace.git") }}
+          - name: revision
+            value: 'refs/tags/3'
+          - name: pathInRepo
+            value: bit-cleanup-workspace.yaml
+      params:
+        - name: directory
+          value: $(context.pipelineRun.uid)
+        - name: minimal-image
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-minimal:9.4-1134") }}
+      workspaces:
+        - name: output
+          workspace: ws
+
+    {{- if eq .repoType "azure" }}
+    {{- if not $.Values.enableMonorepo }}
+    ###
+    # Notify Azure that build is running
+    ###
+    - name: notify-azure
+      when:
+        - input: "$(tasks.setup.results.BUILD_NOTIFICATIONS)"
+          operator: in
+          values: [ "true" ]
+      params:
+        - name: gitRepoUrl
+          value: $(params.GIT_REPO)
+        - name: azureDevopsTokenSecretName
+          value: {{ include "generic-application-pipeline.releaseName" $ }}-azure-http-access-token
+        - name: repoName
+          value: $(params.GIT_REPO)
+        - name: buildId
+          value: $(params.BUILD_ID)
+        - name: toolboxImageName
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851") }}
+        - name: pipelineStatus
+          value: $(tasks.status)
+        - name: logJson
+          value: "true"
+        - name: failsafeRepeats
+          value: "3"
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch/scm/cnt/bit-notify-azure-devops.git") }}
+          - name: revision
+            value: 'refs/tags/3'
+          - name: pathInRepo
+            value: bit-notify-azure-devops.yaml
+    {{- end }}
+    {{- else }}
+
+    ###
+    #  notify bitbucket about build result
+    ###
+    - name: notify-bitbucket
+      when:
+        - input: "$(tasks.setup.results.BUILD_NOTIFICATIONS)"
+          operator: in
+          values: [ "true" ]
+      params:
+        - name: commit-id
+          value: $(tasks.git-clone.results.commit)
+        - name: pipeline-status
+          value: $(tasks.status)
+        - name: pipeline-run-name
+          value: $(context.pipelineRun.name)
+        - name: pipeline-run-namespace
+          value: $(context.pipelineRun.namespace)
+        - name: pipeline-run-uid
+          value: $(context.pipelineRun.uid)
+        - name: pipeline-name
+          value: {{ .appName }}-{{ include "generic-application-pipeline.pipelineSuffix" . }}-build-pipeline
+        - name: bitbucket-secret-authtoken
+          value: {{ include "generic-application-pipeline.releaseName" $ }}-bitbucket-http-access-token
+        - name: git-repo
+          value: $(params.GIT_REPO)
+        - name: toolbox-image
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851") }}
+        - name: bitbucket-host
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bitbucket.bit.admin.ch") }}
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch/scm/cnt/bit-notify-bitbucket.git") }}
+          - name: revision
+            value: 'refs/tags/3'
+          - name: pathInRepo
+            value: bit-notify-bitbucket.yaml
+
+    {{- end }}
+
+    ###
+    # log pipeline run in one step
+    ###
+    - name: logging
+      params:
+        - name: logging-file-path
+          value: "$(context.pipelineRun.uid).logging"
+        - name: pipeline-run-name
+          value: $(context.pipelineRun.name)
+        - name: tasks-status
+          value: $(tasks.status)
+        - name: reference-pipeline-name
+          value: {{ $.Chart.Name }}
+        - name: reference-pipeline-version
+          value: {{ $.Chart.Version }}
+        - name: git-url
+          value: $(params.GIT_REPO)
+        - name: git-branch
+          value: $(params.GIT_REV)
+        - name: commit-id
+          value: $(tasks.git-clone.results.commit)
+        - name: pipeline-run-namespace
+          value: $(context.pipelineRun.namespace)
+        - name: pipeline-run-uid
+          value: $(context.pipelineRun.uid)
+        - name: toolbox-image
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851") }}
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch/scm/cnt/bit-aggregate-logs.git") }}
+          - name: revision
+            value: 'refs/tags/3'
+          - name: pathInRepo
+            value: bit-aggregate-logs.yaml
+      workspaces:
+        - name: ws
+          workspace: ws
+    ###
+    # notify failure
+    ###
+    - name: notify-failure
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch/scm/cnt/bit-notify-failure.git") }}
+          - name: revision
+            value: 'refs/tags/3'
+          - name: pathInRepo
+            value: bit-notify-failure.yaml
+      params:
+        - name: SERVER_HOST
+          value: "{{ $.Values.defaultFailureNotificationServerHost }}"
+        - name: SERVER_PORT
+          value: "{{ $.Values.defaultFailureNotificationServerPort }}"
+        - name: SENDER
+          value: "{{ $.Values.defaultFailureNotificationSender }}"
+        - name: RECIPIENTS
+          value: "{{ $.Values.defaultFailureNotificationRecipients }}"
+        - name: PIPELINE_RUN_NAME
+          value: $(context.pipelineRun.name)
+        - name: PIPELINE_RUN_NAMESPACE
+          value: $(context.pipelineRun.namespace)
+        - name: TOOLBOX_IMAGE
+          value: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851") }}
+  workspaces:
+    - name: ws
+    - name: ssh-key
+    - name: dockerconfig
+    - name: netrc
+      optional: true
+    - name: acs-ws
+    - name: acs-api-token
+    - name: acs-results
+
+  results:
+    - description: The common vulnerabilities and exposures (CVE) result
+      name: SCAN_OUTPUT
+      value: $(tasks.acs-image-scan.results.SCAN_OUTPUT)
+{{- end }}

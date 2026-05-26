@@ -1,0 +1,19 @@
+{{- $hasAzureDevopsRepo := eq (include "generic-application-pipeline.hasAzureDevopsRepo" .) "true" -}}
+{{- $hasBitbucketRepo := eq (include "generic-application-pipeline.hasBitbucketRepo" .) "true" -}}
+{{- $baseName := include "generic-application-pipeline.releaseName" $ -}}
+
+{{- $params := dict "root" $ "baseName" $baseName -}}
+
+{{- if $hasAzureDevopsRepo }}
+  {{- $repoType := "azure" -}}
+  {{- $params = $params | merge (dict "repoType" $repoType) -}}
+
+  {{- include "generic-application-pipeline.trigger-binding.template-azure-trigger-bindings" $params }}
+{{ end }}
+
+{{- if $hasBitbucketRepo }}
+  {{- $repoType := "bitbucket" -}}
+  {{- $params = $params | merge (dict "repoType" $repoType) -}}
+
+  {{- include "generic-application-pipeline.trigger-binding.template-bitbucket-trigger-bindings" $params }}
+{{ end }}

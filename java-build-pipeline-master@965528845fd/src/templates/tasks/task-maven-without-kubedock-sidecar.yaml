@@ -1,0 +1,1 @@
+{{- include "maven-build-task" (dict "nameSuffix" "maven" "useKubedockSidecar" false "Values" .Values "Chart" .Chart "Release" .Release "root" $) }}

@@ -1,0 +1,36 @@
+---
+global:
+  secrets:
+    enabled: true
+    externalStore:
+      enabled: true
+      vaults:
+        - name: gap-custom-labels-externalstore
+          path: p-szb-ros-shrd-npr-01
+          server: https://mav.bit.admin.ch
+      paths:
+        bitbucket:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-ssh-key
+          property: bitbucket-ssh-key
+          vault: gap-custom-labels-externalstore
+        bitbucketAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-http-access-token
+          property: bitbucket-http-access-token
+          vault: gap-custom-labels-externalstore
+        nexus:
+          id: bit-amber-pipelines-d/default
+          name: dockerconfig
+          property: dockerconfig
+          vault: gap-custom-labels-externalstore
+
+generic-application-pipeline:
+  applications:
+    - appName: myapp
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/myproject/myapp.git
+  customLabels:
+    customLabel1: "value1"
+    customLabel2: "value2"
+    pipeline.bit.admin.ch/name: "hero"
+    tooLongValue: "https://bitbucket.bit.admin.ch/projects/STIRHOS/repos/sti-gap-example-gitops/browse/pipeline"

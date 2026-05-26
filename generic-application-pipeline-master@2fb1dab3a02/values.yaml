@@ -1,0 +1,349 @@
+---
+# -- Default committer email used for Git commits
+defaultGitCommitterEmail: openshift@bit.admin.ch
+# -- Default committer name used for Git commits
+defaultGitCommitterName: Tekton
+# -- Default relative path to locate Helmchart values file in `srcRepo` file structure.
+# The full path is concat with  `<appName>` + `/helm/values.yaml`
+defaultCustomValuePath: helm/values.yaml
+# -- Default path including the name of your Containerfile in your repository containing the Containerfile/Dockerfile.
+# see defaultBuildImageContextPath for related additional informations.
+# Examples: `application1/Containerfile`, `application2/image/Dockerfile`.
+defaultContainerFilePath: Dockerfile
+# -- (bool) This will disable policy violation in the `prescan-image` check performed by Trivy for unpatched/unfixed vulnerabilities
+defaultTrivyIgnoreUnfixed: true
+# -- Path to .trivyignore file, path is not affected by `defaultBuildImageContextPath` or `buildImageContextPath`
+defaultTrivyIgnorePath: .trivyignore
+# -- The version template to be used for the image tag
+defaultBuildVersionTemplate: <COMMIT_HASH>
+# -- The date pattern used for <TIMESTAMP> in `buildVersionTemplate`
+defaultBuildVersionDatePattern: "%Y-%m-%dT%H%M%S"
+# -- Path to the Tektonfile containing the `imageVersion` value. Used to generate image tag
+defaultBuildVersionFilePath: Tektonfile.json
+# -- Additional tags for the produced image
+defaultBuildVersionAdditionalTags: latest
+# -- Replacement string to replace non-OCI compliant characters in the generated image tag. This will replace e.g. Bitbuckets "/" character in the branch prefix with the specified string to generate an OCI compliant image tag.
+# See OCI specification https://github.com/opencontainers/distribution-spec/blob/main/spec.md#pulling-manifests.
+defaultBuildVersionReplacementString: "_"
+# -- Whether to add build related FOITT labels to the image
+defaultBuildAddLabels: true
+# -- The format of the built container, oci or docker
+defaultBuildImageFormat: oci
+# -- The path used as build context for the image build. Useful when your Containerfile is not in the repository root and needs to be built from a specific subdirectory (e.g. app1/).
+# Pipeline will preferrably try to use defaultBuildImageContextPath/defaultContainerFilePath and fallback to defaultContainerFilePath if file is not found
+# Examples: `application1/`, `.`
+defaultBuildImageContextPath: "."
+# -- Pipeline task configuration used to configure additional task-specific parameters like file names or API URLs.
+defaultPipelineTasksConfig:
+  # -- The name of the file to be used a source for the download-files task
+  downloadFilesFileName: Downloadfile
+  # -- If `false` `downloadFilesFileName` will be used a list of artifacts given as URLs to download. If `true` the file will be executed as script
+  downloadFilesExecuteCustomScript: false
+  # -- The dependency track apiserver URL to upload the SBOM. Only used together with `runScaCheck` and has to be overridden.
+  # @default -- `none`
+  dependencyTrackApiUrl: 'none'
+# -- (bool) Whether to enable the ArgoCD Presync hook to delete eventual remaining RWM PVC created in previous releases
+defaultArgoCDPreSyncHookDeletePVC: true
+# -- Optional: Name which will be used to override the default `.Release.Name` to generate resource names in this chart.
+# You can for example specify a shorter name here if resource creation fails due to character length restrictions.
+# The overrideReleaseName must not be longer than 53 characters.
+overrideReleaseName:
+# -- Optional: Enable monorepo support for the pipeline. This will start a preprocessing PipelineRun before the image pipelines are started.
+enableMonorepo: false
+# Resources of the pods created by the Eventlistener
+eventListener:
+  # -- Number of containers created by the EventListener
+  replicas: 1
+  # -- Resource definition of the EventListener containers
+  resources:
+    limits:
+      memory: 128Mi
+      cpu: 25m
+    requests:
+      memory: 64Mi
+      cpu: 1m
+# -- (list) Application specific configuration for the pipeline
+# @default -- `[]`
+applications:
+  - # -- Application name will be used for resource name creation in Openshift
+    appName:
+    # -- Name of the image the pipeline will produce without registry URL. Examples: `bit/application1`
+    imageName: ""
+    # -- Optional: Overrides `defaultCustomValuePath`
+    customValuesPath:
+    # -- Repository type. For instance: 'bitbucket' or 'azure'
+    repoType: "bitbucket"
+    # -- Application repository SSH URL
+    srcRepo: ""
+    # -- Optional: Overrides `defaultContainerFilePath`
+    containerFilePath:
+    # -- Image registry on which the pipeline will push resulting images
+    imageRegistry: ""
+    # -- Optional: Overrides `defaultAdditionalImageRegistries`
+    additionalImageRegistries: ""
+    # -- Image registry on which the pipeline will push images for temporary purpose during pipeline runs. See `imageRegistry` for resulting images.
+    imageRegistryStaging: ""
+    # -- (bool) Optional: Overrides `defaultTrivyIgnoreUnfixed`
+    trivyIgnoreUnfixed:
+    # -- Optional: Overrides `defaultTrivyIgnorePath`
+    trivyIgnorePath: ""
+    # -- Optional: Overrides `defaultBuildVersionTemplate`
+    buildVersionTemplate:
+    # -- Optional: Overrides `defaultBuildVersionDatePattern`
+    buildVersionDatePattern:
+    # -- Optional: Overrides `defaultBuildVersionFilePath`
+    buildVersionFilePath:
+    # -- Optional: Overrides: `defaultBuildVersionAdditionalTags`
+    buildVersionAdditionalTags:
+    # -- Optional: Overrides `defaultBuildVersionReplacementString`
+    buildVersionReplacementString:
+    # -- Optional: Overrides: `defaultBuildImageFormat`
+    buildImageFormat:
+    # -- Optional: Overrides: `defaultBuildImageContextPath`
+    buildImageContextPath:
+    # -- Optional: Overrides: `defaultGitCommitterEmail`
+    gitCommitterEmail:
+    # -- Optional: Overrides: `defaultGitCommitterName`
+    gitCommitterName:
+    # -- (bool) Optional: Overrides defaultBuildAddLabels
+    buildAddLabels:
+    # -- Optional: Overrides: `defaultTriggerBranchPattern`. Note this is not available in monorepo mode of GAP.
+    triggerBranchPattern:
+    # -- Optional: Overrides `defaultBranchTaskConfiguration`
+    # For branch matching and flag dependencies, see `defaultBranchTaskConfiguration`
+    branchTaskConfiguration:
+      feature:
+        promoteImage:
+        downloadFiles:
+        runScaCheck:
+        buildNotifications:
+        deployStage:
+        verifyDeployment:
+        runMalwareScan:
+      hotfix:
+        promoteImage:
+        downloadFiles:
+        runScaCheck:
+        buildNotifications:
+        deployStage:
+        verifyDeployment:
+        runMalwareScan:
+      develop:
+        promoteImage:
+        downloadFiles:
+        runScaCheck:
+        buildNotifications:
+        deployStage:
+        verifyDeployment:
+        runMalwareScan:
+      release:
+        promoteImage:
+        downloadFiles:
+        runScaCheck:
+        buildNotifications:
+        deployStage:
+        verifyDeployment:
+        runMalwareScan:
+      master:
+        promoteImage:
+        downloadFiles:
+        runScaCheck:
+        buildNotifications:
+        deployStage:
+        verifyDeployment:
+        runMalwareScan:
+    # -- Optional: Overrides `defaultDependencyTrackParentName`
+    dependencyTrackParentName:
+    # -- Optional: Overrides `defaultDependencyTrackParentVersion`
+    dependencyTrackParentVersion:
+    # -- Optional: Overrides `defaultPipelineTasksConfig`
+    pipelineTasksConfig:
+      # -- Optional: Overrides `defaultPipelineTasksConfig.downloadFilesFileName`
+      downloadFilesFileName:
+      # -- (bool) Optional: Overrides `defaultPipelineTasksConfig.downloadFilesExecuteCustomScript`
+      downloadFilesExecuteCustomScript:
+      # -- Optional: The dependency track apiserver URL to upload the SBOM. Only required together with `runScaCheck`.
+      dependencyTrackApiUrl:
+    # -- Optional: Allows to specify application specific HTTP proxy to use in Buildah Task
+    httpProxy:
+    # -- Optional: Overrides `defaultPipelineStorage`
+    pipelineStorage:
+      size:
+      accessMode:
+      storageClass:
+    # -- (bool) Optional: Overrides `defaultUsePipelinePvcForBuild`.
+    # Only use if your build process requires over 20GB of space and together with `pipelineStorage`. This slows down your build!
+    # Does not work if your pipeline PVC has accessModes `ReadWriteMany`.
+    usePipelinePvcForBuild:
+
+    # -- Optional: Overrides `defaultTaskComputeResources`
+    taskComputeResources:
+      gitClone:
+      setup:
+      notifyBitbucketInprogress:
+      downloadFiles:
+      credentialScan:
+      buildImage:
+      trivyImageScan:
+      scaCheck:
+      acsImageScan:
+      malwareScan:
+      promoteImage:
+      cleanup:
+      notifyBitbucket:
+      logging:
+      notifyFailure:
+
+    # -- Optional: Overrides `defaultCredentialScanAllowsSkipOnFailure`
+    credentialScanAllowsSkipOnFailure:
+    # -- Optional: Overrides `defaultMalwareScanAllowsSkipOnFailure`
+    malwareScanAllowsSkipOnFailure:
+    # -- Optional: No default value. Required for pipelines with `runMalwareScan=true`. Value is taken directly from the antivirus service binding.
+    malwareScanVaultSecretPath:
+
+
+# -- Optional: The parentName of the dependency track project to where the sbom file is uploaded. The parent (name&version) must already exist. Use together with `dependencyTrackParentVersion`.
+# Be aware that dependency track only uses projectName and projectVersion to identify the project. The parentName is not an identifying factor of a project.
+defaultDependencyTrackParentName: ""
+
+# -- Optional: The parentVersion of the dependency track project to where the sbom file is uploaded. The parent (name&version) must already exist. Use together with `dependencyTrackParentName`.
+# Be aware that dependency track only uses projectName and projectVersion to identify the project. The parentVersion is not an identifying factor of a project.
+defaultDependencyTrackParentVersion: ""
+
+triggerTemplate:
+  # -- email address used to allow test to be triggered within pipeline run
+  defaultEmailAddress: tekton@bit.admin.ch
+
+# -- Allows to specify HTTP proxy to use in all applications Buildah Task
+defaultHttpProxy: http://prxp01.admin.ch:8080
+
+# -- Email address used as sender in failure notification, empty value will prevent notification to be sent
+defaultFailureNotificationSender: tekton@bit.admin.ch
+
+# -- Comma-space-separated list of email addresses used as recipients in failure notification, additionally, `pipeline.bit.admin.ch/actor-email` PipelineRun annotation will be added to recipient list if available, empty value will prevent notification to be sent.
+defaultFailureNotificationRecipients:
+
+# -- SMTP server used in failure notification
+defaultFailureNotificationServerHost: mailhost.mail.admin.ch
+
+# -- SMTP port used in failure notification
+defaultFailureNotificationServerPort: 25
+
+# -- Configure storage for pipeline
+# Size of the PVC used for temporary storage during pipeline run execution.
+# Be aware of the PVC storageclass request limit of your namespace.
+defaultPipelineStorage:
+  size: 5Gi
+  accessMode: ReadWriteOnce
+  storageClass: iscsi-ssd-encrypt
+
+# -- Use the Pipeline PVC instead of the ephemeral emptyDir for the bit-buildah task
+defaultUsePipelinePvcForBuild: false
+
+# -- Space separated list of additional image registries for produced image, example: additional-repo.nexus-campus.bit.admin.ch registry.access.redhat.com
+defaultAdditionalImageRegistries: ""
+
+# -- Regex expression for which branches a build will be triggered. The expression must follow the [RE2 syntax](https://github.com/google/cel-spec/blob/master/doc/langdef.md#regular-expressions)
+# @default -- `^(!docs)\|^(!renovate)\|^release\|^feature\|^hotfix\|^develop$\|^master$`
+defaultTriggerBranchPattern: '^(!docs)|^(!renovate)|^release|^feature|^hotfix|^develop$|^master$'
+
+# -- Task configuration per branch.
+# Defines which pipeline tasks are executed for a given branch type.
+# If no branches match, falls back to values from `feature`.
+defaultBranchTaskConfiguration:
+  # -- Applied when committing to branches like `feature/*`
+  feature:
+    # -- Defines whether built image is promoted to image registry
+    promoteImage: true
+    # -- Defines whether download files task is executed
+    downloadFiles: false
+    # -- Defines whether SCA check task is executed
+    runScaCheck: false
+    # -- Defines whether build notifications are sent to source code repository
+    buildNotifications: true
+    # -- Defines whether the pipeline should trigger a deployment for the image using the values from the specified path
+    deployStage: none
+    # -- Defines whether the build pipeline triggers the verification pipeline
+    verifyDeployment: false
+    # -- Defines whether the malware scan task is executed
+    runMalwareScan: false
+  # -- Applied when committing to branches like `hotfix/*`
+  hotfix:
+    promoteImage: true
+    downloadFiles: false
+    runScaCheck: false
+    buildNotifications: true
+    deployStage: none
+    verifyDeployment: false
+    runMalwareScan: false
+  # -- Applied when committing to branches like `develop*`
+  develop:
+    promoteImage: true
+    downloadFiles: false
+    runScaCheck: false
+    buildNotifications: true
+    deployStage: none
+    verifyDeployment: false
+    runMalwareScan: false
+  # -- Applied when committing to branches like `release/*`
+  release:
+    promoteImage: true
+    downloadFiles: false
+    runScaCheck: false
+    buildNotifications: true
+    deployStage: none
+    verifyDeployment: false
+    runMalwareScan: false
+  # -- Applied when committing to branches `master` or `main`
+  master:
+    promoteImage: true
+    downloadFiles: false
+    runScaCheck: false
+    buildNotifications: true
+    deployStage: none
+    verifyDeployment: false
+    runMalwareScan: false
+
+datacenter:
+  # -- Optional: Name of the datacenter `transformConfigs` to apply. The pipeline depends on various resources (Bitbucket repositories, Nexus image registries for example) to work properly, these resources are located in a specific datacenter (by default on Primus, see `useDatacenter`), but it is possible to override specific resources references to point to a different datacenter - Campus for example. `transformConfigs` are set of patterns and replacements used to transform specific datacenter dependant resources references to another datacenter.
+  useDatacenter: "primus"
+  # -- Available datacenter specific transformations, each configuration has a name and contains a list of pattern+replacement to apply on specific values, Helm's `regexReplaceAll` is used.
+  transformConfigs:
+    # -- Primus datacenter transformations, is considered as pipeline default (all defaults points to Primus, no transformations needed), this entry is present for documentation purpose
+    primus: []
+    # -- Campus datacenter transformations, list of transformations needed for Campus
+    campus:
+      - pattern: nexus\.bit\.admin\.ch
+        replace: nexus-campus.bit.admin.ch
+      - pattern: bitbucket\.bit\.admin.ch
+        replace: bitbucket-campus.bit.admin.ch
+      - pattern: central-stackrox\.apps\.p-svz-ros-mgmt-prd-01\.cloud\.admin\.ch
+        replace: central-stackrox.apps.c-svz-ros-mgmt-prd-01.cloud.admin.ch
+
+# -- Add customer labels to the kubernetes artefacts with key: value pairs. See test/values.custom-labels.yaml for more information. The keys `pipeline.bit.admin.ch/*` are blocked. The syntax and length according the [Kubernetes Documentation](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set) needs to be fulfilled.
+customLabels: []
+#  customLabel1: value1
+#  customLabel2: value2
+
+# -- To override each Task's computeResources in pipelineRun context triggered through EventListener, each entry refers a task name (CamelCase format) and can contain a `computeResource` key, specification follows Tekton's [Specifying taskRunSpecs](https://tekton.dev/docs/pipelines/pipelineruns/#specifying-taskrunspecs) specifications, usage documented in [Specifying Task-level ComputeResources](https://tekton.dev/docs/pipelines/pipelineruns/#specifying-task-level-computeresources). Please note that for a namespace with a applied ResourceQuota that requests and limits are not calculated in the same way. Please refer to [ResourceQuota Support](https://tekton.dev/docs/pipelines/compute-resources/#resourcequota-support) in Tekton documentation.
+defaultTaskComputeResources:
+  gitClone:
+  setup:
+  notifyBitbucketInprogress:
+  downloadFiles:
+  credentialScan:
+  buildImage:
+  trivyImageScan:
+  scaCheck:
+  acsImageScan:
+  malwareScan:
+  promoteImage:
+  cleanup:
+  notifyBitbucket:
+  logging:
+  notifyFailure:
+
+# -- (bool) The task `credential-scan` is skipped in case of a finding. Set to 'false' in case the pipeline should fail.
+defaultCredentialScanAllowsSkipOnFailure: true
+# -- (bool) The task `malware-scan` fails in case of a finding. Set to 'true' in case the pipeline should continue anyway.
+defaultMalwareScanAllowsSkipOnFailure: false

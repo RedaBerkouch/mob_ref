@@ -1,0 +1,82 @@
+{{- if .Values.enableMonorepo }}
+
+{{ $hasAzureDevopsRepo := eq (include "generic-application-pipeline.hasAzureDevopsRepo" .) "true" }}
+{{ $hasBitbucketRepo := eq (include "generic-application-pipeline.hasBitbucketRepo" .) "true" }}
+{{- range .Values.applications }}
+  {{ $dummy := fromJson (include "generic-application-pipeline.applyApplicationDefaults" (list . $)) }}
+{{- end }}
+---
+
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: {{ include "generic-application-pipeline.releaseName" . }}-monorepo
+  labels:
+    {{- include "generic-application-pipeline.metadata.template-labels" ((dict "appName" .appName "Chart" $.Chart "Values" $.Values)) | nindent 4 }}
+  annotations:
+    {{- include "generic-application-pipeline.metadata.template-annotations" . | nindent 4 }}
+spec:
+  params:
+    - name: GIT_REV
+      type: string
+      description: Revision/Branch to build
+      default: ""
+    - name: GIT_FROM_HASH
+      type: string
+      description: Revision/Branch this push is based on
+    - name: GIT_HOST_URL
+      type: string
+      description: 'Bitbucket host URL including protocol, example: https://bitbucket.bit.admin.ch'
+      default: {{ include "generic-application-pipeline.replaceDcResource" (list $ . "https://bitbucket.bit.admin.ch") }}
+    - name: GIT_PROJECT_NAME
+      type: string
+    - name: GIT_REPO_SLUG
+      type: string
+    - name: GIT_PUSHER
+      type: string
+      description: 'Name of account, who pushed the Git repository'
+    - name: GIT_PUSHER_DISPLAYNAME
+      type: string
+    - name: GIT_PUSHER_EMAIL
+      type: string
+    - name: LOG_LEVEL
+      type: string
+      default: INFO
+    - name: BUILD_ID
+      type: string
+      default: "no-build"
+  tasks:
+    - name: setup-monorepo-pipelineruns
+      params:
+        - name: GIT_REV
+          value: $(params.GIT_REV)
+        - name: GIT_FROM_HASH
+          value: $(params.GIT_FROM_HASH)
+        - name: GIT_HOST_URL
+          value: $(params.GIT_HOST_URL)
+        - name: GIT_PROJECT_NAME
+          value: $(params.GIT_PROJECT_NAME)
+        - name: GIT_REPO_SLUG
+          value: $(params.GIT_REPO_SLUG)
+        - name: GIT_PUSHER
+          value: $(params.GIT_PUSHER)
+        - name: GIT_PUSHER_DISPLAYNAME
+          value: $(params.GIT_PUSHER_DISPLAYNAME)
+        - name: GIT_PUSHER_EMAIL
+          value: $(params.GIT_PUSHER_EMAIL)
+        {{- if $hasBitbucketRepo }}
+        - name: BITBUCKET_HTTP_ACCESS_TOKEN_SECRET_NAME
+          value: {{ include "generic-application-pipeline.releaseName" $ }}-{{ (.Values.global).secrets.externalStore.paths.bitbucketAccessToken.name }}
+        {{- end }}
+        {{- if $hasAzureDevopsRepo }}
+        - name: AZURE_HTTP_ACCESS_TOKEN_SECRET_NAME
+          value: {{ include "generic-application-pipeline.releaseName" $ }}-{{ (.Values.global).secrets.externalStore.paths.azureDevopsAccessToken.name }}
+        - name: BUILD_ID
+          value: $(params.BUILD_ID)
+        {{- end }}
+        - name: ALL_APPLICATIONS_AS_JSON
+          value: {{ .Values.applications | toJson | quote }}
+      taskRef:
+        kind: Task
+        name: {{ include "generic-application-pipeline.resourceName" (list $ . "setup-monorepo") }}
+{{ end }}

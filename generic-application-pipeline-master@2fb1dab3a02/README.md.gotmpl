@@ -1,0 +1,581 @@
+{{ template "chart.header" . }}
+{{ template "chart.deprecationWarning" . }}
+
+{{ template "chart.description" . }}
+
+{{ template "chart.homepageLine" . }}
+
+## Introduction
+
+This pipeline build container based on the Containerfile. Additionally it supports monorepo setups.
+
+See images from the pipelines
+* [Build Pipeline](images/pipeline-build.png)
+* [Verification pipeline](images/pipeline-verification.png)
+* [Monorepo pipeline which triggers the build pipeline](images/pipeline-monorepo.png)
+
+## Installation
+
+The pipeline chart must be used as dependency of an umbrella chart.
+It requires the [**commons-pipeline**](https://bitbucket.bit.admin.ch/projects/CNP/repos/commons-pipeline/browse) and can optionally be combined with the [**cd-pipeline**](https://bitbucket.bit.admin.ch/projects/CNP/repos/cd-pipeline/browse), which handles the deployment process.
+
+```
+dependencies:
+    - name: commons-pipeline
+      version: "2.0.2"
+      repository: https://nexus.bit.admin.ch/repository/bit-pipelines-helm-hosted
+    - name: generic-application-pipeline
+      repository: https://nexus.bit.admin.ch/repository/bit-pipelines-helm-hosted
+      version: "^9.x"
+    # Optional
+    - name: cd-pipelines
+      version: "7.7.0"
+      repository: https://nexus.bit.admin.ch/repository/bit-pipelines-helm-hosted
+```
+
+Please reference [https://helm.sh/docs/chart_best_practices/dependencies/](https://helm.sh/docs/chart_best_practices/dependencies/) for referencing the pipeline version. We currently do not make a recommendation for which versioning pattern to use.
+
+## Configuration
+
+The table with all the configurable parameters of the chart and the default values is at the bottom of the Readme.
+
+### Credentials required by the pipeline
+
+If you are using the `global.secrets.externalStore.enabled` provided in commons-pipeline Helm chart you will have to provide the following secret keys in your ExternalSecretStore
+
+| Key (in Vault)                                                                 | Example Value                                                                         | Notes                                                                                                                                                           |
+|--------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| global.secrets.externalStore.paths.nexus.property                              | `{"auths":{"my-repo.nexus.bit.admin.ch":{"auth":"cGFzc3dvcmQK"},}}`                   | Optional but required for image registry access (DockerConfigJSON)                                                                                              |
+| global.secrets.externalStore.paths.netrc.property                              | `default login anonymous password user@domain`                                        | Optional and only required if global.secrets.externalStore.paths.netrc is set                                                                                   |
+| global.secrets.externalStore.paths.bitbucket.property                          | `-----BEGIN OPENSSH PRIVATE KEY-----\n<SNIPPED>\n-----END OPENSSH PRIVATE KEY-----\n` | Optional but required for Bitbucket interactions. Please note, the SSH key must be in a valid PEM format. Make sure it contains an ending new-line character    |
+| global.secrets.externalStore.paths.bitbucketAccessToken.property               | `AadfW23ef3rvscSFGSFdsg4ergfsFGSDR9SDFSDFSDFd`                                        | Optional but required for Bitbucket interactions                                                                                                                |
+| global.secrets.externalStore.paths.azure.property                        | `-----BEGIN OPENSSH PRIVATE KEY-----\n<SNIPPED>\n-----END OPENSSH PRIVATE KEY-----\n` | Optional but required for Azure DevOps interactions. Please note, the SSH key must be in a valid PEM format. Make sure it contains an ending new-line character |
+| global.secrets.externalStore.paths.azureDevopsAccessToken.property             | `AadfW23ef3rvscSFGSFdsg4ergfsFGSDR9SDFSDFSDFd`                                        | Optional but required for Azure DevOps interactions                                                                                                             |
+| global.secrets.externalStore.paths.tektonDeploymentWebhookAccessToken.property | `AadfW23ef3rvscSFGSFdsg4ergfsFGSDR9SDFSDFSDFd`                                        | Optional and only required to trigger the deployment pipeline
+
+## Using Campus datacenter
+
+The pipeline can be hosted on Campus datacenter and can be configured to use Campus datacenter resources
+
+### Referring pipeline chart hosted on Campus
+
+With Helm Chart dependency pointing to nexus-campus
+
+```
+dependencies:
+  ...
+  - name: generic-application-pipeline
+    repository: https://nexus-campus.bit.admin.ch/repository/bit-pipelines-helm-hosted
+    version: "^6.x"
+  ...
+```
+
+### Hosting the pipeline on Campus
+
+This must be configured during the CI/CD offering creation, requiring the selection of the appropriate Campus RHOS cluster.
+
+### Configure the pipeline to use Campus datacenter resources
+
+By default, the pipeline use Primus datacenter resources, to use Campus datacenter resources, add the following values in your values file.
+
+```
+generic-application-pipeline:
+  ...
+  datacenter:
+    useDatacenter: campus
+```
+
+See `datacenter.useDatacenter` key for details. Additionally consider changing proxy `defaultHttpProxy` as well.
+
+## Pipeline usage
+
+### Prerequisites
+
+* RHOS Namespaces and the team are set up.
+* The application's source code repositories and GitOps repository are available.
+* A Vault instance is available to synchronize secrets with OpenShift.
+
+### Trigger build with Bitbucket webhooks
+
+See [Configure Bitbucket Webhook](https://docs.bcp.bit.admin.ch/services/ci-cd/how-to/general/set-up-webhooks-for-tekton-and-argo-cd/#configure-bitbucket-webhook)
+
+The webhook needs to trigger on the following events:
+* Events: Repository `Push`
+
+Furthermore the following list of events is supported:
+* Events: Repository `Push`
+* Events: Pull request `Opened`
+* Events: Pull request `Source branch updated`
+* Events: Pull request `Merged`
+
+
+### Trigger build with Azure DevOps Server
+
+See [Configure Azure DevOps Webhook](https://docs.bcp.bit.admin.ch/services/ci-cd/how-to/general/set-up-webhooks-for-tekton-and-argo-cd/#configure-azure-devops-webhook)
+
+### Create RoleBinding in target application namespace 
+
+A RoleBinding allowing pipeline namespace to view target application namespaces
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rb-pipeline-can-view
+  namespace: <target application namespace>
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+  - kind: ServiceAccount
+    name: pipeline
+    namespace: <pipeline namespace>
+```
+
+Relevant related error message:
+
+```
+Error from server (Forbidden): deployments.apps "<application>" is forbidden: User "system:serviceaccount:<pipeline namespace>:pipeline"
+cannot get resource "deployments" in API group "apps" in the namespace "<target application namespace>"
+```
+
+### Monorepo support
+
+For project using a monorepo setup, the default behaviour is that all images specified in the values file will be built on a commit event. This is even the case when the Containerfile did not change.
+If you do not desire this behaviour, you can enable the monorepo pipeline behaviour by setting `enableMonorepo: true`. With this option set, a monorepo pipeline will be created
+which evaluates the changed Containerfiles (defined by `containerFilePath`) in your repository and triggers a PipelineRun only for changed Containerfiles.
+
+In monorepo mode a specific branch build pattern defined in `applications.triggerBranchPattern` will be ignored, only `defaultTriggerBranchPattern` is evaluated.
+
+### Image tagging
+
+The pipeline supports image tagging based upon a user definable pattern defined in `buildVersionTemplate`.
+
+#### The following tagging strategies are supported by the pipeline
+
+| Name                 | Description                                                                      | Example                                  |
+|----------------------|----------------------------------------------------------------------------------|------------------------------------------|
+| <TEKTONFILE_VERSION> | Read from json file `buildVersionFilePath` which must contain key `imageVersion` | 1.0.0                                    |
+| \<TIMESTAMP>         | Timestamp. The format can be updated by `buildVersionDatePattern`                | 2023-10-17T164551                        |
+| <BRANCH_NAME>        | Name of the build branch                                                         | develop                                  |
+| <COMMIT_HASH_SHORT>  | Git commit hash short                                                            | c66d2a6                                  |
+| <COMMIT_HASH>        | Git commit hash                                                                  | c66d2a6a31ee268b24132ab3cbcaa20542b09302 |
+
+The `buildVersionTemplate` can be freely defined by the user as long as it is compliant with [Docker tag restrictions](https://docs.docker.com/engine/reference/commandline/tag/).
+
+#### Examples:
+| Examples                                                         | Resulting image tag                        |
+|------------------------------------------------------------------|--------------------------------------------|
+| `buildVersionTemplate: <TEKTONFILE_VERSION>-<COMMIT_HASH_SHORT>` | `1.0.0-c66d2a6`                            |
+| `buildVersionTemplate: <COMMIT_HASH>`                            | `c66d2a6a31ee268b24132ab3cbcaa20542b09302` |
+| `buildVersionTemplate: <TIMESTAMP>_<COMMIT_HASH_SHORT>`          | `2023-10-17T164551_c66d2a6`                |
+
+### Migration to GAP version 9.0.0
+
+Starting with version 9.0.0, the generic-application-pipeline can no longer be used standalone.
+GAP now depends on [commons-pipeline](https://bitbucket.bit.admin.ch/projects/CNP/repos/commons-pipeline/browse) and must be used as part of an umbrella chart.
+Optionally, it can be used together with the [cd-pipeline](https://bitbucket.bit.admin.ch/projects/CNP/repos/cd-pipeline/browse), which replaces the deployment process previously handled by GAP.
+
+#### Umbrella chart example
+```
+---
+apiVersion: v2
+name: pipeline
+description: CI/CD-Pipeline
+type: application
+version: 0.0.0
+dependencies:
+    - name: commons-pipeline
+      version: "2.0.2"
+      repository: https://nexus.bit.admin.ch/repository/bit-pipelines-helm-hosted
+    - name: generic-application-pipeline
+      repository: https://nexus.bit.admin.ch/repository/bit-pipelines-helm-hosted-test
+      version: "^9.x"
+    - name: cd-pipelines
+      version: "7.10.0"
+      repository: https://nexus.bit.admin.ch/repository/bit-pipelines-helm-hosted
+```
+
+#### Values example (our test setup)
+```
+---
+# Base
+global:
+  gitOpsRepo: ssh://git@bitbucket.bit.admin.ch/stirhos/sti-gap-example-gitops.git
+  gitOpsRepoBranch: dev
+  nexusImageRegistryBaseName: bit-sti-docker-hosted
+  overrideCdpReleaseName: cd-ppl-chart
+  imageRegistryDomain: nexus.bit.admin.ch/sti
+  pipelineCleanup:
+    enabled: false
+  secrets:
+    enabled: true
+    externalStore:
+      enabled: true
+      vaults:
+        - name: gap-test-externalstore
+          path: p-szb-ros-shrd-npr-01
+          server: https://mav.bit.admin.ch
+      paths:
+        bitbucket:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-ssh-key
+          property: bitbucket-ssh-key
+          vault: gap-test-externalstore
+        azure:
+          id: bit-amber-pipelines-d/default
+          name: azure-ssh-key
+          property: azure-ssh-key
+          vault: gap-test-externalstore
+        bitbucketAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-http-access-token
+          property: bitbucket-http-access-token
+          vault: gap-test-externalstore
+        azureDevopsAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: azure-http-access-token
+          property: azure-http-access-token
+          vault: gap-test-externalstore
+        nexus:
+          id: bit-amber-pipelines-d/default
+          name: dockerconfig
+          property: dockerconfig
+          vault: gap-test-externalstore
+        netrc:
+          id: bit-amber-pipelines-d/default
+          name: netrc
+          property: netrc
+          vault: gap-test-externalstore
+        dependencyTrackApiKey:
+          id: bit-amber-pipelines-d/default
+          name: dependency-track-test-api-key
+          property: dependency-track-test-api-key
+          vault: gap-test-externalstore
+        tektonDeploymentWebhookAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: webhook-deployment-accesstoken
+          property: webhook-deployment-accesstoken
+          vault: gap-test-externalstore
+
+# Documentation: https://bitbucket.bit.admin.ch/projects/CNP/repos/cd-pipeline/browse/doc/deployment-pipeline.md
+cd-pipelines:
+   gitAppRepoHost: ssh://git@bitbucket.bit.admin.ch
+   gitAppRepoProject: stirhos
+   gitOpsRepoBranch: dev
+   customValuesPathTemplate: <APP_NAME>/helm/values.yaml
+   targetNamespacePrefix: bit-amber
+   cluster: p-szb-ros-shrd-npr-01
+   prodCluster: p-szb-ros-shrd-prd-01
+   applications:
+     - appName: gap-example2
+       bitBucketRepo: sti-gap-example
+       zapTestImage: 'bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9/owasp-zap:2.15.0'
+       # Doku: https://bitbucket.bit.admin.ch/projects/CNP/repos/cd-pipeline/browse/doc/verification-pipeline.md
+       verificationPipeline:
+         tests:
+           zap:
+             enabled: true
+             # The command to be run inside the ZAP image. see: https://bitbucket.bit.admin.ch/projects/CBI/repos/ubi9-owasp-zap/browse
+             command: >-
+               echo BEFORE-ZAP; ls -la;
+               ./zap-baseline.py -d -t https://gap-example2-bit-amber-d.apps.p-szb-ros-shrd-npr-01.cloud.admin.ch -I -c /home/zap/.ZAP/policies/zap-bit-default.policy -z '
+               -config network.connection.httpProxy.host=prxp01.admin.ch
+               -config network.connection.httpProxy.port=8080
+               -config network.connection.httpProxy.enabled=true
+               -config network.connection.httpProxy.exclusions.exclusion\(0\).host=localhost
+               -config network.connection.httpProxy.exclusions.exclusion\(0\).enabled=true
+               -config network.connection.httpProxy.exclusions.exclusion\(1\).host=.admin.ch
+               -config network.connection.httpProxy.exclusions.exclusion\(1\).enabled=true';
+               echo AFTER-ZAP;
+
+generic-application-pipeline:
+  applications:
+  ...
+```
+
+#### Replace deployment branch task flags with `deployStage` and `verifyDeployment`
+
+Since gap no longer performs deployments, the following task flags are no longer needed and must be replaced with the new ones that trigger the deployment pipeline and the verification pipeline:
+
+- `updateGitops`
+- `waitForDeploymentRollout`
+- `triggerVerificationPipeline`
+- `zapTest`
+
+Use `deployStage` and `verifyDeployment` instead.
+
+See [values.yaml](https://bitbucket.bit.admin.ch/projects/CNP/repos/generic-application-pipeline/browse/values.yaml) for more details
+
+Old configuration example:
+
+```
+defaultBranchTaskConfiguration:
+  develop:
+    updateGitops: true
+    waitForDeploymentRollout: true
+    triggerVerificationPipeline: true
+    zapTest: false
+    ...
+
+applications:
+  - appName: my-app
+    ...
+    branchTaskConfiguration:
+      develop:
+        updateGitops: true
+        waitForDeploymentRollout: true
+        triggerVerificationPipeline: true
+        zapTest: false
+```
+
+New configuration example:
+```
+defaultBranchTaskConfiguration:
+  develop:
+    deployStage: dev
+    verifyDeployment: true
+    ...
+
+applications:
+  - appName: my-app
+    ...
+    branchTaskConfiguration:
+      develop:
+        deployStage: dev
+        verifyDeployment: true
+```
+
+#### Replace pipeline storage configuration
+
+The following values were renamed:
+
+defaultPipelinePvcSize → defaultPipelineStorage.size
+applications[].pipelinePvcSize → applications[].pipelineStorage.size
+
+Old configuration example:
+```
+defaultPipelinePvcSize: 5Gi
+
+applications:
+  - appName: my-app
+    ...
+    pipelinePvcSize: 5Gi
+```
+New configuration example:
+```
+defaultPipelineStorage:
+  size: 5Gi
+
+applications:
+  - appName: my-app
+    ...
+    pipelineStorage:
+      size: 5Gi
+```
+
+### Branch-based task execution | introduced in version 7.0.0
+Starting with version 7.0.0, the pipeline uses a *branch-based* configuration to decide which tasks run on which branches.
+
+#### What changed compared to earlier versions (< 7.0.0)
+
+Example pipeline defaults and per application configuration
+
+```
+defaultPipelineTasks:
+  downloadFiles: false
+  downloadFilesFileName: Downloadfile
+  ...
+applications:
+  - appName: my-app
+    ...
+    pipelineTasksConfig:
+      downloadFiles: false
+      downloadFilesFileName: Downloadfile
+      ...
+```
+
+With branch-based task execution these switches move to:
+
+- **Global defaults per branch type** `defaultBranchTaskConfiguration` defines which tasks are executed for given branch types `feature`, `develop`,
+`hotfix`, `release`, `master`.
+
+- **Optional per-application overrides** `applications[].branchTaskConfiguration` allows overriding the global defaults for a given application and branch type.
+
+The old switches under `pipelineTasksConfig` are no longer used to decide whether a task runs.
+
+#### Do I have to change anything?
+
+If you never customized `pipelineTasksConfig.*` in your project:
+
+→ You don’t have to do anything. Predefined defaults for `defaultBranchTaskConfiguration` will lead to same behaviour as before
+
+If you overrode task switches in `applications[].pipelineTasksConfig`:
+
+→ Copy your intent into `applications[].branchTaskConfiguration` for the branches where it should apply.
+
+#### Migrate an existing setup
+Old configuration example:
+```
+defaultPipelineTasks:
+  downloadFiles: false
+  downloadFilesFileName: Downloadfile
+  ...
+applications:
+  - appName: my-app
+    ...
+    pipelineTasksConfig:
+      downloadFiles: false
+      downloadFilesFileName: Downloadfile
+      ...
+```
+
+New configuration example:
+```
+defaultBranchTaskConfiguration:
+  develop:
+    downloadFiles: false
+    ...
+defaultPipelineTasksConfig:
+  downloadFilesFileName: Downloadfile
+  ...
+applications:
+  - appName: my-app
+    ...
+    branchTaskConfiguration:
+      develop:
+        downloadFiles: false
+        ...
+    pipelineTasksConfig:
+      downloadFilesFileName: Downloadfile
+```
+
+### Branch type detection
+
+| Branch pattern              | Detected branch type |
+| --------------------------- | -------------------- |
+| `feature/*`                 | `feature`            |
+| `hotfix/*`                  | `hotfix`             |
+| `release/*`                 | `release`            |
+| `develop*`                  | `develop`            |
+| `master`, `main`            | `master`             |
+| any other branch (fallback) | `feature`            |
+
+The detected branch type determines which configuration block from `defaultBranchTaskConfiguration`
+is applied, additionally it will be overriden by `applications[].branchTaskConfiguration` if given.
+
+For full reference of available branch types and task flags, see `defaultBranchTaskConfiguration.feature` key in Configuration section
+
+#### Task dependencies
+
+Flag inter-dependencies are documented under `defaultBranchTaskConfiguration.feature` as subkeys like `defaultBranchTaskConfiguration.feature.<taskName>` in Configuration section
+
+### Examples of the generic-application-pipelines
+
+* **GitOps Project Example** - For an example integration of the pipeline, see [sti-gap-example-gitops/pipeline](https://bitbucket.bit.admin.ch/projects/STIRHOS/repos/sti-gap-example-gitops/browse/pipeline)
+* **Project Example** - For an example application project building with this pipeline, see [sti-gap-example](https://bitbucket.bit.admin.ch/projects/STIRHOS/repos/sti-gap-example)
+
+
+## Additional information
+
+### Optional download-files task
+
+The pipeline contains an optional task `download-files`. The intention of the task is to provide the user the capability to download files, which need to be added to the Containerfile, from an endpoint requiring authentication.
+In its default configuration the tasks reads the `downloadFilesFileName` line by line and downloads the files to the pipelines workspace.
+Alternatively users can change the tasks behaviour by setting `downloadFilesExecuteCustomScript: true`. This will execute the script provided by `downloadFilesFileName`.
+
+An authentication method for the endpoints contained in the `downloadFilesFileName` is provided with a [.netrc file](https://www.gnu.org/software/inetutils/manual/html_node/The-_002enetrc-file.html). For providing the .netrc file to the pipeline, please see the secrets section.
+If you use `downloadFilesExecuteCustomScript: true` and require authentication, use curls' `--netrc` or -`-netrc-optional` option.
+
+### Optional malware-scan task
+
+The pipeline contains an optional task `m̀alware-scan`. In case the task is activated, it will scan the built image with the [Antivirus service from the BIT Container Platform](https://docs.bcp.bit.admin.ch/services/antivirus/).
+Once you ordered the service, you have to create a binding as follows:
+* Account Name: "<pipeline-namespace name>/<serviceAccountName of the pipeline>"
+  (i.e. bit-amber-pipelines-d/pipeline)
+* Account Type: "service-account"
+
+In your service binding you will find the vault path to your specific secret in the `vault-annotation`.
+Check the line starting with `vault.hashicorp.com/agent-inject-secret-` to find your path.
+
+Enter this information as follows in your values.yaml file:
+
+```
+generic-application-pipeline:
+  applications:
+    - appName: malware-scan-test-app
+      malwareScannerCredentialsFilePath: "creds/static/data/services/<uuid>/instances/<uuid>/bindings/<uuid>/service-account/<pipeline-namespace name>/<serviceAccountName of the pipeline>"
+      # Define for which branch you want to run the malware scan
+      branchTaskConfiguration:
+        develop:
+          runMalwareScan: true
+```
+(Example configuration: [values.add-malware-scan-task.yaml](test/values.add-malware-scan-task.yaml))
+
+### ArgoCD Sync Webhook
+
+We recommend to use ArgoCD Sync Webhooks configured on your GitOps repository. This avoids having to wait for next ArgoCD sync window to occur.
+See [ArgoCD Git Webhook Configuration](https://argo-cd.readthedocs.io/en/stable/operator-manual/webhook/) for details.
+
+### Additional dedicated tasks
+
+This pipelines use the following dedicated tasks. Find more information in the tasks itself.
+* [task-run-validation.yaml](templates/task-run-validation.yaml)
+* [task-setup.yaml](templates/task-setup.yaml)
+* [task-setup-monorepo.yaml](templates/task-setup-monorepo.yaml)
+* [task-download-files.yaml](templates/task-download-files.yaml)
+
+## Known Limitations
+
+### RHOS (Openshift, Kubernetes) is subject to length limitations on object names
+
+* RHOS (Openshift, Kubernetes) is subject to length limitations on object names ([DNS names RFC, 2.3.4. Size limits](https://www.ietf.org/rfc/rfc1035.txt))
+* Therefore, we will truncate some resource names to stay within this limitation
+* Additionally, you can overwrite resource name by defining `overrideReleaseName`
+
+### GitOps repository structure
+
+The pipeline is intended to be used with the below GitOps repository structure. While we assume the pipeline configuration to be flexible enough, we can not guarantee it to be compatible with all structure types.
+
+```
+bit-myproject-gitops/
+├── argocd  # Contains ArgoCD ApplicationSet definition for namespaces managed by ArgoCD excluding the pipeline
+│   └── application-set.yaml
+├── pipeline # Contains the reference to the pipeline definition as dependency in the Chart.yaml
+│   ├── Chart.yaml
+│   └── values.yaml
+├── README.md
+├── <app-1> # Application app-1 helm chart
+│   └── helm
+│       ├── Chart.yaml
+│       ├── templates
+│       │   └── ...
+│       ├── values-<stage-1>.yaml # Values for stage-1
+│       ├── values-<stage-n>.yaml # Values for stage-n
+│       └── values.yaml # Common values for all stages
+└── <app-2> # Application app-1 helm chart
+    └── helm
+        ├── Chart.yaml
+        ├── templates
+        │   └── ...
+        ├── values-<stage-1>.yaml
+        ├── values-<stage-n>.yaml
+        └── values.yaml
+```
+
+Please note: you will have to create or delete additional `values-<stage-x>.yaml` files depending on your applications needs and stages.
+
+You can also see [bit-scsss-gitops](https://bitbucket.bit.admin.ch/projects/STI/repos/bit-scsss-gitops/browse) as an example for the gitops repository setup.
+
+### Azure DevOps Server and Monorepo configuration
+
+Using Azure DevOps Server and monorepo setup of the Generic-Application-Pipeline will not notify the Azure DevOps Server Pipeline about the individual status of the triggered Tekton PipelineRuns.
+
+## Configurable parameters and default values
+
+{{ template "chart.valuesTableHtml" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+{{ template "chart.maintainersSection" . }}

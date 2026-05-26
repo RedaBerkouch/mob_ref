@@ -1,0 +1,3 @@
+registry=https://@NPMREPO@
+always-auth=true
+//@NPMREPO@:_auth="@USERPASSENCODED@"

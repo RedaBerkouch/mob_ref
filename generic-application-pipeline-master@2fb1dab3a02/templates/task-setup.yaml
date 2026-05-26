@@ -1,0 +1,322 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: {{ include "generic-application-pipeline.resourceName" (list $ . "setup") }}
+  labels:
+    {{- include "generic-application-pipeline.metadata.template-labels" . | nindent 4 }}
+  annotations:
+    {{- include "generic-application-pipeline.metadata.template-annotations" . | nindent 4 }}
+    tekton.dev/tags: "util"
+    tekton.dev/pipelines.minVersion: "0.12.1"
+    tekton.dev/displayName: "Setup image labels"
+    description: Prepare image labels for later use
+    app.openshift.io/description: Prepare image labels for later use
+spec:
+  description: >-
+    Prepare image labels for later use in buildah bud or podman build, see results
+    Reference https://confluence.bit.admin.ch/x/XROFG
+  stepTemplate:
+    env:
+      - name: "HOME"
+        value: "/tekton/home"
+  params:
+    - name: GIT_REPO
+      description: "URL of the git repository where the Containerfile is located at"
+      type: string
+    - name: GIT_REV
+      description: "GIT Revision"
+      type: string
+    - name: VERSION_TEMPLATE
+      description: "Build version template used to generate image tag"
+      type: string
+    - name: VERSION_DATE_PATTERN
+      description: "Date pattern to use for image tag"
+      type: string
+    - name: VERSION_FILE_PATH
+      description: "Path to the Tektonfile containing the image version"
+      type: string
+    - name: IMAGE_NAME
+      description: "Used to calculate FQIN of the image to be produced"
+      type: string
+    - name: IMAGE_REPO
+      description: "Image repository for produced image, examples: repo.bit.admin.ch:8445, registry.access.redhat.com"
+      type: string
+    - name: BIT_ARTIFACT_APPID
+      description: "APPID of the main artifact in the image to be produced"
+      type: string
+      default: ""
+    - name: BIT_IMAGE_AUTHORS
+      description: "Contact details of the people or organization responsible for the image (freeform string). In BIT context this MUST be a team mailbox or Jira Project."
+      type: string
+      default: ""
+    - name: BIT_IMAGE_VENDOR
+      description: "Version of the image to be produced"
+      type: string
+      default: ""
+    - name: BIT_IMAGE_TITLE
+      description: "Human-readable title of the image"
+      type: string
+      default: ''
+    - name: BIT_IMAGE_DESCRIPTION
+      description: "Human-readable description of the software packaged in the image"
+      type: string
+      default: ''
+    - name: PIPELINE_RUN_NAME
+      description: "Tekton pipelineRun name"
+      type: string
+    - name: PIPELINE_RUN_NS
+      description: "RHOCP project/namespace name where the image is build"
+      type: string
+    - name: CONTEXT
+      description: "Build context directory containing the Containerfile (e.g. '.', 'myapp/')"
+      type: string
+      default: "."
+    - name: PATH_TO_DOCKERFILE
+      description: "Path to the Containerfile"
+      type: string
+    - name: SUBDIRECTORY
+      description: "Subdirectory inside the `output` Workspace to clone the repo into."
+      default: ""
+      type: string
+    - name: ADD_FOITT_LABELS_TO_IMAGE
+      description: "Whether or not additional labels will be added to the produced container image."
+      type: string
+    - name: TOOLBOX_IMAGE
+      description: "Overridable container image."
+      type: string
+      default: 'bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851'
+    - name: VERSION_REPLACEMENT_STRING
+      description: "Replacement string to replace non-OCI compliant characters in the generated image tag."
+      type: string
+      default: '_'
+    - name: DEFAULT_BRANCH_TASK_CONFIGURATION
+      type: string
+      default: "{}"
+    - name: APP_BRANCH_TASK_CONFIGURATION
+      type: string
+      default: "{}"
+
+  results:
+    - name: IMAGE_TAG
+      description: Image tag
+    - name: IMAGE_FQIN
+      description: Image which will be build
+    - name: BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS
+      description: "Generated label list for further use in buildah bud (example: --label mylabel1=myval1 --label mylabel2=myval2)"
+    - name: IMAGE
+      description: Image name
+    - name: PROMOTE_IMAGE
+      description: "Enable promote-image task"
+    - name: DOWNLOAD_FILES
+      description: "Enable download-files task"
+    - name: RUN_SCA_CHECK
+      description: "Enable sca-check task"
+    - name: BUILD_NOTIFICATIONS
+      description: "Enable build notification tasks"
+    - name: DEPLOY_STAGE
+      description: "Name of the Stage to Deploy. 'none' if none"
+    - name: VERIFY_DEPLOYMENT
+      description: "Indicates if the deployment verification should be triggered"
+    - name: RUN_MALWARE_SCAN
+      description: "Enable malware-scan task"
+
+  steps:
+    - name: generate-image-tag
+      image: $(params.TOOLBOX_IMAGE)
+      computeResources:
+        requests:
+          cpu: 100m
+        limits:
+          cpu: 250m
+      env:
+        - name: HOME
+          value: "/tekton/home"
+      command:
+        - python3
+      args:
+        - /scripts/image_tag_configuration.py
+        - $(params.GIT_REV)
+        - $(params.VERSION_TEMPLATE)
+        - '$(workspaces.source.path)/$(params.SUBDIRECTORY)'
+        - $(params.VERSION_DATE_PATTERN)
+        - $(params.VERSION_FILE_PATH)
+        - $(params.VERSION_REPLACEMENT_STRING)
+      volumeMounts:
+        - name: scripts-image-tag
+          mountPath: /scripts
+    - name: setup
+      computeResources:
+        limits:
+          cpu: 200m
+          memory: 100Mi
+      env:
+         - name: WORKSPACE_OUTPUT_PATH
+           value: $(workspaces.source.path)
+         - name: PARAM_SUBDIRECTORY
+           value: $(params.SUBDIRECTORY)
+      image: $(params.TOOLBOX_IMAGE)
+      imagePullPolicy: IfNotPresent
+      workingDir: /workspace
+      script: |
+        #!/bin/bash
+        set -e
+
+        # Git repository path is not necessarily owned by current uid, see https://github.blog/2022-04-18-highlights-from-git-2-36/#stricter-repository-ownership-checks
+        git config --global --add safe.directory $(workspaces.source.path)/$(params.SUBDIRECTORY)
+
+        if [[ "$(workspaces.dockerconfig.bound)" == "true" ]]; then
+
+          echo "dockerconfig workspace bound!"
+
+          # if config.json exists at workspace root, we use that
+          if test -f "$(workspaces.dockerconfig.path)/config.json"; then
+            export DOCKER_CONFIG="$(workspaces.dockerconfig.path)"
+
+          # else we look for .dockerconfigjson at the root
+          elif test -f "$(workspaces.dockerconfig.path)/.dockerconfigjson"; then
+            cp "$(workspaces.dockerconfig.path)/.dockerconfigjson" "$HOME/.docker/config.json"
+            export DOCKER_CONFIG="$HOME/.docker"
+
+          # need to error out if neither files are present
+          else
+            echo "Neither 'config.json' nor '.dockerconfigjson' found at workspace root"
+            exit 1
+          fi
+        fi
+
+        CHECKOUT_DIR="${WORKSPACE_OUTPUT_PATH}/${PARAM_SUBDIRECTORY}"
+
+        cd ${CHECKOUT_DIR}
+        
+        DF="$(params.PATH_TO_DOCKERFILE)"   # z.B. "Containerfile" ODER "appA/Containerfile"
+        CTX="$(params.CONTEXT)"             # z.B. ".", "myapp/", "appA/"
+  
+        if [ -z "${CTX}" ] || [ "${CTX}" = "." ]; then
+          CTX=""
+        else
+          CTX="${CTX%/}"
+        fi
+  
+        # Wenn DF bereits einen Slash enthält (wie im monorepo mode), DF unverändert verwenden
+        # sonst: wenn CTX gesetzt -> CTX/DF, andernfalls DF
+        if printf '%s' "${DF}" | grep -q '/'; then
+          CANDIDATE="${DF}"
+        elif [ -n "${CTX}" ]; then
+          CANDIDATE="${CTX}/${DF}"
+        else
+          CANDIDATE="${DF}"
+        fi
+  
+        if [ ! -f "${CANDIDATE}" ]; then
+          echo "ERROR: Containerfile nicht gefunden: ${CANDIDATE}" >&2
+          exit 1
+        fi
+  
+        CONTAINERFILE_PATH="${CANDIDATE}"
+        echo "Using Containerfile: ${CONTAINERFILE_PATH}"
+  
+        commitId=$(git log -n 1 --pretty=format:"%H")
+        buildversion=$(cat /tekton/results/imageTag)
+        fqin=$(params.IMAGE_REPO)/$(params.IMAGE_NAME):$buildversion
+        echo -n "${buildversion}" > $(results.IMAGE_TAG.path)
+        echo -n "${fqin}" > $(results.IMAGE_FQIN.path)
+        echo -n "$(params.IMAGE_REPO)/$(params.IMAGE_NAME)" > $(results.IMAGE.path)
+
+        echo "Buildversion: $buildversion"
+        echo "Image FQIN: $fqin"
+
+        if [[ "$(params.ADD_FOITT_LABELS_TO_IMAGE)" == "true" ]]; then
+          echo "Adding additional FOITT labels to the image"
+
+          httpRepoUrl="https://$(echo -n '$(params.GIT_REPO)' | cut -d'/' -f3 | cut -d'@' -f2)/projects/$(echo -n '$(params.GIT_REPO)' | cut -d'/' -f4)/repos/$(echo -n '$(params.GIT_REPO)' | cut -d'/' -f5)"
+
+          #TODO: hardcoded Bitbucket specific logic, does not support Azure
+          sourceDockerfileUrl="${httpRepoUrl//\.git/}/browse/$(params.PATH_TO_DOCKERFILE)?at=${commitId}"
+          sourceReadmeUrl="${httpRepoUrl//\.git/}/browse/README.md?at=${commitId}"
+
+          containerFileFromMaybeAlias="$(cat "${CONTAINERFILE_PATH}" | grep -ie '^FROM ' | tail -n1 | cut -d' ' -f2)"
+
+          ## resolve aliases
+          ## we are creating a tempdir and working with symbolic links that we follow to find the real image
+          TEMPDIR=$(mktemp -d)
+          sed -Ene "s|^FROM\b\s*(.*)\bAS\b\s*(.*)|ln -s \1 $TEMPDIR/\2|pi" "${CONTAINERFILE_PATH}" | sh
+          containerFileFrom=$(realpath -m --relative-to=$TEMPDIR "$TEMPDIR/$containerFileFromMaybeAlias")
+
+          echo "Get base image digest from image '$containerFileFrom'"
+
+          export bitImageBaseDigest imageBaseName
+
+          if [[ "$containerFileFrom" == "scratch" ]]; then
+            imageBaseName="scratch"
+          else
+            fromRepoPrefix="$(echo -n ${containerFileFrom} | cut -d'/' -f1)"
+            fromRepoSuffix="$(echo -n ${containerFileFrom} | cut -d'/' -f2- | cut -d':' -f1)"
+
+            #curl wants lowercase proxy vars, system provides uppercase proxy vars
+            export http_proxy=$HTTP_PROXY
+            export https_proxy=$HTTPS_PROXY
+            export no_proxy=$NO_PROXY
+
+            # Parent image might be given in pinned digest style. Skopeo does not support pinned digest.
+            if echo ${containerFileFrom} | grep "@sha256"; then
+              bitImageBaseDigest="${containerFileFrom#*@}"
+            else
+              bitImageBaseDigest="$(skopeo inspect docker://${containerFileFrom} | jq -r '.Digest')"
+            fi
+
+            [[ -n $bitImageBaseDigest ]] || exit 1
+          fi
+
+          test "$(params.BIT_IMAGE_VENDOR)" != "" && echo -n " --label 'bit.image.vendor=$(params.BIT_IMAGE_VENDOR)'" >> $(results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS.path)
+          test "$(params.BIT_IMAGE_TITLE)" != "" && echo -n " --label 'bit.image.title=$(params.BIT_IMAGE_TITLE)'" >> $(results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS.path)
+          test "$(params.BIT_IMAGE_DESCRIPTION)" != "" && echo -n " --label 'bit.image.description=$(params.BIT_IMAGE_DESCRIPTION)'" >> $(results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS.path)
+          test "$buildversion" != "" && echo -n " --label 'bit.image.version=$buildversion'" >> $(results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS.path)
+          test "$(params.BIT_IMAGE_AUTHORS)" != "" && echo -n " --label 'bit.image.authors=$(params.BIT_IMAGE_AUTHORS)'" >> $(results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS.path)
+          test "$(params.BIT_ARTIFACT_APPID)" != "" && echo -n " --label 'bit.artifact.appid=$(params.BIT_ARTIFACT_APPID)'" >> $(results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS.path)
+
+          echo -n " --label 'bit.image.created=$(date -u +%Y-%m-%d-%TZ)'" >> $(results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS.path)
+          echo -n " --label 'bit.image.documentation=${sourceReadmeUrl}'" >> $(results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS.path)
+          echo -n " --label 'bit.image.source=${sourceDockerfileUrl}'" >> $(results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS.path)
+          echo -n " --label 'bit.image.revision=${commitId}'" >> $(results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS.path)
+          echo -n " --label 'bit.image.base.digest=${bitImageBaseDigest}'" >> $(results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS.path)
+          echo -n " --label 'bit.image.base.name=${fromRepoPrefix}/${fromRepoSuffix}'" >> $(results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS.path)
+          echo -n " --label 'bit.pipelineRun.name=$(params.PIPELINE_RUN_NAME)'" >> $(results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS.path)
+          echo -n " --label 'bit.pipelineRun.namespace=$(params.PIPELINE_RUN_NS)'" >> $(results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS.path)
+        else
+          echo "Will not add additional labels to the image"
+          echo -n "" >> $(results.BUILDAH_LABELS_FOR_BUILD_EXTRA_ARGS.path)
+        fi
+      timeout: 1m0s
+    - name: branch-task-config
+      image: $(params.TOOLBOX_IMAGE)
+      script: |
+        python3 /scripts/branch_task_config.py
+      env:
+        - name: GIT_REV
+          value: $(params.GIT_REV)
+        - name: DEFAULT_BRANCH_TASK_CONFIGURATION
+          value: $(params.DEFAULT_BRANCH_TASK_CONFIGURATION)
+        - name: APP_BRANCH_TASK_CONFIGURATION
+          value: $(params.APP_BRANCH_TASK_CONFIGURATION)
+      volumeMounts:
+        - name: scripts-branch-task-config
+          mountPath: /scripts
+  workspaces:
+    - description: The git repo is cloned onto the volume backing this Workspace.
+      name: source
+    - description: |
+        A .ssh directory with private key, known_hosts, config, etc. Copied to
+        the user's home before git commands are executed. Used to authenticate
+        with the git remote when performing the clone. Binding a Secret to this
+        Workspace is strongly recommended over other volume types.
+      name: ssh-directory
+      optional: true
+    - name: dockerconfig
+      description: A secret of type kubernetes.io/dockerconfigjson to query image registries
+  volumes:
+    - name: scripts-image-tag
+      configMap:
+        name: {{ include "generic-application-pipeline.releaseName" . }}-image-tag-cm
+    - name: scripts-branch-task-config
+      configMap:
+        name: {{ include "generic-application-pipeline.releaseName" . }}-branch-task-config-cm

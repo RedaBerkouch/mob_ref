@@ -1,0 +1,94 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: {{ include "generic-application-pipeline.resourceName" (list $ . "download-files") }}
+  labels:
+    {{- include "generic-application-pipeline.metadata.template-labels" . | nindent 4 }}
+  annotations:
+    {{- include "generic-application-pipeline.metadata.template-annotations" . | nindent 4 }}
+    tekton.dev/tags: "util"
+    tekton.dev/pipelines.minVersion: "0.12.1"
+    tekton.dev/displayName: "cURL Download files"
+    description: Download files with cURL
+    app.openshift.io/description: Download files with cURL
+spec:
+  description: |
+    This tasks download files with cURL. The task is primarily intended to download files to a workspace which than can
+    be added to a Containerfile during build stage. A netrc file can be provided for authentication. The 'Downloadfile'
+    must contain one URL per line for each file to download during task execution, e.g. 'https://download-url/sample.jar'.
+    Alternatively users can change the tasks behaviour by providing a custom script.
+  params:
+    - name: DOWNLOADFILE_NAME
+      description: "Used as input for the file download via curl. The file should be located in your Git repository."
+      default: "Downloadfile"
+      type: string
+    - name: EXECUTE_CUSTOM_SCRIPT
+      description: "If true this will execute DOWNLOADFILE_NAME instead of downloading artifacts line by line"
+      default: "false"
+      type: string
+    - name: CONTEXT
+      description: "Subdirectory inside the `source` used as working directory."
+      default: ""
+      type: string
+    - name: TOOLBOX_IMAGE
+      description: "Overridable container image."
+      type: string
+      default: 'bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851'
+  steps:
+    - name: download-files-to-workspace
+      image: $(params.TOOLBOX_IMAGE)
+      computeResources:
+        limits:
+          cpu: 200m
+          memory: 100Mi
+      securityContext:
+        runAsUser: 65532
+      imagePullPolicy: IfNotPresent
+      workingDir: $(workspaces.source.path)/$(params.CONTEXT)
+      env:
+      - name: HOME
+        value: "/tekton/home"
+      script: |
+        #!/bin/bash
+        set -e
+
+        downLoadFileName=$(params.DOWNLOADFILE_NAME)
+        executeCustomScript=$(params.EXECUTE_CUSTOM_SCRIPT)
+
+        if [[ "$(workspaces.netrc.bound)" == "true" ]]; then
+          echo "INFO: netrc workspace bound!"
+
+          if test -f "$(workspaces.netrc.path)/.netrc"; then
+            # Curl will look in users home directory and use netrc from there
+            cp $(workspaces.netrc.path)/.netrc ~/.netrc
+          else
+            echo "WARN: No '.netrc' file found at workspace root"
+          fi
+        else
+          echo "INFO: netrc workspace NOT bound!"
+        fi
+
+        if [ -f $downLoadFileName ]; then
+          if [ "$executeCustomScript" == "true" ]; then
+            echo "INFO: Executing custom script $downLoadFileName"
+            bash $downLoadFileName
+          else
+            echo "INFO: Downloading files defined in $downLoadFileName"
+            for i in $(cat $downLoadFileName); do
+              echo "INFO: Downloading $i"
+              curl -k -L --progress-bar --netrc-optional $i -o "${i##*/}"
+            done
+          fi
+
+          echo "INFO: Listing files in directory: ..."
+          ls -althr
+        else
+          echo "INFO: No file with download urls found"
+        fi
+      timeout: 30m0s
+  workspaces:
+    - name: source
+      description: "The workspace where the files will be downloaded to."
+    - name: netrc
+      description: "A workspace secret with a .netrc file to enable authenticated curl calls, see https://everything.curl.dev/usingcurl/netrc."
+      optional: true

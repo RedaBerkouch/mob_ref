@@ -1,0 +1,46 @@
+---
+global:
+  secrets:
+    enabled: true
+    externalStore:
+      enabled: true
+      vaults:
+        - name: gap-use-download-file-task-externalstore
+          path: p-szb-ros-shrd-npr-01
+          server: https://mav.bit.admin.ch
+      paths:
+        bitbucket:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-ssh-key
+          property: bitbucket-ssh-key
+          vault: gap-use-download-file-task-externalstore
+        bitbucketAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-http-access-token
+          property: bitbucket-http-access-token
+          vault: gap-use-download-file-task-externalstore
+        nexus:
+          id: bit-amber-pipelines-d/default
+          name: dockerconfig
+          property: dockerconfig
+          vault: gap-use-download-file-task-externalstore
+        netrc:
+          id: bit-amber-pipelines-d/default
+          name: netrc
+          property: netrc
+          vault: gap-use-download-file-task-externalstore
+
+generic-application-pipeline:
+  applications:
+    - appName: custom-dl
+      imageName: bit/custom-dl
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/myproject/custom-dl.git
+      imageRegistry: image-registry.nexus.bit.admin.ch
+      imageRegistryStaging: image-registry-incoming.nexus.bit.admin.ch
+      containerFilePath: custom-dl/Containerfile
+      pipelineTasksConfig:
+        downloadFilesFileName: mycustomScript.sh
+        downloadFilesExecuteCustomScript: true
+      branchTaskConfiguration:
+        develop:
+          downloadFiles: true

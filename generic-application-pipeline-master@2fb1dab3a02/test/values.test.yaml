@@ -1,0 +1,55 @@
+---
+global:
+  secrets:
+    enabled: true
+    externalStore:
+      enabled: true
+      vaults:
+        - name: gap-test-externalstore
+          path: p-szb-ros-shrd-npr-01
+          server: https://mav.bit.admin.ch
+      paths:
+        bitbucket:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-ssh-key
+          property: bitbucket-ssh-key
+          vault: gap-test-externalstore
+        bitbucketAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-http-access-token
+          property: bitbucket-http-access-token
+          vault: gap-test-externalstore
+        nexus:
+          id: bit-amber-pipelines-d/default
+          name: dockerconfig
+          property: dockerconfig
+          vault: gap-test-externalstore
+
+generic-application-pipeline:
+  applications:
+    - appName: myapp
+      imageName: bit/myapp
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/myproject/myapp.git
+      imageRegistry: image-registry.nexus.bit.admin.ch
+      imageRegistryStaging: image-registry-incoming.nexus.bit.admin.ch
+      containerFilePath: myapp/Containerfile
+      buildAddLabels: false
+      buildVersionFilePath: helm/values-image.yaml
+      buildVersionDatePattern: "%H%M%S"
+      buildVersionAdditionalTags: "1.0"
+      buildImageFormat: docker
+      triggerBranchPattern: '^(!docs)|^develop'
+    - appName: myapp-2
+      imageName: bit/myapp-2
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/myproject/myapp-2.git
+      imageRegistry: image-registry.nexus.bit.admin.ch
+      additionalImageRegistries: "additional-image-registry.nexus.bit.admin.ch additional-image-registry2.nexus.bit.admin.ch"
+      imageRegistryStaging: image-registry-incoming.nexus.bit.admin.ch
+      containerFilePath: myapp-2/Containerfile
+
+      trivyIgnoreUnfixed: false
+      gitCommitterEmail: max.mustermann@bit.admin.ch
+      gitCommitterName: Max Mustermann BIT
+      trivyIgnorePath: trivyignorepath_custom/.trivyignore_custom
+      buildVersionReplacementString: '-'
+      credentialScanAllowsSkipOnFailure: true

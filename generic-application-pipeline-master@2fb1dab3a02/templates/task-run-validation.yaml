@@ -1,0 +1,110 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: {{ include "generic-application-pipeline.resourceName" (list $ . "run-validation") }}
+  labels:
+    {{- include "generic-application-pipeline.metadata.template-labels" . | nindent 4 }}
+  annotations:
+    {{- include "generic-application-pipeline.metadata.template-annotations" . | nindent 4 }}
+    tekton.dev/tags: "deployment"
+    tekton.dev/pipelines.minVersion: "0.12.1"
+    tekton.dev/displayName: "Trigger validation-pipeline"
+    description: Trigger validation-pipeline
+    app.openshift.io/description: Trigger validation-pipeline
+spec:
+  description: triggers the validation pipeline.
+  params:
+    - name: app-name
+      type: string
+      description: Name of the application to verify.
+    - name: git-repo
+      type: string
+      description: ssh-url of the repo to run the tests from.
+    - name: git-branch
+      type: string
+      description: branch name of the repo to run the tests from.
+    - name: git-commit
+      type: string
+      description: commit-id which was pushed to the repo to trigger the pipeline.
+    - name: pipelinerun-name
+      type: string
+      description: name of the current pipelineRun to extract parameters from.
+    - name: TOOLBOX_IMAGE
+      description: "Overridable container image."
+      type: string
+      default: 'bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1720017851'
+  steps:
+    - image: $(params.TOOLBOX_IMAGE)
+      env:
+        - name: HOME
+          value: "/tekton/home"
+      name: trigger-verification-pipeline
+      script: |
+        #!/bin/bash
+        APP_NAME=$(params.app-name)
+        VERIFY_RUN_YAML=/tmp/run-verification-pipeline.yaml
+        BUILD_RUN_YAML=/tmp/run-build-pipeline.yaml
+        GIT_REPO=$(params.git-repo)
+        GIT_BRANCH=$(params.git-branch)
+        GIT_COMMIT="$(params.git-commit)"
+        PIPELINE_NAME=$(params.pipelinerun-name)
+
+        TRIGGERED_BY=$(oc get pr $PIPELINE_NAME -o yaml | yq '.metadata.annotations."pipeline.bit.admin.ch/actor-name"')
+        # Manual start of the pipeline
+        if [ -z "$TRIGGERED_BY" ]; then
+          TRIGGERED_BY=$(oc get pr $PIPELINE_NAME -o yaml | yq '.metadata.annotations."pipeline.openshift.io/started-by"')
+        fi
+        ACTOR_DISPLAYNAME=$(oc get pr $PIPELINE_NAME -o yaml | yq '.metadata.annotations."pipeline.bit.admin.ch/actor-displayname"')
+        ACTOR_EMAIL=$(oc get pr $PIPELINE_NAME -o yaml | yq '.metadata.annotations."pipeline.bit.admin.ch/actor-email"')
+
+        echo "getting PipelineRun ${PIPELINE_NAME}"
+        oc get pipelinerun $PIPELINE_NAME -o yaml > $BUILD_RUN_YAML
+
+        SSH_SECRET_NAME=$(yq '.spec.workspaces[] | select( .name=="ssh" ) | .secret.secretName' $BUILD_RUN_YAML)
+        NEXUS_SECRET_NAME=$(yq '.spec.workspaces[] | select( .name=="nexus" ) | .secret.secretName' $BUILD_RUN_YAML)
+
+        echo "extracted ssh secret name: ${SSH_SECRET_NAME}"
+        echo "extracted nexus secret name: ${NEXUS_SECRET_NAME}"
+
+        cat > ${VERIFY_RUN_YAML} <<EOF
+        apiVersion: tekton.dev/v1
+        kind: PipelineRun
+        metadata:
+          generateName: ${APP_NAME}-verification-run-
+          namespace: $(context.taskRun.namespace)
+          annotations:
+            pipeline.bit.admin.ch/revision: ${GIT_BRANCH}
+            pipeline.bit.admin.ch/actor-name: $TRIGGERED_BY
+            pipeline.bit.admin.ch/actor-displayname: $ACTOR_DISPLAYNAME
+            pipeline.bit.admin.ch/actor-email: $ACTOR_EMAIL
+            pipeline.openshift.io/started-by: $TRIGGERED_BY
+        spec:
+          taskRunTemplate:
+            serviceAccountName: pipeline
+            podTemplate:
+              imagePullSecrets:
+                - name: cop-nexus-dockerconfig
+          pipelineRef:
+            name: ${APP_NAME}-verification-pipeline
+          workspaces:
+            - name: ws
+              persistentVolumeClaim:
+                claimName: ${APP_NAME}-pipeline-rwo-pvc
+            - name: bitbucket-ssh-key
+              secret:
+                secretName: {{ include "generic-application-pipeline.releaseName" $ }}-bitbucket-ssh-key
+          params:
+            - name: GIT_REPO
+              value: ${GIT_REPO}
+            - name: GIT_REV
+              value: ${GIT_COMMIT}
+            - name: PIPELINE_RUN_NAME
+              value: $(params.pipelinerun-name)
+        EOF
+
+        echo "running the following pipelineRun against RHOS:"
+        cat ${VERIFY_RUN_YAML}
+        set -e
+        RUNS=$(oc create -f ${VERIFY_RUN_YAML} && echo "")
+        echo "PipelineRuns created:"
+        echo "${RUNS}"

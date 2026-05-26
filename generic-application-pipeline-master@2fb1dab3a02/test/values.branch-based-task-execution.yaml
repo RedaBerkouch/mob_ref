@@ -1,0 +1,47 @@
+---
+global:
+  secrets:
+    enabled: true
+    externalStore:
+      enabled: true
+      vaults:
+        - name: gap-branch-based-branch-execution-externalstore
+          path: p-szb-ros-shrd-npr-01
+          server: https://mav.bit.admin.ch
+      paths:
+        bitbucket:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-ssh-key
+          property: bitbucket-ssh-key
+          vault: gap-branch-based-branch-execution-externalstore
+        bitbucketAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-http-access-token
+          property: bitbucket-http-access-token
+          vault: gap-branch-based-branch-execution-externalstore
+        nexus:
+          id: bit-amber-pipelines-d/default
+          name: dockerconfig
+          property: dockerconfig
+          vault: gap-branch-based-branch-execution-externalstore
+
+generic-application-pipeline:
+  enableMonorepo: false
+  applications:
+    - appName: branch-task-config
+      imageName: sti/gap-example2
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/STIRHOS/STI-GAP-EXAMPLE.git
+      imageRegistry: bit-sti-docker-hosted.nexus.bit.admin.ch
+      imageRegistryStaging: bit-sti-docker-hosted-incoming.nexus.bit.admin.ch
+      triggerBranchPattern: '^feature/test-branch-based-task-execution|^hotfix/test-branch-based-task-execution|^develop-test-branch-based-task-execution'
+      branchTaskConfiguration:
+        feature:
+          promoteImage: false
+          downloadFiles: false
+          runScaCheck: false
+          buildNotifications: false
+        hotfix:
+          promoteImage: true
+          downloadFiles: false
+          runScaCheck: false
+          buildNotifications: true

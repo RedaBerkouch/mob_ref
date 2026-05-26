@@ -1,0 +1,114 @@
+{{- range .Values.applications }}
+{{- $pipelineStorageConfig := mergeOverwrite
+    (deepCopy $.Values.defaultPipelineStorage)
+    (deepCopy ($.Values.pipelineStorage|default (dict)))
+    (deepCopy (.pipelineStorage|default (dict))) }}
+
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  labels:
+    {{- include "java-pipeline.labels" (dict "appName" .appName "Chart" $.Chart) | nindent 4 }}
+  annotations:
+    {{- include "java-pipeline.annotations" . | nindent 4 }}
+  name: {{ .appName}}-{{ include "java-pipeline.pipelinePrefix" . }}
+spec:
+  params:
+    - name: gitrepo-url
+      description: URL of the git repo
+    - name: git-repo-name
+      description: Name of the git repo
+    - name: git-branch
+      description: Revision of git commit
+    - name: git-commit
+      description: Id of git commit
+    - name: pusher-name
+      description: Name of pushing user
+    - name: pusher-displayname
+      description: Display name of pushing user
+    - name: pusher-email
+      description: Email address of pushing user
+      default: ""
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: {{ .appName}}-{{ include "java-pipeline.pipelinePrefix" . }}-plr-run-
+        labels:
+          {{- include "java-pipeline.labels" (dict "appName" .appName "Chart" $.Chart) | nindent 10 }}
+        annotations:
+          pipeline.bit.admin.ch/revision: '$(tt.params.git-branch)'
+          pipeline.bit.admin.ch/actor-name: '$(tt.params.pusher-name)'
+          pipeline.bit.admin.ch/actor-displayname: '$(tt.params.pusher-displayname)'
+          pipeline.bit.admin.ch/actor-email: '$(tt.params.pusher-email)'
+          pipeline.openshift.io/started-by: '$(tt.params.pusher-name)'
+      spec:
+        podTemplate:
+          imagePullSecrets:
+            - name: cop-nexus-dockerconfig
+        pipelineRef:
+          name: {{ .appName }}-{{ include "java-pipeline.pipelinePrefix" . }}-build
+        serviceAccountName: pipeline
+        timeouts:
+          pipeline: {{.pipelineTimeout | default "1h0m0s" }}
+        workspaces:
+          - name: ws
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - {{ $pipelineStorageConfig.accessMode | quote}}
+                resources:
+                  requests:
+                    storage: {{ $pipelineStorageConfig.size | quote}}
+                storageClassName: {{ $pipelineStorageConfig.storageClass | quote}}
+          - name: ssh
+            secret:
+              secretName: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-bitbucket-secret
+          - name: nexus
+            secret:
+              secretName: cop-nexus-user-pw
+          - name: dockerconfig
+            secret:
+              secretName: cop-nexus-dockerconfig
+          - name: acs-token
+            secret:
+              secretName: cop-rox-api-token
+          - name: sonar
+            secret:
+              secretName: cop-sonar-token
+          - name: udeploy
+          {{- if or
+            (and ($.Values.global).secrets ($.Values.global).secrets.path ($.Values.global).secrets.paths.udeploy)
+            (and ($.Values.global).secrets ($.Values.global).secrets.externalStore ($.Values.global).secrets.externalStore.paths ($.Values.global).secrets.externalStore.paths.udeploy)
+          }}
+            secret:
+              secretName: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-udeploy-accesstoken
+          {{- else }}
+            emptyDir: { }
+          {{- end }}
+          - name: acs-ws
+            emptyDir: { }
+          - name: webhook-deployment
+            secret:
+              secretName: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-webhook-deployment-accesstoken
+          - name: kubedock-pod-template
+            configMap:
+              name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-kubedock-pod-template
+
+        params:
+          - name: GIT_REPO
+            value: $(tt.params.gitrepo-url)
+          - name: GIT_REPO_NAME
+            value: $(tt.params.git-repo-name)
+          - name: GIT_BRANCH
+            value: $(tt.params.git-branch)
+          - name: GIT_COMMIT
+            value: $(tt.params.git-commit)
+          - name: GIT_PUSHER_NAME
+            value: $(tt.params.pusher-name)
+          - name: GIT_PUSHER_EMAIL
+            value: $(tt.params.pusher-email)
+          - name: GIT_PUSHER_DISPLAYNAME
+            value: $(tt.params.pusher-displayname)
+{{- end}}

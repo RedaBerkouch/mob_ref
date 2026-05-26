@@ -1,0 +1,16 @@
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+{{- include "generic-application-pipeline.metadata.template-metadata" . }}
+spec:
+  resources:
+    kubernetesResource:
+      replicas: {{ .Values.eventListener.replicas }}
+      spec:
+        template:
+          spec:
+            containers:
+              - resources:
+                  {{- toYaml .Values.eventListener.resources | nindent 18 }}
+  serviceAccountName: pipeline
+{{ include "generic-application-pipeline.event-listener.template-triggers" . | indent 2}}

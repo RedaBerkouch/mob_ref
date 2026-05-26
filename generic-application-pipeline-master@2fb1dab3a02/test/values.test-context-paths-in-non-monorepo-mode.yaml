@@ -1,0 +1,52 @@
+---
+global:
+  secrets:
+    enabled: true
+    externalStore:
+      enabled: true
+      vaults:
+        - name: gap-context-paths-in-non-monorepo-mode-externalstore
+          path: p-szb-ros-shrd-npr-01
+          server: https://mav.bit.admin.ch
+      paths:
+        bitbucket:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-ssh-key
+          property: bitbucket-ssh-key
+          vault: gap-context-paths-in-non-monorepo-mode-externalstore
+        bitbucketAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-http-access-token
+          property: bitbucket-http-access-token
+          vault: gap-context-paths-in-non-monorepo-mode-externalstore
+        nexus:
+          id: bit-amber-pipelines-d/default
+          name: dockerconfig
+          property: dockerconfig
+          vault: gap-context-paths-in-non-monorepo-mode-externalstore
+
+generic-application-pipeline:
+  enableMonorepo: false
+  defaultTriggerBranchPattern: '^develop-build-image-context-test$'
+  applications:
+    - # Minimal application values
+      appName: app1-context
+      imageName: sti/gap-example
+      # test: with uppercase project/repo
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/STIRHOS/STI-GAP-EXAMPLE.git
+      imageRegistry: bit-sti-docker-hosted.nexus.bit.admin.ch
+      imageRegistryStaging: bit-sti-docker-hosted-incoming.nexus.bit.admin.ch
+      # info: triggerBranchPattern is optional, need to be set for our gap-example test setup
+      containerFilePath: Containerfile
+      buildImageContextPath: app1/
+      trivyIgnorePath: trivyignorepath_custom/.trivyignore_custom
+    - # Minimal application values
+      appName: app2-context
+      imageName: sti/gap-example2
+      # test: with uppercase project/repo
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/STIRHOS/STI-GAP-EXAMPLE.git
+      imageRegistry: bit-sti-docker-hosted.nexus.bit.admin.ch
+      imageRegistryStaging: bit-sti-docker-hosted-incoming.nexus.bit.admin.ch
+      # info: triggerBranchPattern is optional, need to be set for our gap-example test setup
+      containerFilePath: Containerfile
+      buildImageContextPath: app2/

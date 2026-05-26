@@ -1,0 +1,81 @@
+cd-pipelines:
+
+  systemName: jme
+  gitAppRepoHost: ssh://git@bitbucket.bit.admin.ch
+  gitAppRepoProject: bit_jme
+  gitOpsRepoBranch: master
+  targetNamespacePrefix: bit-jme
+  cluster: p-szb-ros-shrd-npr-01
+  prodCluster: p-szb-ros-shrd-prd-01
+
+  argocdInstanceBaseUrl: https://argocd-server-bit-jme-gitops-d.apps.p-szb-ros-shrd-npr-01.cloud.admin.ch
+  prodArgocdInstanceBaseUrl: https://argocd-server-bit-jme-gitops-p.apps.p-szb-ros-shrd-prd-01.cloud.admin.ch
+
+  customValuesPathTemplate: <APP_NAME>/helm/<STAGE_LONG>/values.yaml
+
+  deploymentLog: false
+  deploymentLogRollback: false
+  deploymentLogUrl: https://bit-jme-d.apps.p-szb-ros-shrd-npr-01.cloud.admin.ch/deploymentlog-service/
+
+  #  archRepoUrl: https://applicationplatform.ingress.nivel.bazg.admin.ch/applicationplatform-archrepo-service
+  #archRepoUrl: https://applicationplatform-dev.ingress.nivel.bazg.admin.ch/applicationplatform-archrepo-service/
+
+  remedyChangeRequest: false
+  remedyWsUrl: https://ws.remedy-midtier-a.bit.admin.ch/arsys/services/ARService?server=s821000108473a&webService=CHG_ChangeInterface_Create_WS
+  remedyChangeRequestTemplateId: IDGAA5V0GSVMTAS7SW6IS6RZFMPGIG
+  remedyChangeStatus: 7
+  remedyRequesterMailAddress: "laris.jacobs@bit.admin.ch"
+
+  pactBrokerUrl: 'https://pactbroker.bit.admin.ch/'
+  pactCanIDeployCheckWaitMinutes: 10
+
+  applications:
+    - appName: jme-rhos-cicd-example
+      bitBucketRepo: jme-rhos-cicd-example
+      mavenBuildJavaImage: 'toolchain-docker.nexus.bit.admin.ch/bit/ubi-java-build:java-21.x_node-20.x'
+      deploymentLog: false
+      deploymentLogRollback: true
+      deploymentLogReadyForDeployCheck: false
+      deploymentLogReadyForDeployCheckEnvironments: d,r,p
+      automatedStaging:
+        - 'd:p'
+      #        - 'r:p'
+      verificationPipeline:
+        waitForPipelineToSucceed: true
+        cronJob:
+          schedule: "0 0 * * *"
+          mavenArgs: "-DdeployStage=dev"
+          gitRev: develop
+        tests:
+          buildAndUnit:
+            enabled: true
+          systemIntegration:
+            enabled: true
+      pipelineStorage:
+        size: 2Gi
+    - appName: jme-cdc-provider-service
+      bitBucketRepo: jme-cdc-example
+      mavenBuildJavaImage: 'toolchain-docker.nexus.bit.admin.ch/bit/ubi-java-build:java-21.x_node-20.x'
+      mavenSubModule: 'jme-cdc-provider-service'
+      excludedMavenSubModulesFromSonarScan:
+        - 'jme-cdc-auth-scs'
+      pactPacticipant: true
+      pactPacticipantName: bit-jme-cdc-provider-service
+      pactCanIDeployCheckEnvironments: d,r
+      pactEnvironments: d,r
+      isPactProvider: true
+      pipelineStorage:
+        size: 2Gi
+
+    # #####################################
+    # ### jme-messaging-example         ###
+    # #####################################
+    - appName: jme-messaging-sender-service
+      bitBucketRepo: jme-messaging-example
+      mavenSubModule: 'jme-messaging-sender-service'
+      undeploy: true
+      includeMavenSubModules:
+        - 'jme-messaging-common-lib'
+      messageContractCompatibilityCheckEnvironments: dev,ref
+      pipelineStorage:
+        size: 1Gi

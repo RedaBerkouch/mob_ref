@@ -1,0 +1,73 @@
+---
+global:
+  secrets:
+    enabled: true
+    externalStore:
+      enabled: true
+      vaults:
+        - name: gap-monorepo-externalstore
+          path: p-szb-ros-shrd-npr-01
+          server: https://mav.bit.admin.ch
+      paths:
+        bitbucket:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-ssh-key
+          property: bitbucket-ssh-key
+          vault: gap-monorepo-externalstore
+        bitbucketAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-http-access-token
+          property: bitbucket-http-access-token
+          vault: gap-monorepo-externalstore
+        nexus:
+          id: bit-amber-pipelines-d/default
+          name: dockerconfig
+          property: dockerconfig
+          vault: gap-monorepo-externalstore
+        netrc:
+          id: bit-amber-pipelines-d/default
+          name: netrc
+          property: netrc
+          vault: gap-monorepo-externalstore
+
+generic-application-pipeline:
+  enableMonorepo: true
+  defaultTriggerBranchPattern: '^develop-monorepo$'
+  defaultPipelineStorage:
+    size: 1Gi
+  applications:
+    # Application with configured context path
+    - appName: gap-monorepo-app1-with-context-paths
+      imageName: bit/app1
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/stirhos/sti-gap-example.git
+      imageRegistry: bit-sti-docker-hosted.nexus.bit.admin.ch
+      imageRegistryStaging: bit-sti-docker-hosted-incoming.nexus.bit.admin.ch
+      containerFilePath: Containerfile
+      buildImageContextPath: app1
+      #trivyIgnorePath not specified, use default, .trivyignore expected in Git repository root, unaffected by buildImageContextPath
+
+    # Application without context path in order to test already existing setups
+    - appName: gap-monorepo-app2
+      imageName: bit/app2
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/stirhos/sti-gap-example.git
+      imageRegistry: bit-sti-docker-hosted.nexus.bit.admin.ch
+      imageRegistryStaging: bit-sti-docker-hosted-incoming.nexus.bit.admin.ch
+      containerFilePath: app2/Dockerfile
+      trivyIgnorePath: app2/.trivyignore_custom_in_app2  #overriden, trivyignore expected in app2/ subfolder
+
+    # Non-existing bitbucket in order to test error handling
+    - appName: gap-monorepo-app3
+      imageName: bit/app3
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/stirhos/app3.git
+      imageRegistry: bit-sti-docker-hosted.nexus.bit.admin.ch
+      imageRegistryStaging: bit-sti-docker-hosted-incoming.nexus.bit.admin.ch
+      containerFilePath: app3/Dockerfile
+      #trivyIgnorePath not specified, use default, .trivyignore expected in Git repository root
+
+    # Non-existing directory/application in order to test error handling
+    - appName: gap-monorepo-app4
+      imageName: bit/app4
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/stirhos/sti-gap-example.git
+      imageRegistry: bit-sti-docker-hosted.nexus.bit.admin.ch
+      imageRegistryStaging: bit-sti-docker-hosted-incoming.nexus.bit.admin.ch
+      containerFilePath: app4/Dockerfile

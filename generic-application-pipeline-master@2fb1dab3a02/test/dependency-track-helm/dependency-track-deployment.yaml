@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dependency-track-test-apiserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dependency-track-test-apiserver
+  template:
+    metadata:
+      labels:
+        app: dependency-track-test-apiserver
+    spec:
+      containers:
+        - name: dependency-track-test-apiserver
+          image: docker-hub.nexus.bit.admin.ch/dependencytrack/apiserver:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Xmx4G"
+            - name: ALPINE_DATABASE_MODE
+              value: "internal"
+            - name: ALPINE_HTTP_PROXY_ADDRESS
+              value: "prxp01.admin.ch"
+            - name: ALPINE_HTTP_PROXY_PORT
+              value: "8080"
+          resources:
+            requests:
+              memory: "4.5Gi"
+              cpu: "2"
+            limits:
+              memory: "8Gi"
+              cpu: "2"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dependency-track-test-apiserver-sv
+spec:
+  selector:
+    app: dependency-track-test-apiserver
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: dependency-track-test-apiserver-route
+spec:
+  to:
+    kind: Service
+    name: dependency-track-test-apiserver-sv
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dependency-track-test-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dependency-track-test-frontend
+  template:
+    metadata:
+      labels:
+        app: dependency-track-test-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: docker-hub.nexus.bit.admin.ch/dependencytrack/frontend:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: API_BASE_URL
+              value: "https://dependency-track-test-apiserver-route-bit-amber-pipelines-d.apps.p-szb-ros-shrd-npr-01.cloud.admin.ch"
+          resources:
+            limits:
+              cpu: "2"
+              memory: "256M"
+            requests:
+              cpu: "100m"
+              memory: "33M"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dependency-track-test-frontend-sv
+spec:
+  selector:
+    app: dependency-track-test-frontend
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: dependency-track-test-frontend-route
+spec:
+  to:
+    kind: Service
+    name: dependency-track-test-frontend-sv
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge

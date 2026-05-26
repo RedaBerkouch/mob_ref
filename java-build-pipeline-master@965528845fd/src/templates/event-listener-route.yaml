@@ -1,0 +1,23 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  labels:
+    {{- include "java-pipeline.labels" . | nindent 4 }}
+  annotations:
+    {{- include "java-pipeline.annotations" . | nindent 4 }}
+  name: {{ include "java-pipeline.pipelinePrefix" . }}-el
+  {{- if .projectname }}
+  namespace: {{ .projectname }}
+  {{- end }}
+spec:
+  path: "/"
+  port:
+    targetPort: http-listener
+  to:
+    kind: Service
+    name: el-{{ include "java-pipeline.resourceBaseName" . }}-{{ include "java-pipeline.pipelinePrefix" . }}
+    weight: 100
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

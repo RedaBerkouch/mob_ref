@@ -1,0 +1,187 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    {{- include "java-pipeline.labels" . | nindent 4 }}
+  annotations:
+    {{- include "java-pipeline.annotations" . | nindent 4 }}
+  name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-build-setup
+spec:
+  params:
+    - name: default_branch_configuration
+      type: string
+    - name: app_branch_configuration
+      type: string
+    - name: reference_pipeline_name
+      description: Reference pipeline name
+      type: string
+      default: '{{ .Chart.Name }}-build'
+    - name: reference_pipeline_version
+      description: reference pipeline version
+      type: string
+      default: {{ .Chart.Version }}
+    - name: gitops_repository
+      description: SSH of the gitops repository
+      type: string
+      default: {{ (.Values.global).gitOpsRepo }}
+    - name: git_url
+      description: Git repository used in the pipeline
+      type: string
+    - description: Git branch used in the pipeline
+      name: git_branch
+      type: string
+    - name: triggered_by
+      description: Name of account, who pushed the Git repository
+      type: string
+    - name: commit_id
+      description: Commit ID to which the current build status is attached
+      type: string
+    - name: pipeline_run_name
+      description: 'Pipeline run name, see https://tekton.dev/docs/pipelines/variables/'
+      type: string
+    - name: pipeline_run_namespace
+      description: 'Pipeline namespace, see https://tekton.dev/docs/pipelines/variables/'
+      type: string
+    - name: pipeline_run_uid
+      description: 'Pipeline run UID, see https://tekton.dev/docs/pipelines/variables/'
+      type: string
+    - name: logging_file_path
+      description: path to logging file
+      type: string
+      default: {{ .Values.defaultLoggingFile }}
+    - name: application_type
+      type: string
+    - name: version_template
+      type: string
+    - name: version_template_date_pattern
+      type: string
+    - name: maven_release_repo
+      type: string
+    - name: maven_snapshot_repo
+      type: string
+    - name: build_tool
+      type: string
+    - name: nexus_npm_repository_url
+      type: string
+      description: URL for the NPM repository without protocol (e.g. https)
+      default: 'nexus.bit.admin.ch/repository/npm-group/'
+    - name: verbose_log
+      type: string
+      description: set to true for verbose logging
+      default: 'false'
+    - name: app_name
+      type: string
+      description: name of the app used for image name.
+  results:
+    - name: push_tag
+      description: true or false depending on BranchConfig
+    - name: push_image_tag
+      description: true or false depending on BranchConfig
+    - name: build_image
+      description: true or false depending on BranchConfig
+    - name: build_tool
+      description: the tool build to build the application.
+    - name: trivy_image_scan
+      description: Indicates if image scan is wanted
+    - name: acs_image_scan
+      description: Indicates if a ACS scan is wanted
+    - name: deploy_stage
+      description: Name of the Stage to Deploy. 'none' if none ;-)
+    - name: quality_check
+      description: true or false depending on BranchConfig
+    - name: quality_gate
+      description: true or false depending on BranchConfig
+    - name: sca_check
+      description: Indicates if SCA check is wanted
+    - name: maven_deploy
+      description: Indicates if a push to Maven Registry (Nexus) is wanted
+    - name: ucd_deploy
+      description: Indicates if a push to Urban Code Deploy (UCD) is wanted
+    - name: snapshot_version
+      description: >
+        snapshot-version contains the version even if publishing is disabled.
+        this will contain a release-version IF publishing is enabled.
+    - name: update_version
+      description: Indicates if update of the maven-version is necessary
+    - name: version
+      description: image name with version in case a version should be published, used for buildah.
+    - name: image_with_version
+      description: full image name containing version.
+    - name: verify_deployment
+      description: Indicates if the deployment verification should be triggered
+  steps:
+    - name: setup-build-pipeline
+      image: {{ .toolboxImage | default $.Values.defaultToolboxImage | quote}}
+      env:
+        - name: HOME
+          value: "/tekton/home"
+        - name: MODULE_PATHS
+          value: "."
+      command:
+        - python3
+      args:
+        - /scripts/ppl_build_setup.py
+        - $(params.verbose_log)
+        - $(params.default_branch_configuration)
+        - $(params.app_branch_configuration)
+        - $(params.git_branch)
+        - $(params.application_type)
+        - $(workspaces.nexus.path)
+        - $(workspaces.ws.path)
+        - $(params.version_template)
+        - $(params.pipeline_run_uid)
+        - $(params.version_template_date_pattern)
+        - $(params.maven_release_repo)
+        - $(params.maven_snapshot_repo)
+        - $(params.build_tool)
+        - $(params.nexus_npm_repository_url)
+        - $(params.pipeline_run_name)
+        - $(params.app_name)
+      volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+      securityContext:
+        runAsNonRoot: true
+        runAsGroup: 65532
+        runAsUser: 65532
+      resources:
+        {{- include "pipeline.stepResources" (dict "name" "setup-build-pipeline" "nameSuffix" "build-setup" "Values" .Values "defaultProfile" "small") | nindent 8 }}
+    - name: aggregate-logs
+      image: {{ .minimalImage | default $.Values.defaultMinimalImage | quote}}
+      env:
+        - name: HOME
+          value: '/tekton/home'
+      script: |
+        #!/bin/bash
+        set -e
+
+        if [ -f $(params.logging_file_path) ]; then
+            rm $(params.logging_file_path)
+        fi
+
+        echo "reference_pipeline_name=$(params.reference_pipeline_name)" >> $(params.logging_file_path)
+        echo "reference_pipeline_version=$(params.reference_pipeline_version)" >> $(params.logging_file_path)
+        echo "gitops_repository=$(params.gitops_repository)" >> $(params.logging_file_path)
+        echo "git_url=$(params.git_url)" >> $(params.logging_file_path)
+        echo "git_branch=$(params.git_branch)" >> $(params.logging_file_path)
+        echo "triggered_by=$(params.triggered_by)" >> $(params.logging_file_path)
+        echo "commit_id=$(params.commit_id)" >> $(params.logging_file_path)
+        echo "pipeline_run_name=$(params.pipeline_run_name)" >> $(params.logging_file_path)
+        echo "pipeline_run_namespace=$(params.pipeline_run_namespace)" >> $(params.logging_file_path)
+        echo "pipeline_run_uid=$(params.pipeline_run_uid)" >> $(params.logging_file_path)
+      securityContext:
+        runAsNonRoot: true
+        runAsGroup: 65532
+        runAsUser: 65532
+      workingDir: $(workspaces.ws.path)/
+      resources:
+        {{- include "pipeline.stepResources" (dict "name" "aggregate-logs" "nameSuffix" "build-setup" "Values" .Values "defaultProfile" "small") | nindent 8 }}
+  volumes:
+    - name: scripts
+      configMap:
+        name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-branch-configuration
+  workspaces:
+    - name: ws
+      description: The workspace containing the maven project
+    - name: nexus
+      description: The workspace containing the nexus maven credentials

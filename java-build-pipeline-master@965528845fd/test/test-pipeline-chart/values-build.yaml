@@ -1,0 +1,118 @@
+java-build-pipeline:
+  resources:
+    build-setup:
+      steps:
+        - name: aggregate-logs
+          resources:
+            requests:
+              cpu: 2
+              memory: 1Gi
+            limits:
+              cpu: 2
+              memory: 4Gi
+
+  defaultMavenBuildJavaImage: 'toolchain-docker-hosted.nexus.bit.admin.ch/bit/ubi-java-build:java-21.x_node-20.x'
+  secureTektonWebhookAccess: true
+  applications:
+    - appName: jme-rhos-db-example
+      bitBucketRepo: jme-rhos-db-example
+      testcontainers: true
+      mavenBuildJavaImage: 'toolchain-docker.nexus.bit.admin.ch/bit/ubi-java-build:java-21.x_node-20.x'
+      verifyDeployment: true
+      branchConfig:
+        feature:
+          publishVersionTag: false
+          deployStage: "d"
+          qualityCheck: false
+          qualityGate: false
+      pipelineStorage:
+        size: 2Gi
+
+    - appName: jme-rhos-cicd-example
+      bitBucketRepo: jme-rhos-cicd-example
+      mavenBuildJavaImage: 'toolchain-docker.nexus.bit.admin.ch/bit/ubi-java-build:java-21.x_node-20.x'
+      hookScripts:
+        afterSetup:
+          path: "./after-setup.sh"
+          image: 'toolchain-docker.nexus.bit.admin.ch/bit/ubi-java-build:java-21.x_node-20.x'
+        afterQualityCheck:
+          path: "./after-setup.sh"
+          image: 'toolchain-docker.nexus.bit.admin.ch/bit/ubi-java-build:java-21.x_node-20.x'
+        afterPushTag:
+          path: "./after-setup.sh"
+          image: 'toolchain-docker.nexus.bit.admin.ch/bit/ubi-java-build:java-21.x_node-20.x'
+      branchConfig:
+        feature:
+          publishVersionTag: true
+          publishGitTag: false
+          deployStage: "d"
+          buildVersionTemplate: '<TIMESTAMP>_<POM_VERSION>-SNAPSHOT'
+          verifyDeployment: true
+        develop:
+          publishVersionTag: false
+          deployStage: "d"
+      pipelineStorage:
+        size: 2Gi
+
+    - appName: jme-cdc-provider-service
+      bitBucketRepo: jme-cdc-example
+      mavenBuildJavaImage: 'toolchain-docker.nexus.bit.admin.ch/bit/ubi-java-build:java-21.x_node-20.x'
+      mavenSubModule: 'jme-cdc-provider-service'
+      excludedMavenSubModulesFromSonarScan:
+        - 'jme-cdc-auth-scs'
+      branchConfig:
+        feature:
+          publishVersionTag: true
+          publishGitTag: false
+          deployStage: "d"
+          buildVersionTemplate: '<POM_VERSION>_<PLR_UID>-SNAPSHOT'
+        develop:
+          publishVersionTag: true
+          publishGitTag: false
+          deployStage: "d"
+          automatedStaging:
+            - 'd:r'
+          buildVersionTemplate: '<POM_VERSION>_<PLR_UID>'
+      pipelineStorage:
+        size: 2Gi
+
+    # #####################################
+    # ### jme-messaging-example         ###
+    # #####################################
+    - appName: jme-messaging-sender-service
+      bitBucketRepo: jme-messaging-example
+      mavenSubModule: 'jme-messaging-sender-service'
+      includeMavenSubModules:
+        - 'jme-messaging-common-lib'
+      excludedMavenSubModulesFromSonarScan:
+        - 'jme-messaging-receiverpublisher-service'
+        - 'jme-messaging-receiverpublisher-outbox-service'
+        - 'jme-messaging-subscriber-service'
+        - 'jme-messaging-multicluster-service'
+        - 'jme-messaging-dltsubscriber-service'
+        - 'jme-messaging-roguesender-service'
+        - 'jme-messaging-auth-scs'
+        - 'jme-messaging-error-scs'
+        - 'jme-messaging-self-messaging-service'
+        - 'jme-messaging-sequential-inbox-service'
+      messageContractCompatibilityCheckEnvironments: dev,ref
+      buildVersionDatePattern: '%Y%m%d%H%M%S'
+      branchConfig:
+        feature:
+          publishVersionTag: false
+          buildVersionTemplate: '<POM_VERSION>-<TIMESTAMP>-SNAPSHOT'
+          deployStage: "d"
+          qualityCheck: false
+          qualityGate: false
+          scanImage: false
+          scaCheck: false
+        develop:
+          publishVersionTag: true
+          buildVersionTemplate: '<POM_VERSION>-<TIMESTAMP>-SNAPSHOT'
+          deployStage: "d"
+          qualityCheck: false
+          qualityGate: false
+          scanImage: true
+          scaCheck: true
+      pipelineStorage:
+        size: 1Gi

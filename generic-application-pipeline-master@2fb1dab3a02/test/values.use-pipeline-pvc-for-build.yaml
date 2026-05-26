@@ -1,0 +1,42 @@
+---
+global:
+  secrets:
+    enabled: true
+    externalStore:
+      enabled: true
+      vaults:
+        - name: gap-use-pipeline-pvc-externalstore
+          path: p-szb-ros-shrd-npr-01
+          server: https://mav.bit.admin.ch
+      paths:
+        bitbucket:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-ssh-key
+          property: bitbucket-ssh-key
+          vault: gap-use-pipeline-pvc-externalstore
+        bitbucketAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-http-access-token
+          property: bitbucket-http-access-token
+          vault: gap-use-pipeline-pvc-externalstore
+        nexus:
+          id: bit-amber-pipelines-d/default
+          name: dockerconfig
+          property: dockerconfig
+          vault: gap-use-pipeline-pvc-externalstore
+
+generic-application-pipeline:
+  applications:
+    - appName: build-app-with-pvc-test-app
+      imageName: bit/build-app-with-pvc-test-app
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/stirhos/sti-gap-example.git
+      imageRegistry: bit-sti-docker-hosted.nexus.bit.admin.ch
+      imageRegistryStaging: bit-sti-docker-hosted-incoming.nexus.bit.admin.ch
+      containerFilePath: Dockerfile
+      triggerBranchPattern: "^develop-app-with-pvc$"
+      pipelineStorage:
+        size: 1Gi
+      usePipelinePvcForBuild: true
+      branchTaskConfiguration:
+        develop:
+          buildNotifications: false

@@ -1,0 +1,9 @@
+.idea/
+.project
+monorepo-pipeline-runs.yaml
+test/01_helm_lint.log
+test/README.md
+test/values.*.tmp
+test/values-*.tmp
+__pycache__
+.env

@@ -1,0 +1,38 @@
+---
+global:
+  secrets:
+    enabled: true
+    externalStore:
+      enabled: true
+      vaults:
+        - name: gap-no-bitbucket-notification-externalstore
+          path: p-szb-ros-shrd-npr-01
+          server: https://mav.bit.admin.ch
+      paths:
+        bitbucket:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-ssh-key
+          property: bitbucket-ssh-key
+          vault: gap-no-bitbucket-notification-externalstore
+        bitbucketAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-http-access-token
+          property: bitbucket-http-access-token
+          vault: gap-no-bitbucket-notification-externalstore
+        nexus:
+          id: bit-amber-pipelines-d/default
+          name: dockerconfig
+          property: dockerconfig
+          vault: gap-no-bitbucket-notification-externalstore
+
+generic-application-pipeline:
+  applications:
+    - appName: no-bitbucket-notif
+      imageName: bit/no-bitbucket-notif
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/myproject/no-bitbucket-notif.git
+      imageRegistry: image-registry.nexus.bit.admin.ch
+      imageRegistryStaging: image-registry-incoming.nexus.bit.admin.ch
+      containerFilePath: no-bitbucket-notif/Containerfile
+      branchTaskConfiguration:
+        develop:
+          buildNotifications: false

@@ -1,0 +1,138 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-build-pipeline
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  serviceAccountName: pipeline
+  restartPolicy: Never
+  containers:
+    - name: trigger-build-pipeline
+      image: {{ .Values.defaultToolboxImage | quote }}
+      command: ["/bin/bash", "-c"]
+      args:
+        - |
+          set -e
+
+          APP_NAME="jme-rhos-cicd-example"
+          GIT_REPO="ssh://git@bitbucket.bit.admin.ch/bit_jme/jme-rhos-cicd-example.git"
+          GIT_REPO_NAME="jme-rhos-cicd-example"
+          GIT_BRANCH="develop"
+          GIT_PUSHER_DISPLAYNAME="OpenShift UI"
+          GIT_PUSHER_NAME="OpenShift UI"
+          GIT_PUSHER_EMAIL="OpenShift UI"
+          GIT_COMMIT="9be85222baa63f25159af7d45ddd668c3fec201a"
+          CREDENTIAL_SCAN_SKIP_FAILURE="true"
+          SONAR_SECRET_NAME="cop-sonar-token"
+          VERBOSE="false"
+          TIMEOUT_SECONDS=1800  # 30 minutes
+
+          PIPELINE_RUN_YAML=/tmp/run-build-pipeline.yaml
+
+          cat > ${PIPELINE_RUN_YAML} <<EOF
+          apiVersion: tekton.dev/v1beta1
+          kind: PipelineRun
+          metadata:
+            generateName: ${APP_NAME}-build-pipeline-run-
+            namespace: bit-jeap-pipeline-nino-d
+            labels:
+              jeap.bit.admin.ch/pipeline-for: ${APP_NAME}
+          spec:
+            pipelineRef:
+              name: ${APP_NAME}-{{ include "java-pipeline.pipelinePrefix" . }}-build
+            serviceAccountName: pipeline
+            workspaces:
+              - name: ws
+                volumeClaimTemplate:
+                  spec:
+                    accessModes:
+                      - ReadWriteOnce
+                    resources:
+                      requests:
+                        storage: 2Gi
+                    storageClassName: iscsi-ssd-encrypt
+              - name: ssh
+                secret:
+                  secretName: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-bitbucket-secret
+              - name: nexus
+                secret:
+                  secretName: cop-nexus-user-pw
+              - name: acs-ws
+                emptyDir: {}
+              - name: sonar
+                secret:
+                  secretName: {{ .Values.sonarSecretName | default "cop-sonar-token" }}
+              - name: dockerconfig
+                secret:
+                  secretName: cop-nexus-dockerconfig
+              - name: acs-token
+                secret:
+                  secretName: cop-rox-api-token
+              - name: branch-config
+                configmap:
+                  name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-build-pipeline-config-map
+              - name: udeploy
+                emptyDir: {}
+              - name: webhook-deployment
+                secret:
+                  secretName: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-webhook-deployment-accesstoken
+              - name: kubedock-pod-template
+                configMap:
+                  name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-kubedock-pod-template
+            params:
+              - name: GIT_REPO
+                value: ${GIT_REPO}
+              - name: GIT_REPO_NAME
+                value: ${GIT_REPO_NAME}
+              - name: GIT_BRANCH
+                value: ${GIT_BRANCH}
+              - name: GIT_PUSHER_DISPLAYNAME
+                value: ${GIT_PUSHER_DISPLAYNAME}
+              - name: GIT_PUSHER_NAME
+                value: ${GIT_PUSHER_NAME}
+              - name: GIT_PUSHER_EMAIL
+                value: ${GIT_PUSHER_EMAIL}
+              - name: GIT_COMMIT
+                value: ${GIT_COMMIT}
+              - name: CREDENTIAL_SCAN_SKIP_FAILURE
+                value: ${CREDENTIAL_SCAN_SKIP_FAILURE}
+              - name: SONAR_SECRET_NAME
+                value: ${SONAR_SECRET_NAME}
+              - name: VERBOSE
+                value: ${VERBOSE}
+          EOF
+
+          echo "running the following build PipelineRun against RHOS:"
+          cat ${PIPELINE_RUN_YAML}
+
+          RUNS=$(oc create -f ${PIPELINE_RUN_YAML} || echo "")
+          PIPELINE_RUN_NAME=$(echo ${RUNS} | awk '{print $1}' | cut -d'/' -f2)
+
+          if [ -z "$PIPELINE_RUN_NAME" ]; then
+            echo "❌ Error: PipelineRun name could not be extracted."
+            exit 1
+          fi
+
+          echo "PipelineRun created: ${PIPELINE_RUN_NAME}"
+          echo "Waiting for PipelineRun '${PIPELINE_RUN_NAME}' to complete..."
+
+          end_time=$((SECONDS + TIMEOUT_SECONDS))
+          while [ $SECONDS -lt $end_time ]; do
+            reason=$(oc get pr "${PIPELINE_RUN_NAME}" -o json | jq -r '.status.conditions[0].reason')
+            echo "Status Reason: $reason"
+
+            if [ "$reason" == "Succeeded" ]; then
+              echo "✅ PipelineRun succeeded."
+              exit 0
+            elif [ "$reason" == "Failed" ] || [ "$reason" == "Cancelled" ]; then
+              echo "❌ PipelineRun failed or was cancelled."
+              exit 1
+            fi
+
+            sleep 10
+          done
+
+          echo "⏱️ Timeout reached. PipelineRun did not complete."
+          exit 1

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-kubedock-pod-template
+  labels:
+    {{- include "java-pipeline.labels" . | nindent 4 }}
+  annotations:
+    {{- include "java-pipeline.annotations" . | nindent 4 }}
+data:
+  pod_template.yaml: |-
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: kubedock-pod-template

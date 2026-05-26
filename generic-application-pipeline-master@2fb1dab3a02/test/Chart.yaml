@@ -1,0 +1,14 @@
+---
+apiVersion: v2
+name: gap
+description: from local parent folder
+type: application
+version: 0.0.0
+dependencies:
+  - name: commons-pipeline
+    version: "2.0.2"
+    repository: https://nexus.bit.admin.ch/repository/bit-pipelines-helm-hosted
+  - name: generic-application-pipeline
+    repository: file://..
+    version: "x.x.x"
+    alias: generic-application-pipeline

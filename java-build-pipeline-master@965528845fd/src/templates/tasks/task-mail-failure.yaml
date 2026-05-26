@@ -1,0 +1,72 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+  {{- include "java-pipeline.labels" $ | nindent 4 }}
+  annotations:
+  {{- include "java-pipeline.annotations" $ | nindent 4 }}
+  name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" $ }}-mail-failure
+spec:
+  description: >-
+    This task queries Openshift cluster for pipeline run status and sends an email notification
+  params:
+    - name: git_pusher_recipient
+      type: string
+      description: "Email address of the Git pusher"
+    - name: recipients
+      type: string
+      description: "Comma-separated list of further recipients"
+    - name: sender
+      type: string
+      description: 'Email address used as sender in failure notification, empty value will prevent notification to be sent'
+    - name: server_host
+      type: string
+      description: 'SMTP host'
+      default: mailhost.mail.admin.ch
+    - name: server_port
+      type: string
+      description: 'SMTP port'
+      default: '25'
+    - name: pipeline_run_namespace
+      description: 'Pipeline namespace, see https://tekton.dev/docs/pipelines/variables/'
+      type: string
+    - name: pipeline_run_name
+      type: string
+      description: 'Pipeline run name, see https://tekton.dev/docs/pipelines/variables/'
+    - name: verbose_log
+      type: string
+      default: "true"
+      description: 'true, if the log should be verbose'
+  steps:
+    - name: send
+      image: {{ .toolboxImage | default $.Values.defaultToolboxImage | quote}}
+      env:
+        - name: HOME
+          value: "/tekton/home"
+        - name: MODULE_PATHS
+          value: "."
+      command:
+        - python3
+      args:
+        - /scripts/ppl_mail_failure.py
+        - $(params.verbose_log)
+        - $(params.git_pusher_recipient)
+        - $(params.recipients)
+        - $(params.sender)
+        - $(params.server_host)
+        - $(params.server_port)
+        - $(params.pipeline_run_namespace)
+        - $(params.pipeline_run_name)
+      volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+      securityContext:
+        runAsNonRoot: true
+        runAsGroup: 65532
+        runAsUser: 65532
+      resources: {{- include "pipeline.stepResources" (dict "name" "send" "nameSuffix" "mail-failure" "Values" .Values "defaultProfile" "small") | nindent 8 }}
+  volumes:
+    - name: scripts
+      configMap:
+        name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-mail-failure

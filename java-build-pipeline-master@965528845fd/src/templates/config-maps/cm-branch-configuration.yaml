@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    {{- include "java-pipeline.labels" . | nindent 4 }}
+  annotations:
+    {{- include "java-pipeline.annotations" . | nindent 4 }}
+  name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-branch-configuration
+data:
+  ppl_logging_module.py: |-
+{{ .Files.Get "scripts/util/ppl_logging_module.py" | indent 4 }}
+  ppl_build_setup.py: |-
+{{ .Files.Get "scripts/ppl_setup/ppl_build_setup.py" | indent 4 }}
+  ppl_maven_workspace_builder_module.py: |-
+{{ .Files.Get "scripts/workspace_builder/ppl_maven_workspace_builder_module.py" | indent 4 }}
+  ppl_node_workspace_builder_module.py: |-
+{{ .Files.Get "scripts/workspace_builder/ppl_node_workspace_builder_module.py" | indent 4 }}
+  ppl_workspace_builder_module.py: |-
+{{ .Files.Get "scripts/workspace_builder/ppl_workspace_builder_module.py" | indent 4 }}
+  ppl_branch_config_module.py: |-
+{{ .Files.Get "scripts/branch_management/ppl_branch_config_module.py" | indent 4 }}
+  ppl_build_branch_config_module.py: |-
+{{ .Files.Get "scripts/branch_management/ppl_build_branch_config_module.py" | indent 4 }}
+  ppl_branch_type_module.py: |-
+{{ .Files.Get "scripts/branch_management/ppl_branch_type_module.py" | indent 4 }}
+  ppl_version_module.py: |-
+{{ .Files.Get "scripts/build_management/ppl_version_module.py" | indent 4 }}
+  ppl_namespace_stage_module.py: |-
+{{ .Files.Get "scripts/config_management/ppl_namespace_stage_module.py" | indent 4 }}
+  ppl_values_config_module.py: |-
+{{ .Files.Get "scripts/config_management/ppl_values_config_module.py" | indent 4 }}
+  ppl_credentials_module.py: |-
+{{ .Files.Get "scripts/util/ppl_credentials_module.py" | indent 4 }}
+  ppl_git_branch_module.py: |-
+{{ .Files.Get "scripts/git_operations/ppl_git_branch_module.py" | indent 4 }}
+  ppl_git_repo_module.py: |-
+{{ .Files.Get "scripts/git_operations/ppl_git_repo_module.py" | indent 4 }}
+  ppl_common_module.py: |-
+{{ .Files.Get "scripts/util/ppl_common_module.py" | indent 4 }}
+
+  template-settings.xml: |-
+{{ .Files.Get "scripts/workspace_builder/template-settings.xml" | indent 4 }}
+  template-npmrc: |-
+{{ .Files.Get "scripts/workspace_builder/template-npmrc" | indent 4 }}

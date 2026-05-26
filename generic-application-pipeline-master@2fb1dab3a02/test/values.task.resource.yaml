@@ -1,0 +1,69 @@
+---
+global:
+  secrets:
+    enabled: true
+    externalStore:
+      enabled: true
+      vaults:
+        - name: gap-task-ressource-externalstore
+          path: p-szb-ros-shrd-npr-01
+          server: https://mav.bit.admin.ch
+      paths:
+        bitbucket:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-ssh-key
+          property: bitbucket-ssh-key
+          vault: gap-task-ressource-externalstore
+        bitbucketAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-http-access-token
+          property: bitbucket-http-access-token
+          vault: gap-task-ressource-externalstore
+        nexus:
+          id: bit-amber-pipelines-d/default
+          name: dockerconfig
+          property: dockerconfig
+          vault: gap-task-ressource-externalstore
+
+generic-application-pipeline:
+  applications:
+    - appName: custom-task-resources
+      imageName: bit/custom-task-resources
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/myproject/custom-task-resources.git
+      imageRegistry: image-registry.nexus.bit.admin.ch
+      imageRegistryStaging: image-registry-incoming.nexus.bit.admin.ch
+      containerFilePath: custom-task-resources/Containerfile
+    - appName: custom-task-resources-with-more-resource
+      imageName: bit/custom-task-resources
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/myproject/custom-task-resources.git
+      imageRegistry: image-registry.nexus.bit.admin.ch
+      imageRegistryStaging: image-registry-incoming.nexus.bit.admin.ch
+      containerFilePath: custom-task-resources/Containerfile
+      taskComputeResources:
+        buildImage:
+          # But this specific application needs even more resources for `buildImage` task
+          computeResources:
+            requests:
+              cpu: 3
+              memory: 4Gi
+            limits:
+              cpu: 5
+              memory: 10Gi
+  defaultTaskComputeResources:
+    buildImage:
+      # All applications need more resources for the `buildImage` task
+      computeResources:
+        requests:
+          cpu: 2
+          memory: 2Gi
+        limits:
+          cpu: 3
+          memory: 5Gi
+    trivyImageScan:
+      computeResources:
+        requests:
+          cpu: 55m
+          memory: 555Mi
+        limits:
+          cpu: 66m
+          memory: 666Mi

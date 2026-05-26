@@ -1,0 +1,27 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: {{ include "java-pipeline.resourceBaseName" . }}-{{ include "java-pipeline.pipelinePrefix" . }}-bitbucket-push
+  labels:
+    {{- include "java-pipeline.labels" . | nindent 4 }}
+  annotations:
+    {{- include "java-pipeline.annotations" . | nindent 4 }}
+  {{- if .projectname }}
+  namespace: {{ .projectname }}
+  {{- end }}
+spec:
+  params:
+    - name: git-branch
+      value: '$(body.changes[0].ref.displayId)'
+    - name: gitrepo-url
+      value: '$(extensions.repo_url_ssh)'
+    - name: git-repo-name
+      value: $(body.repository.name)
+    - name: pusher-name
+      value: $(body.actor.name)
+    - name: pusher-email
+      value: $(body.actor.emailAddress)
+    - name: pusher-displayname
+      value: $(body.actor.displayName)
+    - name: git-commit
+      value: '$(body.changes[0].toHash)'

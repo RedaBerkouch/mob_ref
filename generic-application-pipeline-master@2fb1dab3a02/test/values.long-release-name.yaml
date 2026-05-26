@@ -1,0 +1,44 @@
+---
+global:
+  secrets:
+    enabled: true
+    externalStore:
+      enabled: true
+      vaults:
+        - name: gap-super-long-release-name-externalstore
+          path: p-szb-ros-shrd-npr-01
+          server: https://mav.bit.admin.ch
+      paths:
+        bitbucket:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-ssh-key
+          property: bitbucket-ssh-key
+          vault: gap-super-long-release-name-externalstore
+        bitbucketAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-http-access-token
+          property: bitbucket-http-access-token
+          vault: gap-super-long-release-name-externalstore
+        nexus:
+          id: bit-amber-pipelines-d/default
+          name: dockerconfig
+          property: dockerconfig
+          vault: gap-super-long-release-name-externalstore
+
+generic-application-pipeline:
+  # overrideReleaseName should not be longer than 53 characters. This is the same as the  allowed character
+  # limit for an ArgoCD application name.
+  overrideReleaseName: super-long-release-name-using-all-lot-of-characters-1
+  applications:
+    - appName: super-long-application-name-3
+      imageName: bit/myapp
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/myproject/myapp.git
+      imageRegistry: image-registry.nexus.bit.admin.ch
+      imageRegistryStaging: image-registry-incoming.nexus.bit.admin.ch
+      containerFilePath: myapp/Containerfile
+    - appName: super-long-application-name-2
+      imageName: bit/myapp
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/myproject/myapp.git
+      imageRegistry: image-registry.nexus.bit.admin.ch
+      imageRegistryStaging: image-registry-incoming.nexus.bit.admin.ch
+      containerFilePath: myapp/Containerfile

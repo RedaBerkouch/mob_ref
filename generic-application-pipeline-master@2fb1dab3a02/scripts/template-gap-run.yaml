@@ -1,0 +1,56 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: {{ app_name }}-gp-build-run-
+  annotations:
+    pipeline.bit.admin.ch/actor-displayname: {{ git_pusher_displayname }}
+    pipeline.bit.admin.ch/actor-email: {{ git_pusher_email }}
+    pipeline.bit.admin.ch/actor-name: {{ git_pusher }}
+    pipeline.bit.admin.ch/revision: {{ git_rev }}
+    pipeline.openshift.io/started-by: {{ git_pusher }}
+  namespace: {{ run_namespace }}
+  labels:
+    pipeline.bit.admin.ch/appname: {{ app_name }}
+    pipeline.bit.admin.ch/pipeline-checksum: {{ chart_checksum }}
+    pipeline.bit.admin.ch/version: {{ chart_version }}
+spec:
+  params:
+    - name: GIT_REV
+      value: {{ git_rev }}
+    - name: PATH_TO_DOCKERFILE
+      value: {{ containerfile_path }}
+    - name: CONTEXT
+      value: {{ build_image_context_path}}
+    - name: BUILD_ID
+      value: {{ build_id }}
+  pipelineRef:
+    name: {{ app_name }}-gp-build-pipeline
+  taskRunTemplate:
+    podTemplate:
+      imagePullSecrets:
+        - name: cop-nexus-dockerconfig
+    serviceAccountName: pipeline
+# Note: task_run_specs var is not indented on purpose, see in process_monorepo_event.py
+{{ task_run_specs }}
+  timeouts:
+    pipeline: 1h0m0s
+  workspaces:
+    - name: ws
+      persistentVolumeClaim:
+        claimName: {{ app_name }}-gp-pipeline-rwo-pvc
+    - name: ssh-key
+      secret:
+        secretName: {{ resource_prefix }}-{{ repo_type }}-ssh-key
+    - name: netrc
+      secret:
+        secretName: {{ resource_prefix }}-netrc
+    - name: dockerconfig
+      secret:
+        secretName: cop-nexus-dockerconfig
+    - name: acs-api-token
+      secret:
+        secretName: cop-rox-api-token
+    - emptyDir: {}
+      name: acs-ws
+    - emptyDir: {}
+      name: acs-results

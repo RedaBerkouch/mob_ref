@@ -1,0 +1,64 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    {{- include "java-pipeline.labels" . | nindent 4 }}
+  annotations:
+    {{- include "java-pipeline.annotations" . | nindent 4 }}
+  name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-udeploy-push
+spec:
+  description: This Task can be used to push a application to udeploy
+  params:
+    - name: artifact_version
+      description: version of artifact to publish
+      type: string
+    - name: ucd_component
+      description: component name
+      type: string
+    - name: artifact_path
+      description: path inside mapped workspace of what to push
+      type: string
+    - name: build_directory
+      description: Subdirectory in the workspace to run the build in
+      type: string
+      default: "."
+    - name: user_home
+      description: |
+        Absolute path to the user's home directory.
+      type: string
+      default: "/tekton/home"
+
+  results:
+    - name: version
+      description: Built project version
+  steps:
+    - name: udeploy-push
+      image: "toolchain-docker-hosted.nexus.bit.admin.ch/bit/urbancode-deploy-client:latest"
+      env:
+        - name: HOME
+          value: "$(params.user_home)"
+      resources: {{- include "pipeline.stepResources" (dict "name" "udeploy-push" "nameSuffix" "udeploy-push" "Values" .Values "defaultProfile" "small") | nindent 8 }}
+      script: |
+        #!/usr/bin/env sh
+        set -e # break on error
+
+        echo "Performing login to UrbanCode Deploy..."
+        UCD_ACCESSTOKEN=$(cat "$(workspaces.udeploy.path)/accesstoken")
+        udclient --authtoken $UCD_ACCESSTOKEN login
+
+        echo "Creating version $(params.artifact_version) for component $(params.ucd_component)..."
+        udclient createVersion --component $(params.ucd_component) -name $(params.artifact_version)
+        echo "Adding files from directory $(params.artifact_path) for component $(params.ucd_component), version $(params.artifact_version)..."
+        udclient addVersionFiles --component $(params.ucd_component) -version $(params.artifact_version) -base $(params.artifact_path)
+
+        echo "Performing logout from UrbanCode Deploy..."
+        udclient logout
+      workingDir: $(workspaces.ws.path)/$(params.build_directory)
+      timeout: 5m0s
+
+  workspaces:
+    - description: The workspace containing the maven project
+      name: ws
+    - description: updeloy access-token
+      name: udeploy
+      optional: true

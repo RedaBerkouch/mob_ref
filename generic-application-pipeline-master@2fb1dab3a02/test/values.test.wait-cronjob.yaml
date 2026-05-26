@@ -1,0 +1,36 @@
+---
+global:
+  secrets:
+    enabled: true
+    externalStore:
+      enabled: true
+      vaults:
+        - name: gap-wait-cronjob-externalstore
+          path: p-szb-ros-shrd-npr-01
+          server: https://mav.bit.admin.ch
+      paths:
+        bitbucket:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-ssh-key
+          property: bitbucket-ssh-key
+          vault: gap-wait-cronjob-externalstore
+        bitbucketAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-http-access-token
+          property: bitbucket-http-access-token
+          vault: gap-wait-cronjob-externalstore
+        nexus:
+          id: bit-amber-pipelines-d/default
+          name: dockerconfig
+          property: dockerconfig
+          vault: gap-wait-cronjob-externalstore
+
+generic-application-pipeline:
+  applications:
+    - appName: wait-cronjob
+      imageName: wait-cronjob
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/myproject/wait-cronjob.git
+      imageRegistry: image-registry.nexus.bit.admin.ch
+      imageRegistryStaging: image-registry-incoming.nexus.bit.admin.ch
+      containerFilePath: wait-cronjob/Containerfile
+      targetWorkloadResourceKind: cronjob

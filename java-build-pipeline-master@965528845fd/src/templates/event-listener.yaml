@@ -1,0 +1,74 @@
+{{- define "hasJavaBuild" -}}
+  {{- range . }}
+    {{- if eq .appStack "java"}}
+      {{- print "true" -}}
+      {{- break -}}
+    {{- end }}
+    {{- if (not .appStack) }}
+      {{- print "true" -}}
+      {{- break -}}
+    {{- end }}
+  {{- end }}
+{{- end }}
+  
+{{- if (include "hasJavaBuild" .Values.applications) }}
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  labels:
+    {{- include "java-pipeline.labels" . | nindent 4 }}
+  annotations:
+    {{- include "java-pipeline.annotations" . | nindent 4 }}
+  name: {{ include "java-pipeline.resourceBaseName" . }}-{{ include "java-pipeline.pipelinePrefix" . }}
+  {{- if .projectname }}
+  namespace: {{ .projectname }}
+  {{- end }}
+spec:
+  serviceAccountName: pipeline
+  resources:
+    kubernetesResource:
+      replicas: 1
+      spec:
+        template:
+          spec:
+            containers:
+              - resources:
+                  limits:
+                    memory: 128Mi
+                    cpu: 50m
+                  requests:
+                    memory: 25Mi
+                    cpu: 25m
+  triggers:
+    {{- $isSecureTektonWebhookAccess := .Values.secureTektonWebhookAccess }}
+    {{- range .Values.applications }}
+    - name: {{ .appName}}-trigger
+      interceptors:
+        {{- if $isSecureTektonWebhookAccess }}
+        - ref:
+            name: "bitbucket"
+          params:
+            - name: secretRef
+              value:
+                secretName: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-webhook-accesstoken
+                secretKey: tektonWebhookAccessToken
+            - name: eventTypes
+              value:
+                - repo:refs_changed
+        {{- end }}
+        - ref:
+            name: cel
+          params:
+            - name: "filter"
+              value: "body.repository.name == '{{ .bitBucketRepo }}' && body.changes[0].ref.type == 'BRANCH' && body.changes[0].type != 'DELETE' && !([{{ include "joinListWithSquoteAndComma" $.Values.ignoreBranchPrefixes }}].exists_one(x, body.changes[0].ref.id.substring(body.changes[0].ref.id.indexOf('/', body.changes[0].ref.id.indexOf('/')+1)+1).startsWith(x)))"
+            - name: "overlays"
+              value:
+                - key: repo_url_ssh
+                  expression: "body.repository.links.clone.filter(x, x.name == 'ssh')[0].href"
+      bindings:
+        - kind: TriggerBinding
+          ref: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-bitbucket-push
+      template:
+        ref: {{ .appName}}-{{ include "java-pipeline.pipelinePrefix" . }}
+    {{- end}}
+{{- end }}

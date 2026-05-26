@@ -1,0 +1,16 @@
+apiVersion: v2
+name: test-java-build-pipeline
+description: This is a test release of the tekton pipelines
+type: application
+version: 0.0.1
+
+dependencies:
+  - name: java-build-pipeline
+    version: '*'
+    repository: file://../../src
+  - name: commons-pipeline
+    version: '*'
+    repository: file://../../../commons-pipeline/src
+  - name: cd-pipelines
+    version: '*'
+    repository: file://../../../cd-pipeline/src

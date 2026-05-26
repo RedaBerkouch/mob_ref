@@ -1,0 +1,77 @@
+{
+  "eventKey": "repo:refs_changed",
+  "date": "2024-06-14T09:30:33+0200",
+  "actor": {
+    "name": "u80844897",
+    "emailAddress": "patrick.molon@bit.admin.ch",
+    "id": 4120,
+    "displayName": "Molon Patrick BIT",
+    "active": true,
+    "slug": "u80844897",
+    "type": "NORMAL",
+    "links": {
+      "self": [
+        {
+          "href": "https://bitbucket.bit.admin.ch/users/u80844897"
+        }
+      ]
+    }
+  },
+  "repository": {
+    "slug": "sti-gap-example",
+    "id": 9670,
+    "name": "sti-gap-example",
+    "description": "Example application for Generic-Application-Pipeline (GAP)",
+    "hierarchyId": "7af4aae4fbac9a7a4ebe",
+    "scmId": "git",
+    "state": "AVAILABLE",
+    "statusMessage": "Available",
+    "forkable": true,
+    "project": {
+      "key": "STIRHOS",
+      "id": 2850,
+      "name": "BIT_STI RHOS",
+      "description": "Project for RHOS components of the System Team IRS",
+      "public": false,
+      "type": "NORMAL",
+      "links": {
+        "self": [
+          {
+            "href": "https://bitbucket.bit.admin.ch/projects/STIRHOS"
+          }
+        ]
+      }
+    },
+    "public": true,
+    "links": {
+      "clone": [
+        {
+          "href": "https://bitbucket.bit.admin.ch/scm/stirhos/sti-gap-example.git",
+          "name": "http"
+        },
+        {
+          "href": "ssh://git@bitbucket.bit.admin.ch/stirhos/sti-gap-example.git",
+          "name": "ssh"
+        }
+      ],
+      "self": [
+        {
+          "href": "https://bitbucket.bit.admin.ch/projects/STIRHOS/repos/sti-gap-example/browse"
+        }
+      ]
+    }
+  },
+  "changes": [
+    {
+      "ref": {
+        "id": "refs/heads/develop-monorepo",
+        "displayId": "develop-monorepo",
+        "type": "BRANCH"
+      },
+      "refId": "refs/heads/develop-monorepo",
+      "fromHash": "0dedea8f1076aac7560afbe499790ef4bc73204f",
+      "toHash": "c258912234d7c5ffeee7781da978c210eaccee93",
+      "type": "UPDATE"
+    }
+  ]
+}

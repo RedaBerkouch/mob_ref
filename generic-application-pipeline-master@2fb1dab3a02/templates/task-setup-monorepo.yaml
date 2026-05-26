@@ -1,0 +1,199 @@
+{{- if .Values.enableMonorepo }}
+
+{{ $hasAzureDevopsRepo := eq (include "generic-application-pipeline.hasAzureDevopsRepo" .) "true" }}
+{{ $hasBitbucketRepo := eq (include "generic-application-pipeline.hasBitbucketRepo" .) "true" }}
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: {{ include "generic-application-pipeline.resourceName" (list $ . "setup-monorepo") }}
+  labels:
+    {{- include "generic-application-pipeline.metadata.template-labels" . | nindent 4 }}
+  annotations:
+    {{- include "generic-application-pipeline.metadata.template-annotations" . | nindent 4 }}
+    tekton.dev/tags: "util"
+    tekton.dev/pipelines.minVersion: "0.56.0"
+    tekton.dev/displayName: "Setup monorepo PipelineRuns"
+    description: "Setup monorepo PipelineRuns"
+    app.openshift.io/description: "Setup monorepo PipelineRuns"
+spec:
+  params:
+    #- name: APP_NAMES
+    #  type: string
+    #  description: List of apps configured for the pipeline
+    #- name: CONTAINERFILE_PATHS
+    #  type: string
+    #  description: List of apps configured for the pipeline
+    - name: GIT_REV
+      type: string
+      description: Revision/Branch to build
+    - name: GIT_FROM_HASH
+      type: string
+      description: Revision/Branch this push is based on
+    - name: GIT_HOST_URL
+      type: string
+    - name: GIT_PROJECT_NAME
+      type: string
+    - name: GIT_REPO_SLUG
+      type: string
+    - name: GIT_PUSHER
+      type: string
+      description: 'Name of account, who pushed the Git repository'
+    - name: GIT_PUSHER_DISPLAYNAME
+      type: string
+    - name: GIT_PUSHER_EMAIL
+      type: string
+    - name: RUN_NAMESPACE
+      type: string
+      default: $(context.taskRun.namespace)
+    - name: LOG_LEVEL
+      type: string
+      default: INFO
+    - name: BUILD_DIRECTORY
+      description: Subdirectory in the workspace to run the build in
+      type: string
+      default: "."
+    - name: PLRS_FILE
+      type: string
+      default: monorepo-pipeline-runs.yaml
+    {{- if $hasBitbucketRepo }}
+    - name: BITBUCKET_HTTP_ACCESS_TOKEN_SECRET_NAME
+      type: string
+    {{- end }}
+    {{- if $hasAzureDevopsRepo }}
+    - name: AZURE_HTTP_ACCESS_TOKEN_SECRET_NAME
+      type: string
+    {{- end }}
+    - name: TEKTON_USER_HOME
+      description: |
+        Absolute path to the user's home directory.
+      type: string
+      default: "/tekton/home"
+    - name: TOOLBOX_IMAGE
+      description: "Overridable container image."
+      type: string
+      default: "bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.4-7.1718625504"
+    - name: BUILD_ID
+      description: The id of the Azure DevOps build, only relevant when concerned application `repoType` is `azure`
+      type: string
+      default: "no-build"
+    - name: ALL_APPLICATIONS_AS_JSON
+      type: string
+  steps:
+    - name: generate-plr-resources
+      image: $(params.TOOLBOX_IMAGE)
+      env:
+        - name: HOME
+          value: "$(params.TEKTON_USER_HOME)"
+       #- name: APP_NAMES
+       #  value: "$(params.APP_NAMES)"
+       #- name: CONTAINERFILE_PATHS
+       #  value: "$(params.CONTAINERFILE_PATHS)"
+        - name: GIT_REV
+          value: "$(params.GIT_REV)"
+        - name: GIT_FROM_HASH
+          value: "$(params.GIT_FROM_HASH)"
+        - name: GIT_HOST_URL
+          value: "$(params.GIT_HOST_URL)"
+        - name: GIT_PROJECT_NAME
+          value: "$(params.GIT_PROJECT_NAME)"
+        - name: GIT_REPO_SLUG
+          value: "$(params.GIT_REPO_SLUG)"
+        - name: GIT_PUSHER
+          value: "$(params.GIT_PUSHER)"
+        - name: GIT_PUSHER_DISPLAYNAME
+          value: "$(params.GIT_PUSHER_DISPLAYNAME)"
+        - name: GIT_PUSHER_EMAIL
+          value: "$(params.GIT_PUSHER_EMAIL)"
+        - name: RUN_NAMESPACE
+          value: "$(params.RUN_NAMESPACE)"
+        - name: LOG_LEVEL
+          value: "$(params.LOG_LEVEL)"
+        - name: PLRS_FILE
+          value: "$(params.PLRS_FILE)"
+        - name: ALL_APPLICATIONS_AS_JSON
+          value: "$(params.ALL_APPLICATIONS_AS_JSON)"
+        - name: BUILD_ID
+          value: "$(params.BUILD_ID)"
+        - name: CHART_VERSION
+          value: {{ $.Chart.Version }}
+        - name: CHART_CHECKSUM
+          value: {{ toJson $.Chart | sha1sum }}
+        {{- if $hasBitbucketRepo }}
+        - name: BITBUCKET_HTTP_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: $(params.BITBUCKET_HTTP_ACCESS_TOKEN_SECRET_NAME)
+              key: accesstoken
+        {{- end }}
+        {{- if $hasAzureDevopsRepo }}
+        - name: AZURE_HTTP_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: $(params.AZURE_HTTP_ACCESS_TOKEN_SECRET_NAME)
+              key: accesstoken
+        {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsGroup: 65532
+        runAsUser: 65532 # using git-user here to chmod the .git directory for coming tasks to allow group access
+      script: |
+        python3 /scripts/process_monorepo_event.py \
+          --git_rev "$GIT_REV" \
+          --git_from_hash "$GIT_FROM_HASH" \
+          --git_host_url "$GIT_HOST_URL" \
+          --git_project_name "$GIT_PROJECT_NAME" \
+          --git_repo_slug "$GIT_REPO_SLUG" \
+          --git_pusher "$GIT_PUSHER" \
+          --git_pusher_displayname "$GIT_PUSHER_DISPLAYNAME" \
+          --git_pusher_email "$GIT_PUSHER_EMAIL" \
+          --resource_prefix {{ include "generic-application-pipeline.releaseName" $ }} \
+          --run_namespace "$RUN_NAMESPACE" \
+          --log_level "$LOG_LEVEL" \
+          --pipeline_runs_file "$PLRS_FILE" \
+          --pipeline_runs_template_path /scripts/template-gap-run.yaml \
+          --build_id "$BUILD_ID" \
+          --all_applications_as_json "$ALL_APPLICATIONS_AS_JSON" \
+          --chart_version "$CHART_VERSION" \
+          --chart_checksum "$CHART_CHECKSUM"
+      computeResources:
+        requests:
+          cpu: '50m'
+          memory: 100Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+      volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+      workingDir: "$(params.TEKTON_USER_HOME)"
+    - name: apply-plr-resources
+      image: $(params.TOOLBOX_IMAGE)
+      env:
+        - name: HOME
+          value: "$(params.TEKTON_USER_HOME)"
+      securityContext:
+        runAsNonRoot: true
+        runAsGroup: 65532
+        runAsUser: 65532 # using git-user here to chmod the .git directory for comming tasks to allow group access
+      computeResources:
+        requests:
+          cpu: '50m'
+          memory: 100Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+      command:
+        - oc
+      args:
+        - create
+        - -f
+        - $(params.PLRS_FILE)
+      volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+      workingDir: "$(params.TEKTON_USER_HOME)"
+  volumes:
+    - name: scripts
+      configMap:
+        name: {{ include "generic-application-pipeline.releaseName" . }}-monorepo-event-cm
+{{ end }}

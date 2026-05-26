@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: java-build-pipeline
+  namespace: bit-cicd-gitops
+spec:
+  destination:
+    namespace: bit-cicd-tekton
+    server: https://kubernetes.default.svc
+  project: pipelines
+  source:
+    path: ci/helm
+    repoURL: ssh://git@bitbucket.bit.admin.ch/cnp/java-build-pipeline.git
+    targetRevision: master
+  syncPolicy:
+    syncOptions:
+      - PruneLast=true
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: pipelines
+  namespace: bit-cicd-gitops
+spec:
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  description: Project with settings for provisioning Tekton pipelines
+  destinations:
+    - name: '*'
+      namespace: '*'
+      server: '*'
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  sourceRepos:
+    - '*'
+  # Ignore dynamic PipelineRun / TaskRun resources (not managed by ArgoCD)
+  # See https://github.com/tektoncd/pipeline/issues/3202
+  namespaceResourceBlacklist:
+    - group: tekton.dev
+      kind: TaskRun
+    - group: tekton.dev
+      kind: PipelineRun

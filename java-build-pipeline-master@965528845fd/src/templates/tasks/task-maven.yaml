@@ -1,0 +1,321 @@
+{{- define "maven-build-task" }}
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    {{- include "java-pipeline.labels" . | nindent 4 }}
+  annotations:
+    {{- include "java-pipeline.annotations" . | nindent 4 }}
+  name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-{{ .nameSuffix }}
+spec:
+  description: This Task can be used to run a Maven build.
+  params:
+    - name: java_image
+      description: Maven base image
+      type: string
+    - name: goals
+      description: maven goals to run
+      type: array
+      default:
+        - install
+    - name: default_maven_args
+      description: default maven arguments to pass, inserted before MAVEN_ARGS
+      type: array
+      default:
+        - '--no-transfer-progress'
+        - '-Djavax.net.ssl.trustStorePassword=changeit'
+        - '-Dorg.slf4j.simpleLogger.showDateTime=true'
+        - '-Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss'
+        - '-e'
+    - name: maven_submodule_args
+      description: additional maven argument for the submodules to be built, inserted before MAVEN_ARGS
+      type: string
+      default: ''
+    - name: maven_args
+      description: additional maven arguments to pass, inserted before the goals
+      default: [ ]
+      type: array
+    - name: build_directory
+      description: Subdirectory in the workspace to run the build in
+      type: string
+      default: "."
+    - name: maven_home_directory
+      description: Subdirectory in the workspace to store settings.xml in
+      type: string
+      default: "."
+    - name: sonar_secret_name
+      description: name of key/value secret containing sonar host/token
+      default: sonar-token
+    - name: user_home
+      description: |
+        Absolute path to the user's home directory.
+      type: string
+      default: "/tekton/home"
+    - name: maven_m2_directory
+      description: name of the directory used for .m2 cache inside the workspace
+      default: "local-maven-repo/.m2/repository"
+    - name: max_cache_age
+      description: number of days after which cached files are deleted
+      default: "90"
+    - name: version
+      description: version to update the maven artifact to
+      default: ""
+    - name: update_mvn_version
+      description: set to "true" if maven should update the Version in the POMs prior to build
+      default: "false"
+    - name: fail_task_on_maven_fail
+      description: if true, the tekton task failes, when maven fails. If false, the tekton task succeeds, even if maven failed, in addition the task-state is set.
+      default: 'true'
+    - name: pvc_result_subpath_file
+      description: if set, the tasks will write its result to this file
+      default: ""
+    - name: message_contract_secret_name
+      description: name of the secret for the message contract service
+      default: message-contract-secret
+    - name: message_contract_user
+      description: User for the message contract service
+      default: ""
+    - name: message_contract_api_url
+      description: Api url of the message contract service
+      default: ""
+  results:
+    - name: version
+      description: Built project version
+    - name: image
+      description: Image name, with version appended if published_version is true
+    - name: task_state
+      description: succeeded or failed, depends on maven task result.
+  {{- if and ($.Values.global).secrets.externalStore.paths ($.Values.global).secrets.externalStore.paths.mavenTaskFileSecrets }}
+  volumes:
+    - name: file-secret
+      secret:
+        secretName: '{{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-maven-task-file-secrets'
+  {{- end }}
+  steps:
+    - name: init-version
+      image: $(params.java_image)
+      env:
+        - name: MAVEN_USER_HOME
+          value: $(workspaces.ws.path)/$(params.maven_home_directory)/.m2
+        - name: HOME
+          value: "$(params.user_home)"
+      args:
+        - '-s'
+        - $(workspaces.ws.path)/$(params.maven_home_directory)/settings.xml
+        - '-Dmaven.repo.local=$(workspaces.ws.path)/$(params.maven_m2_directory)'
+        - $(params.maven_args)
+        - $(params.default_maven_args)
+      script: |
+        #!/bin/bash
+        set -e
+        if [ "$(params.update_mvn_version)" == "true" ]; then
+          MAVEN_ARGS="$@"
+          echo "Using java image from $(params.java_image)"
+          version=$(params.version)
+          echo "Set built version to $version"
+          echo -n "$version" > $(results.version.path)
+          ./mvnw ${MAVEN_ARGS} versions:set "-DnewVersion=$version" -DgenerateBackupPoms=false
+        fi
+      resources: {{- include "pipeline.stepResources" (dict "name" "init-version" "nameSuffix" "maven" "Values" .Values "defaultProfile" "large") | nindent 8 }}
+      securityContext:
+        runAsNonRoot: true
+        runAsGroup: 65532
+        runAsUser: 65532
+      workingDir: $(workspaces.ws.path)/$(params.build_directory)
+      timeout: 30m0s
+
+    - name: mvn-goals
+      image: $(params.java_image)
+      {{- if and ($.Values.global).secrets.externalStore.paths ($.Values.global).secrets.externalStore.paths.mavenTaskFileSecrets }}
+      volumeMounts:
+        - name: file-secret
+          mountPath: /secrets
+      {{- end }}
+      envFrom:
+        - secretRef:
+            name: '{{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-maven-task-auth-secrets'
+            optional: true
+      env:
+        - name: MAVEN_USER_HOME
+          value: $(workspaces.ws.path)/$(params.maven_home_directory)/.m2
+        - name: WDM_CACHEPATH
+          value: $(workspaces.ws.path)/selenium-cache
+        - name: WDM_RESOLUTIONCACHEPATH
+          value: $(workspaces.ws.path)/selenium-cache
+        - name: WDM_AVOIDTMPFOLDER
+          value: 'true'
+        - name: npm_config_cache
+          value: $(workspaces.ws.path)/.npm
+        - name: SONAR_USER_HOME
+          value: $(workspaces.ws.path)/$(params.maven_home_directory)/.sonar
+        - name: SONAR_HOST_URL
+          valueFrom:
+            secretKeyRef:
+              name: $(params.sonar_secret_name)
+              key: hostUrl
+              optional: true
+        - name: SONAR_LOGIN
+          valueFrom:
+            secretKeyRef:
+              name: $(params.sonar_secret_name)
+              key: token
+              optional: true
+        - name: MESSAGE_CONTRACT_SERVICE_USERNAME
+          value: "$(params.message_contract_user)"
+        - name: MESSAGE_CONTRACT_SERVICE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "$(params.message_contract_secret_name)"
+              key: secret
+              optional: true
+        - name: HOME
+          value: "$(params.user_home)"
+        - name: CYPRESS_INSTALL_BINARY
+          value: '0'
+        - name: TESTCONTAINERS_RYUK_DISABLED
+          value: "true"
+        - name: TESTCONTAINERS_CHECKS_DISABLE
+          value: "true"
+        - name: DOCKER_HOST
+          value: "tcp://127.0.0.1:2475"
+      args:
+        - '-s'
+        - $(workspaces.ws.path)/$(params.maven_home_directory)/settings.xml
+        - '-Dmaven.repo.local=$(workspaces.ws.path)/$(params.maven_m2_directory)'
+        - $(params.maven_submodule_args)
+        - $(params.default_maven_args)
+        - $(params.maven_args)
+        - $(params.goals)
+      script: |
+        #!/bin/bash
+        # using script tag because args do not interpolate env-vars.
+        echo "running with fail_task_on_maven_fail: $(params.fail_task_on_maven_fail)"
+        if [ $(params.fail_task_on_maven_fail) = true ]; then
+          set -e
+        fi
+
+        export SETTINGS_XML="$(workspaces.ws.path)/$(params.maven_home_directory)/settings.xml"
+        echo "SETTINGS_XML: ${SETTINGS_XML}"
+        mkdir -p "$(workspaces.ws.path)/$(params.maven_home_directory)"
+        mkdir -p "$(workspaces.ws.path)/$(params.maven_m2_directory)"
+
+        export CACHE_DIR=$(workspaces.ws.path)/$(params.maven_m2_directory)
+
+        export CACHE_SIZE="$(du ${CACHE_DIR} -sh | cut -f1)"
+        echo "Maven cache ${CACHE_DIR} currently at ${CACHE_SIZE}"
+        if [ "$(params.max_cache_age)" -gt 0 ]; then
+          find $(workspaces.ws.path)/$(params.maven_m2_directory) -ctime +$(params.max_cache_age) -exec rm -rf {} +
+          export CACHE_SIZE="$(du ${CACHE_DIR} -sh | cut -f1)"
+          echo "Maven cache at ${CACHE_SIZE} after cleanup"
+        fi
+
+        MAVEN_ARGS="$@"
+        # npm will search for its config in $PREFIX/etc/npmrc
+        export PREFIX=$(workspaces.ws.path)/$(params.build_directory)
+
+        # Git repository path is not necessarily owned by current uid, see https://github.blog/2022-04-18-highlights-from-git-2-36/#stricter-repository-ownership-checks
+        git config --global --add safe.directory $PREFIX
+
+        ALL_ARGS="${MAVEN_ARGS} -Dsonar.login=${SONAR_LOGIN} -DPREFIX=${PREFIX} -DHOME=${HOME}"
+
+        if [ -n "$(params.message_contract_api_url)" ]; then
+          uuid=$(uuidgen)
+          echo "The generated transaction id for the message contract is: $uuid"
+          ALL_ARGS="${ALL_ARGS} -DmessageContractServiceBaseUri=$(params.message_contract_api_url) -DmessageContractTransactionId=$uuid ch.admin.bit.jeap:jeap-messaging-contract-maven-plugin:publish-messaging-contracts"
+        fi
+
+        echo "running mvnw with the following args: ${ALL_ARGS}"
+        if [ -f "$(workspaces.ws.path)/$(params.build_directory)/etc/npmrc" ]; then
+          cp "$(workspaces.ws.path)/$(params.build_directory)/etc/npmrc" ~/.npmrc
+        fi
+
+        ./mvnw ${ALL_ARGS}
+        MAVEN_EXIT_CODE=$?
+
+        # writing results, if configured write results also in pvc
+        pvc_result_filepath=$(params.pvc_result_subpath_file)
+        if [[ -n "$pvc_result_filepath" ]]; then
+          full_path=$(workspaces.ws.path)/$pvc_result_filepath
+          dir_path=$(dirname "$full_path")
+          mkdir -p $dir_path
+          pvc_result_filepath=$full_path
+          echo "writing result to $pvc_result_filepath"
+        fi
+
+        if [ $MAVEN_EXIT_CODE -eq 0 ]; then
+          echo -n "Succeeded" > $(results.task_state.path)
+          if [[ -n "$pvc_result_filepath" ]]; then
+             echo -n "Succeeded" > $pvc_result_filepath
+          fi
+        else
+          echo -n "Failed" > $(results.task_state.path)
+          if [[ -n "$pvc_result_filepath" ]]; then
+             echo -n "Failed" > $pvc_result_filepath
+          fi
+          if [ $(params.fail_task_on_maven_fail) = true ]; then
+            exit 1  # Exit with a non-zero code to fail the Tekton task
+          fi
+        fi
+
+        exit 0  # Ensure the script exits with 0 to not terminate the task
+
+      resources: {{- include "pipeline.stepResources" (dict "name" "mvn-goals" "nameSuffix" "maven" "Values" .Values "defaultProfile" "large") | nindent 8 }}
+      securityContext:
+        runAsNonRoot: true
+        runAsGroup: 65532
+        runAsUser: 65532
+      workingDir: $(workspaces.ws.path)/$(params.build_directory)
+      timeout: 1h0m0s
+
+  workspaces:
+    - description: The workspace containing the maven project
+      name: ws
+    - description: nexus username and password for authenticated maven access
+      name: nexus
+    - name: kubedock-pod-template
+      description: Contains the Kubedock pod template
+  {{- if .useKubedockSidecar }}
+  sidecars:
+    - name: kubedock
+      image: {{ .Values.toolboxImage | default $.Values.defaultToolboxImage | quote }}
+      args:
+        - /usr/local/bin/kubedock
+        - server
+        - --reverse-proxy
+        - --request-memory
+        - {{ ((((.Values.global).testcontainers).kubedock).pod).memoryRequest | default "128Mi" }}, {{ ((((.Values.global).testcontainers).kubedock).pod).memoryLimit | default "512Mi" }}
+        - --request-cpu
+        - {{ ((((.Values.global).testcontainers).kubedock).pod).cpuRequest | default "250m" }}, {{ ((((.Values.global).testcontainers).kubedock).pod).cpuLimit | default "700m" }}
+        - --service-account
+        - pipeline
+        - --pod-template
+        - /var/pod_template.yaml
+        - --disable-dind
+        - --pre-archive
+        - --initimage
+        - {{ .Values.toolboxImage | default $.Values.defaultToolboxImage | quote }}
+      env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+      readinessProbe:
+        httpGet:
+          path: /_ping
+          port: 2475
+        initialDelaySeconds: 5
+        periodSeconds: 3
+        failureThreshold: 3
+        successThreshold: 1
+      resources:
+        requests:
+          cpu: {{ ((((.Values.global).testcontainers).kubedock).sidecar).cpuRequest | default "150m" | quote }}
+          memory: {{ ((((.Values.global).testcontainers).kubedock).sidecar).memoryRequest | default "128Mi" | quote }}
+        limits:
+          cpu: {{ ((((.Values.global).testcontainers).kubedock).sidecar).cpuLimit | default "500m" | quote }}
+          memory: {{ ((((.Values.global).testcontainers).kubedock).sidecar).memoryLimit | default "512Mi" | quote }}
+      volumeMounts:
+        - name: $(workspaces.kubedock-pod-template.volume)
+          mountPath: /var/
+  {{- end }}
+{{- end }}

@@ -1,0 +1,111 @@
+# webhook creation works only if secrets are set
+{{- if and (($.Values.global).secrets).enabled (ne ($.Values.global).enableWebhookCreation false ) }}
+  {{- $isSecureTektonWebhookAccess := .Values.secureTektonWebhookAccess }}
+  {{- range .Values.applications }}
+    {{- $appStack := .appStack | default "java" }}
+    {{- if eq $appStack "java" }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    {{- include "java-pipeline.annotations" . | nindent 4 }}
+  labels:
+    {{- include "java-pipeline.labels" (dict "appName" .appName "Chart" $.Chart) | nindent 4 }}
+  name: {{ .appName }}-{{ include "java-pipeline.pipelinePrefix" . }}-create-webhook
+spec:
+  template:
+    spec:
+      containers:
+      - name: webhook
+        image: {{ .toolboxImage | default $.Values.defaultToolboxImage | quote}}
+        imagePullPolicy: Always
+        envFrom:
+        - secretRef:
+            name: '{{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-bitbucket-accesstoken'
+        {{- if $isSecureTektonWebhookAccess }}
+        - secretRef:
+            name: '{{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-webhook-accesstoken'
+        {{- end }}
+        resources:
+          limits:
+            cpu: 100m
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        command:
+        - /bin/bash
+        - -c
+        - |
+          if [[ -z "$accesstoken" ]]; then
+            echo "Error: The 'accesstoken' variable is not set."
+            echo "More information on how to set a http access token: https://confluence.atlassian.com/bitbucketserver0721/http-access-tokens-1115665626.html"
+            exit 1
+          fi
+
+          lockname="{{ .bitBucketRepo }}-webhook-lock"
+
+          # Try to acquire lock (create a ConfigMap as a lock)
+          if ! oc create configmap "$lockname" --from-literal=locked="true" 2>/dev/null; then
+            echo "[INFO] Another webhook creation job is running for $lockname, exiting."
+            exit 0
+          fi
+
+          # Ensure cleanup of lock on exit
+          trap 'oc delete configmap "$lockname" --ignore-not-found=true' EXIT
+
+          if [[ -n "{{ .bitBucketProject | default "" }}" ]]; then
+            bitbucketproject="{{ .bitBucketProject }}"
+          else
+            bitbucketproject=$(echo {{ ($.Values.global).gitOpsRepo }} | sed 's#.*/\([^/]*\)/.*#\1#')
+          fi
+
+          if ! preCheck=$(curl -sf -H "Authorization: Bearer $accesstoken" \
+            https://bitbucket.bit.admin.ch/rest/api/1.0/projects/$bitbucketproject/repos/{{ .bitBucketRepo }}/webhooks); then
+            echo "[ERROR] Fetching existing webhooks from Bitbucket API failed"
+            exit 1
+          fi
+          size=$(echo "$preCheck" | jq '.size')
+
+          eventlistener=$(oc get route {{ include "java-pipeline.pipelinePrefix" $ }}-el --template='https://{{`{{.spec.host}}`}}')
+
+          if [ "$size" -gt 0 ]; then
+            urls=$(echo $preCheck | jq '.values[].url')
+            for url in $urls; do
+              if [ $url == \""$eventlistener\"" ]; then
+                echo "[INFO] webhook already exists"
+                exit 0
+              fi
+            done
+          fi
+
+          echo "[INFO] Sending webhook creation request."
+          response=$(curl -H -s -w "%{http_code}" -o /tmp/webhook_response_body \
+            -X POST -H "Authorization: Bearer $accesstoken" \
+            https://bitbucket.bit.admin.ch/rest/api/1.0/projects/$bitbucketproject/repos/{{ .bitBucketRepo }}/webhooks \
+            -H "Content-Type: application/json" \
+            -d '{
+                "name": "Tekton",
+                "url": "'"${eventlistener}"'",
+                "events": [
+                    "repo:refs_changed"
+                ],
+                "active": true{{- if $isSecureTektonWebhookAccess }},
+                "configuration": {"secret": "'"$tektonWebhookAccessToken"'"}
+                {{- end }}
+            }')
+          echo "[INFO] Webhook creation request response:"
+          echo "[INFO] Status: $response"
+          echo "[INFO] Body:"
+          cat /tmp/webhook_response_body
+      restartPolicy: Never
+      serviceAccountName: pipeline
+      imagePullSecrets:
+      - name: cop-nexus-dockerconfig
+  backoffLimit: 1
+    {{- end }}
+  {{- end }}
+{{- end }}

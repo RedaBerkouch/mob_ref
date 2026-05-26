@@ -1,0 +1,152 @@
+# this file defines the default values used for the JEAP pipeline.
+
+defaultMavenBuildJavaImage: 'toolchain-docker-hosted.nexus.bit.admin.ch/bit/ubi-java-build:java-21.x_node-20.x'
+defaultNodejsBuildImage: 'toolchain-docker-hosted.nexus.bit.admin.ch/bit/ubi-java-build:java-21.x_node-20.x'
+defaultSeleniumTestImage: 'toolchain-docker-hosted.nexus.bit.admin.ch/bit/ubi-java-e2e:java-17-node-18'
+defaultCypressTestImage: 'docker-hub.nexus.bit.admin.ch/cypress/included'
+defaultZapTestImage: 'toolchain-docker-hosted.nexus.bit.admin.ch/bit/ubi-owasp-zap:2.12'
+defaultTrufflehogImage: 'toolchain-docker-hosted.nexus.bit.admin.ch/bit/ubi-trufflehog:0.0.6'
+defaultBuildahImage: 'registry-redhat.nexus.bit.admin.ch/ubi9/buildah:9.2-15'
+defaultToolboxImage: 'bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-toolbox:9.5-1742986105.1745594231'
+defaultMinimalImage: 'bit-base-images-docker-hosted.nexus.bit.admin.ch/bit/ubi9-minimal:9.2-484'
+defaultMavenBuildGoal: 'install'
+defaultJarMavenDeployGoal: 'jar:jar deploy:deploy'
+defaultMavenReleaseRepo: 'https://nexus.bit.admin.ch/repository/maven-releases-default-hosted/'
+defaultMavenSnapshotRepo: 'https://nexus.bit.admin.ch/repository/maven-snapshots-default-hosted/'
+defaultNpmRepo: 'nexus.bit.admin.ch/repository/npm-group/'
+# -- The format of the built container, oci or docker
+defaultBuildImageFormat: oci
+# -- Allows to specify HTTP proxy to use in all applications Buildah Task
+defaultHttpProxy: http://prxp01.admin.ch:8080
+# -- (bool) This will disable policy violation in the `prescan-image` check performed by Trivy for unpatched/unfixed vulnerabilities
+defaultTrivyIgnoreUnfixed: true
+# -- Used to specify `kind` of `targetDeploymentName` workload resource, supported values are: deployment, deploy, cronjob, cj
+defaultTargetWorkloadResourceKind: deployment
+# -- The template, which defines the path to the values.yaml files in the GitOps repository
+# --The template can be defined with the following placeholders: <APP_NAME>, <STAGE_SHORT>, <STAGE_LONG>
+defaultCustomValuesPathTemplate: '<APP_NAME>/helm/values-<STAGE_SHORT>.yaml'
+# -- Defaults for mail notifications
+defaultNotificationServerHost: mailhost.mail.admin.ch
+defaultNotificationServerPort: 25
+defaultNotificationSender: tekton@bit.admin.ch
+# -- If true the verification pipeline waits for the pipeline, which triggered the verification pipeline, to succeed
+defaultWaitForPipelineToSucceed: false
+# -- The default git revision
+defaultGitRev: master
+# -- The test stage for the verification pipeline
+defaultVerificationTestStage: abn
+# -- default schedule for the verification cronJob
+defaultVerificationCronJobSchedule: '0 0 * * *'
+# -- The sequence in which the status of the pipeline is retrieved
+defaultWaitForPipelineIntervalSeconds: 5
+# -- The maximum waiting time in seconds
+defaultWaitForPipelineTimeoutSeconds: 1200
+# -- The maximum waiting time in minutes
+defaultTestOrchestratorTimeoutInMinutes: 4
+# -- The default path to the pom.xml file for selenium testing
+defaultSeleniumPomPath: 'pom.xml'
+
+# -- image registry to push images container images to. can optionally be suffixed with e.g. a team name such as nexus.bit.admin.ch/team.
+defaultImageRegistryDomain: 'nexus.bit.admin.ch'
+# -- comma separated list of additional image registries, e.g. nexus on campus. nexus-campus.bit.admin.ch/team
+additionalImageRegistries: ''
+
+defaultNodejsCommand:
+  install: 'ci --loglevel verbose --no-audit --foreground-scripts'
+  cypress: 'run cypress:test'
+
+# -- configure storage for PLR-Template
+defaultPipelineStorage:
+  size: 2Gi
+  accessMode: ReadWriteOnce
+  storageClass: iscsi-ssd-encrypt
+
+defaultTestcontainers:
+  kubedock:
+    sidecar:
+      memoryRequest: 128Mi
+      memoryLimit: 512Mi
+      cpuRequest: 150m
+      cpuLimit: 500m
+    pod:
+      memoryRequest: 128Mi
+      memoryLimit: 512Mi
+      cpuRequest: 250m
+      cpuLimit: 700m
+
+defaultBranchConfiguration:
+  feature:
+    publishVersionTag: false
+    deployStage: "none"
+    qualityCheck: false
+    qualityGate: false
+    scanImage: false
+    verifyDeployment: false
+    triggerDeploymentPipeline: false
+    systemIntegrationTest: 'false'
+  hotfix:
+    publishVersionTag: false
+    deployStage: "none"
+    qualityCheck: false
+    qualityGate: false
+    scanImage: false
+    verifyDeployment: false
+    systemIntegrationTest: 'false'
+  develop:
+    publishVersionTag: false
+    # Supported stages with automated conversion: d->dev, r->ref, a->abn, p->prod, t->training, s->subjecttest,
+    # dev->d, ref->r, abn->a, prod->p, training->t, subjecttest->s, prd->p
+    # For all other stages, the short and long name will be the same.
+    deployStage: "dev"
+    qualityCheck: true
+    qualityGate: true
+    scanImage: true
+    verifyDeployment: false
+    systemIntegrationTest: 'false'
+  master:
+    publishVersionTag: true
+    deployStage: "ref"
+    qualityCheck: true
+    qualityGate: true
+    scanImage: true
+    verifyDeployment: false
+    systemIntegrationTest: 'true'
+  release:
+    publishVersionTag: true
+    deployStage: "ref"
+    qualityCheck: true
+    qualityGate: true
+    scanImage: true
+    verifyDeployment: false
+    systemIntegrationTest: 'true'
+
+defaultLoggingFile: .logging
+defaultTrufflehogScanDepth: 50
+
+secrets:
+  externalStore: {}
+
+cluster: p-szb-ros-shrd-npr-01
+
+defaultResourceProfiles:
+  small:
+    requests:
+      cpu: 150m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 512Mi
+  medium:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  large:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: '1'
+      memory: 2Gi

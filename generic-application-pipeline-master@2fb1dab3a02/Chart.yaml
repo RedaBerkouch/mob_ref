@@ -1,0 +1,17 @@
+apiVersion: v2
+name: generic-application-pipeline
+description: CNCICD Generic Application Pipeline
+home: "https://bitbucket.bit.admin.ch/projects/CNP/repos/generic-application-pipeline/browse/README.md"
+type: application
+version: 9.1.0
+sources:
+  - https://bitbucket.bit.admin.ch/projects/CNP/repos/generic-application-pipeline/browse
+
+maintainers:
+  - name: System Team IRS (PS-IRS-STI)
+    email: sti@bit.admin.ch
+    url: "https://docs.bcp.bit.admin.ch/support/"
+
+annotations:
+  support: supported
+  user_base: public

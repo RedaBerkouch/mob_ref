@@ -1,0 +1,89 @@
+global:
+  # Base
+  nexusImageRegistryBaseName: bit-jme-docker-hosted
+  imageRegistryDomain: nexus.bit.admin.ch/jme
+  gitOpsRepo: ssh://git@bitbucket.bit.admin.ch/bit_jme/jme-gitops.git
+
+  # Overrides the helm release name of the pipeline charts
+  overrideCdpReleaseName: test-cd-ppl-chart
+  overrideJbpReleaseName: test-java-ppl-chart
+
+  # discussion
+  secureTektonWebhookAccess: true
+
+  # Notification
+  sendNotification: true
+  notificationSender: tekton@bit.admin.ch
+  notificationServerHost: mailhost.mail.admin.ch
+  notificationServerPort: 25
+
+  # Pipeline clean up
+  pipelineCleanup:
+    enabled: true
+    cleanupCronString: '*/5 * * * *'
+    keepHours: 168
+    keepVersions: 25
+
+  # Testcontainer
+  testcontainers:
+    kubedock:
+      image: 'docker-hub.nexus.bit.admin.ch/joyrex2001/kubedock:0.18.1'
+      sidecar:
+        memoryRequest: 128Mi
+        memoryLimit: 512Mi
+        cpuRequest: 150m
+        cpuLimit: 500m
+      pod:
+        memoryRequest: 128Mi
+        memoryLimit: 512Mi
+        cpuRequest: 250m
+        cpuLimit: 700m
+
+  # Message Contract
+  messageContractApiUrl: https://bit-jme-d.apps.p-szb-ros-shrd-npr-01.cloud.admin.ch/message-contract-service
+  messageContractUser: write
+
+  # External Secrets
+  secrets:
+    enabled: true
+    paths:
+      test: { }
+    externalStore:
+      enabled: true
+      vaults:
+        - name: bit-jme-vault-global
+          path: p-szb-ros-shrd-npr-01
+          server: "https://vault-bfdcbaf9-e8b9-47c7-b296-5b0b0381aeb8.apps.p-szb-ros-shrd-npr-01.cloud.admin.ch"
+      paths:
+        bitbucket:
+          id: 'bit-jeap-pipeline-nino-d/bitbucket'
+          property: 'ssh-key'
+          vault: bit-jme-vault-global
+        bitbucketAccessToken:
+          id: 'bit-jeap-pipeline-nino-d/bitbucket'
+          property: 'accesstoken'
+          vault: bit-jme-vault-global
+        tektonWebhookAccessToken:
+          id: 'bit-jeap-pipeline-nino-d/webendpoint'
+          property: 'tektonWebhookAccessToken'
+          vault: bit-jme-vault-global
+        tektonDeploymentWebhookAccessToken:
+          id: 'bit-jeap-pipeline-nino-d/webendpoint'
+          property: 'tektonDeploymentWebhookAccessToken'
+          vault: bit-jme-vault-global
+        nexusUserPw:
+          id: 'bit-jeap-pipeline-nino-d/default'
+          property: 'nexusUserPw'
+          vault: bit-jme-vault-global
+        nexus:
+          id: 'bit-jeap-pipeline-nino-d/default'
+          property: 'dockerconfig'
+          vault: bit-jme-vault-global
+        deploymentLogUserPw:
+          id: 'bit-jeap-pipeline-nino-d/deploymentLog'
+          property: 'deploymentLogUserPw'
+          vault: bit-jme-vault-global
+        messageContractAuth:
+          id: 'bit-jeap-pipeline-nino-d/message-contract-auth'
+          property: 'secret'
+          vault: bit-jme-vault-global

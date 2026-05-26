@@ -1,0 +1,60 @@
+---
+global:
+  secrets:
+    enabled: true
+    externalStore:
+      enabled: true
+      vaults:
+        - name: gap-azure-and-bitbucket-externalstore
+          path: p-szb-ros-shrd-npr-01
+          server: https://mav.bit.admin.ch
+      paths:
+        bitbucket:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-ssh-key
+          property: bitbucket-ssh-key
+          vault: gap-azure-and-bitbucket-externalstore
+        azure:
+          id: bit-amber-pipelines-d/default
+          name: azure-ssh-key
+          property: azure-ssh-key
+          vault: gap-azure-and-bitbucket-externalstore
+        bitbucketAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-http-access-token
+          property: bitbucket-http-access-token
+          vault: gap-azure-and-bitbucket-externalstore
+        azureDevopsAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: azure-http-access-token
+          property: azure-http-access-token
+          vault: gap-azure-and-bitbucket-externalstore
+        nexus:
+          id: bit-amber-pipelines-d/default
+          name: dockerconfig
+          property: dockerconfig
+          vault: gap-azure-and-bitbucket-externalstore
+
+generic-application-pipeline:
+  defaultBuildVersionTemplate: "<COMMIT_HASH_SHORT>_<TIMESTAMP>"
+  defaultTaskComputeResources:
+    buildImage:
+      computeResources:
+        limits:
+          memory: 1Gi
+  applications:
+    - appName: azure-and-bitbucket-app-1
+      imageName: sti/gap-example
+      repoType: azure
+      containerFilePath: Dockerfile
+      srcRepo: ssh://devops-server.admin.ch:22/DefaultCollection/BIT_CICD_RHOS/_git/sti-gap-example
+      triggerBranchPattern: "^azure-and-bitbucket$"
+      imageRegistry: bit-sti-docker-hosted.nexus.bit.admin.ch
+      imageRegistryStaging: bit-sti-docker-hosted-incoming.nexus.bit.admin.ch
+    - appName: azure-and-bitbucket-app-2
+      imageName: sti/gap-example
+      containerFilePath: Dockerfile
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/stirhos/sti-gap-example.git
+      triggerBranchPattern: "^azure-and-bitbucket$"
+      imageRegistry: bit-sti-docker-hosted.nexus.bit.admin.ch
+      imageRegistryStaging: bit-sti-docker-hosted-incoming.nexus.bit.admin.ch

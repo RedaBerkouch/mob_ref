@@ -1,0 +1,92 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  labels:
+    {{- include "java-pipeline.labels" . | nindent 4 }}
+  annotations:
+    {{- include "java-pipeline.annotations" . | nindent 4 }}
+  name: {{ include "java-pipeline.resourceBaseName" $ }}-{{ include "java-pipeline.pipelinePrefix" . }}-validate-quality-gate
+spec:
+  description: Validate Quality Gate
+  params:
+    - description: name of key/value secret containing sonar host/token
+      name: sonar_secret_name
+      default: cop-sonar-token
+    - description: Path to Sonar Report File
+      name: sonar_report_path
+      type: string
+  steps:
+    - image: {{ .toolboxImage | default $.Values.defaultToolboxImage | quote}}
+      env:
+        - name: SONAR_HOST_URL
+          valueFrom:
+            secretKeyRef:
+              name: $(params.sonar_secret_name)
+              key: hostUrl
+        - name: SONAR_LOGIN
+          valueFrom:
+            secretKeyRef:
+              name: $(params.sonar_secret_name)
+              key: token
+        - name: HOME
+          value: "/tekton/home"
+      name: check-quality-gate-status
+      resources: {{- include "pipeline.stepResources" (dict "name" "check-quality-gate-status" "nameSuffix" "validate-quality-gate" "Values" .Values "defaultProfile" "small") | nindent 8 }}
+      script: |
+        #!/bin/bash
+        set -e
+
+        declare -A sonarTaskProperties
+        sonarReportFile=$(params.sonar_report_path)
+        while IFS='=' read -r key value; do
+          sonarTaskProperties["$key"]="$value"
+        done < "$sonarReportFile"
+
+        echo "ceTaskId:" ${sonarTaskProperties["ceTaskId"]}
+
+        sonarCheckTaskUrl=${SONAR_HOST_URL}/api/ce/task?id=${sonarTaskProperties["ceTaskId"]}
+
+        callNb=0
+        while [ $callNb -le 10 ]
+        do
+          sonarTaskJsonResponse=$(curl -u${SONAR_LOGIN}: -s ${sonarCheckTaskUrl})
+          taskStatus=$(jq -r '.task.status' <<< "$sonarTaskJsonResponse")
+          echo "taskStatus:" ${taskStatus}
+
+          if [ ${taskStatus} == "FAILED" ] || [ ${taskStatus} == "CANCELED" ]; then
+            echo "Sonar scan FAILED or CANCELED:" ${sonarCheckTaskUrl}
+            echo "Ignoring sonar scan for this pipeline run"
+            exit 0
+          fi
+
+          if [ ${taskStatus} == "SUCCESS" ]; then
+            ceAnalysisId=$(jq -r '.task.analysisId' <<< "$sonarTaskJsonResponse")
+            echo "ceAnalysisId:" ${ceAnalysisId}
+            break
+          fi
+
+          callNb=$((callNb+1))
+          echo "callNb:" ${callNb}
+          sleep 10
+        done
+
+        if [ ${taskStatus} == "PENDING" ] || [ ${taskStatus} == "IN_PROGRESS" ]; then
+          echo "Sonar scan PENDING or IN_PROGRESS:" ${sonarCheckTaskUrl}
+          echo "Ignoring sonar scan for this pipeline run"
+          exit 0
+        fi
+
+        sonarCheckProjectStatusUrl=${SONAR_HOST_URL}/api/qualitygates/project_status?analysisId=${ceAnalysisId}
+
+        projectStatus=$(curl -u${SONAR_LOGIN}: -s ${sonarCheckProjectStatusUrl} | jq -r '.projectStatus.status')
+        echo "projectStatus:" ${projectStatus}
+
+        if [ $projectStatus != "OK" ]; then
+          echo "Sonar quality gate status is FAILED:" ${sonarCheckProjectStatusUrl}
+          echo "Ending this pipeline run with error"
+          exit 1
+        fi
+
+  workspaces:
+    - description: The workspace containing the maven project
+      name: ws

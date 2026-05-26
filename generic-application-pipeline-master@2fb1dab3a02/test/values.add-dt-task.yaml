@@ -1,0 +1,49 @@
+---
+global:
+  secrets:
+    enabled: true
+    externalStore:
+      enabled: true
+      vaults:
+        - name: gap-add-dt-task-externalstore
+          path: p-szb-ros-shrd-npr-01
+          server: https://mav.bit.admin.ch
+      paths:
+        bitbucket:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-ssh-key
+          property: bitbucket-ssh-key
+          vault: gap-add-dt-task-externalstore
+        bitbucketAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-http-access-token
+          property: bitbucket-http-access-token
+          vault: gap-add-dt-task-externalstore
+        nexus:
+          id: bit-amber-pipelines-d/default
+          name: dockerconfig
+          property: dockerconfig
+          vault: gap-add-dt-task-externalstore
+        dependencyTrackApiKey:
+          id: bit-amber-pipelines-d/default
+          name: dtrack-secret
+          property: dependency-track-test-api-key
+          vault: gap-add-dt-task-externalstore
+
+generic-application-pipeline:
+  applications:
+    - appName: add-dt-task-test-app
+      imageName: bit/add-dt-task-test-app
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/stirhos/sti-gap-example.git
+      imageRegistry: bit-sti-docker-hosted.nexus.bit.admin.ch
+      imageRegistryStaging: bit-sti-docker-hosted-incoming.nexus.bit.admin.ch
+      containerFilePath: Dockerfile
+      triggerBranchPattern: "^develop-add-dt-task$"
+      dependencyTrackParentName: "NEVIS"
+      dependencyTrackParentVersion: "lenz"
+      pipelineTasksConfig:
+        dependencyTrackApiUrl: https://dependency-track-test-apiserver-route-bit-amber-pipelines-d.apps.p-szb-ros-shrd-npr-01.cloud.admin.ch
+      branchTaskConfiguration:
+        develop:
+          buildNotifications: false
+          runScaCheck: true

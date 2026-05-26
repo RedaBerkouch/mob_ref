@@ -1,0 +1,65 @@
+---
+global:
+  secrets:
+    enabled: true
+    externalStore:
+      enabled: true
+      vaults:
+        - name: gap-no-argocd-presync-hook-delete-pvc-externalstore
+          path: p-szb-ros-shrd-npr-01
+          server: https://mav.bit.admin.ch
+      paths:
+        bitbucket:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-ssh-key
+          property: bitbucket-ssh-key
+          vault: gap-no-argocd-presync-hook-delete-pvc-externalstore
+        bitbucketAccessToken:
+          id: bit-amber-pipelines-d/default
+          name: bitbucket-http-access-token
+          property: bitbucket-http-access-token
+          vault: gap-no-argocd-presync-hook-delete-pvc-externalstore
+        nexus:
+          id: bit-amber-pipelines-d/default
+          name: dockerconfig
+          property: dockerconfig
+          vault: gap-no-argocd-presync-hook-delete-pvc-externalstore
+        netrc:
+          id: bit-amber-pipelines-d/default
+          name: netrc
+          property: netrc
+          vault: gap-no-argocd-presync-hook-delete-pvc-externalstore
+
+generic-application-pipeline:
+  enableMonorepo: true
+  defaultTriggerBranchPattern: '^develop-monorepo$'
+  applications:
+    - appName: app1
+      imageName: bit/app1
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/stirhos/sti-gap-example.git
+      imageRegistry: bit-sti-docker-hosted.nexus.bit.admin.ch
+      imageRegistryStaging: bit-sti-docker-hosted-incoming.nexus.bit.admin.ch
+      containerFilePath: Containerfile
+      buildImageContextPath: app1/
+      trivyIgnorePath: app1/.trivyignore  #overriden, .trivyignore expected in app1/ subfolder, note: trivyIgnorePath unaffected by buildImageContextPath
+    - appName: app2
+      imageName: bit/app2
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/stirhos/sti-gap-example.git
+      imageRegistry: bit-sti-docker-hosted.nexus.bit.admin.ch
+      imageRegistryStaging: bit-sti-docker-hosted-incoming.nexus.bit.admin.ch
+      buildImageContextPath: app2/
+      #trivyIgnorePath not specified, use default, .trivyignore expected in Git repository root, note: trivyIgnorePath unaffected by buildImageContextPath
+    - appName: app3
+      imageName: bit/app3
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/stirhos/app3.git
+      imageRegistry: bit-sti-docker-hosted.nexus.bit.admin.ch
+      imageRegistryStaging: bit-sti-docker-hosted-incoming.nexus.bit.admin.ch
+      buildImageContextPath: app3/
+      #trivyIgnorePath not specified, use default, .trivyignore expected in Git repository root, note: trivyIgnorePath unaffected by buildImageContextPath
+    - appName: app4
+      imageName: bit/app4
+      srcRepo: ssh://git@bitbucket.bit.admin.ch/stirhos/sti-gap-example.git
+      imageRegistry: bit-sti-docker-hosted.nexus.bit.admin.ch
+      imageRegistryStaging: bit-sti-docker-hosted-incoming.nexus.bit.admin.ch
+      buildImageContextPath: app4/
+      #trivyIgnorePath not specified, use default, .trivyignore expected in Git repository root, note: trivyIgnorePath unaffected by buildImageContextPath

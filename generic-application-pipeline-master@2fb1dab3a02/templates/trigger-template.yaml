@@ -1,0 +1,165 @@
+{{ $hasAzureDevopsRepo := eq (include "generic-application-pipeline.hasAzureDevopsRepo" .) "true" }}
+{{- if $.Values.enableMonorepo }}
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: {{ include "generic-application-pipeline.releaseName" . }}-monorepo-tt
+  labels:
+    {{- include "generic-application-pipeline.metadata.template-labels" . | nindent 4 }}
+  annotations:
+    {{- include "generic-application-pipeline.metadata.template-annotations" . | nindent 4 }}
+spec:
+  params:
+    - description: URL of the git repo
+      name: gitrepo-url
+    - description: Revision of git commit
+      name: git-revision
+    - description: Whether to publish an image or not for this trigger
+      name: publish-image
+    - description: Name of pushing user
+      name: pusher-name
+    - description: Display name of pushing user
+      name: pusher-displayname
+    - description: Email address
+      name: pusher-email
+      default: {{ $.Values.triggerTemplate.defaultEmailAddress }}
+    - description: Git repository slug
+      name: git-repo-slug
+    - description: Git host URL
+      name: git-host-url
+    - description: Git project name
+      name: git-project-name
+    - description: Git fromHash
+      name: git-from-hash
+    {{- if $hasAzureDevopsRepo }}
+    - description: Azure build ID
+      name: azurerepo-build-id
+    {{- end }}
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1
+      kind: PipelineRun
+      metadata:
+        generateName: {{ include "generic-application-pipeline.releaseName" . }}-monorepo-setup-
+        annotations:
+          pipeline.bit.admin.ch/revision: '$(tt.params.git-revision)'
+          pipeline.bit.admin.ch/actor-name: '$(tt.params.pusher-name)'
+          pipeline.bit.admin.ch/actor-displayname: '$(tt.params.pusher-displayname)'
+          pipeline.bit.admin.ch/actor-email: '$(tt.params.pusher-email)'
+          pipeline.openshift.io/started-by: '$(tt.params.pusher-name)'
+      spec:
+        pipelineRef:
+          name: {{ include "generic-application-pipeline.releaseName" . }}-monorepo
+        taskRunTemplate:
+          serviceAccountName: pipeline
+          podTemplate:
+            imagePullSecrets:
+              - name: cop-nexus-dockerconfig
+        params:
+          - name: GIT_REV
+            value: $(tt.params.git-revision)
+          - name: GIT_FROM_HASH
+            value: $(tt.params.git-from-hash)
+          - name: GIT_HOST_URL
+            value: $(tt.params.git-host-url)
+          - name: GIT_PROJECT_NAME
+            value: $(tt.params.git-project-name)
+          - name: GIT_REPO_SLUG
+            value: $(tt.params.git-repo-slug)
+          - name: GIT_PUSHER
+            value: $(tt.params.pusher-name)
+          - name: GIT_PUSHER_DISPLAYNAME
+            value: $(tt.params.pusher-displayname)
+          - name: GIT_PUSHER_EMAIL
+            value: $(tt.params.pusher-email)
+          {{- if $hasAzureDevopsRepo }}
+          - name: BUILD_ID
+            value: $(tt.params.azurerepo-build-id)
+          {{- end }}
+
+{{ else }}
+  {{- range .Values.applications }}
+  {{ $dummy := fromJson (include "generic-application-pipeline.applyApplicationDefaults" (list . $)) }}
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: {{ .appName }}-{{ include "generic-application-pipeline.pipelineSuffix" . }}-tt
+  labels:
+    {{- include "generic-application-pipeline.metadata.template-labels" (dict "appName" .appName "Chart" $.Chart "Values" $.Values) | nindent 4 }}
+  annotations:
+    {{- include "generic-application-pipeline.metadata.template-annotations" . | nindent 4 }}
+spec:
+  params:
+    - description: URL of the git repo
+      name: gitrepo-url
+    - description: Revision of git commit
+      name: git-revision
+    - description: Whether to publish an image or not for this trigger
+      name: publish-image
+    - description: Name of pushing user
+      name: pusher-name
+    - description: Display name of pushing user
+      name: pusher-displayname
+    - description: Email address
+      name: pusher-email
+      default: {{ $.Values.triggerTemplate.defaultEmailAddress }}
+    {{- if eq .repoType "azure" }}
+    - description: Azure DevOps build id
+      name: azurerepo-build-id
+    {{- end }}
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1
+      kind: PipelineRun
+      metadata:
+        generateName: {{ .appName }}-{{ include "generic-application-pipeline.pipelineSuffix" . }}-build-run-
+        annotations:
+          pipeline.bit.admin.ch/revision: '$(tt.params.git-revision)'
+          pipeline.bit.admin.ch/actor-name: '$(tt.params.pusher-name)'
+          pipeline.bit.admin.ch/actor-displayname: '$(tt.params.pusher-displayname)'
+          pipeline.bit.admin.ch/actor-email: '$(tt.params.pusher-email)'
+          pipeline.openshift.io/started-by: '$(tt.params.pusher-name)'
+      spec:
+        pipelineRef:
+          name: {{ .appName }}-{{ include "generic-application-pipeline.pipelineSuffix" . }}-build-pipeline
+        taskRunTemplate:
+          serviceAccountName: pipeline
+          podTemplate:
+            imagePullSecrets:
+              - name: cop-nexus-dockerconfig
+
+        # Note: taskRunSpecs are being generated by applyApplicationDefaults function
+        {{ toYaml .taskRunSpecs | nindent 8 }}
+        params:
+          - name: GIT_REPO
+            value: $(tt.params.gitrepo-url)
+          - name: GIT_REV
+            value: $(tt.params.git-revision)
+          - name: IMAGE_NAME
+            value: {{ .imageName }}
+          {{- if eq .repoType "azure" }}
+          - name: BUILD_ID
+            value: $(tt.params.azurerepo-build-id)
+          {{- end }}
+        workspaces:
+          - name: ws
+            persistentVolumeClaim:
+              claimName: {{ .appName }}-{{ include "generic-application-pipeline.pipelineSuffix" . }}-pipeline-rwo-pvc
+          - name: ssh-key
+            secret:
+              secretName: {{ include "generic-application-pipeline.releaseName" $ }}-{{- if eq .repoType "azure" -}}azure-ssh-key{{- else -}}bitbucket-ssh-key{{- end }}
+          - name: netrc
+            secret:
+              secretName: {{ include "generic-application-pipeline.releaseName" $ }}-netrc
+          - name: dockerconfig
+            secret:
+              secretName: cop-nexus-dockerconfig
+          - name: acs-api-token
+            secret:
+              secretName: cop-rox-api-token
+          - name: acs-ws
+            emptyDir: {}
+          - name: acs-results
+            emptyDir: {}
+{{- end }}
+{{- end }}

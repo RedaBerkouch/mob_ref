@@ -1,0 +1,43 @@
+{{- if .Values.defaultArgoCDPreSyncHookDeletePVC }}
+---
+{{- $hasAppname := false }}
+{{- range .Values.applications }}
+  {{- if .appName }}
+    {{- $hasAppname = true }}
+  {{- end }}
+{{- end }}
+
+{{- if $hasAppname }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "generic-application-pipeline.releaseName" . }}-rm-pvc
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      containers:
+        - name: {{ include "generic-application-pipeline.pipelineSuffix" . }}-delete-pvc
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          image: 'image-registry.openshift-image-registry.svc:5000/openshift/cli:latest'
+          command: [ "/bin/bash" ]
+          args:
+            - -c
+            - >-
+              {{- range .Values.applications | reverse }}
+              oc get pvc {{ .appName }}-{{ include "generic-application-pipeline.pipelineSuffix" . }}-pipeline-rwm-pvc &&
+              oc delete --wait=false pvc {{ .appName }}-{{ include "generic-application-pipeline.pipelineSuffix" . }}-pipeline-rwm-pvc &&
+              oc patch pvc {{ .appName }}-{{ include "generic-application-pipeline.pipelineSuffix" . }}-pipeline-rwm-pvc -p '{"metadata":{"finalizers":null}}' &&
+              echo 'PVC cleanup succeed' ||
+              echo 'PVC cleanup not needed or failed'
+              {{- end}}
+      restartPolicy: Never
+      serviceAccountName: pipeline
+  backoffLimit: 1
+{{- end }}
+{{- end }}

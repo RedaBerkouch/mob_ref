@@ -1,0 +1,22 @@
+{{- range .Values.applications }}
+{{- $pipelineStorage := .pipelineStorage | default dict }}
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ .appName }}-{{ include "generic-application-pipeline.pipelineSuffix" . }}-pipeline-rwo-pvc
+  labels:
+    {{- include "generic-application-pipeline.metadata.template-labels" (dict "appName" .appName "Chart" $.Chart "Values" $.Values) | nindent 4 }}
+  annotations:
+    {{- include "generic-application-pipeline.metadata.template-annotations" . | nindent 4 }}
+    trident.netapp.io/unixPermissions: "777"
+spec:
+  accessModes:
+    - {{ $pipelineStorage.accessMode | default $.Values.defaultPipelineStorage.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ $pipelineStorage.size | default $.Values.defaultPipelineStorage.size | quote }}
+  volumeMode: Filesystem
+  storageClassName: {{ $pipelineStorage.storageClass | default $.Values.defaultPipelineStorage.storageClass | quote }}
+
+{{- end}}
